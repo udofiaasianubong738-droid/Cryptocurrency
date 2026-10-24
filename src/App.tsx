@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   ArrowDownLeft,
   BarChart3,
@@ -437,7 +438,7 @@ function UnauthorizedPage() {
   );
 }
 
-function PageTemplate({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function PageTemplate({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
     <div className="page-wrap">
       <header className="page-header">
@@ -453,7 +454,7 @@ function PageTemplate({ title, subtitle, children }: { title: string; subtitle: 
   );
 }
 
-function TableSection({ columns, rows }: { columns: string[]; rows: React.ReactNode[][] }) {
+function TableSection({ columns, rows }: { columns: string[]; rows: ReactNode[][] }) {
   return (
     <SectionCard title="Records" subtitle="System output">
       <div className="table-wrap">
@@ -492,7 +493,7 @@ function MetricCard({ metric }: { metric: { label: string; value: string; tone?:
   );
 }
 
-function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children?: React.ReactNode }) {
+function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
   return (
     <section className="panel-card">
       <div className="panel-header">
@@ -506,7 +507,7 @@ function SectionCard({ title, subtitle, children }: { title: string; subtitle?: 
   );
 }
 
-function StatusBadge({ tone, children }: { tone: StatusTone; children: React.ReactNode }) {
+function StatusBadge({ tone, children }: { tone: StatusTone; children: ReactNode }) {
   return <span className={`status-badge ${tone}`}>{children}</span>;
 }
 
@@ -522,7 +523,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
 }
 
 function renderIcon(iconName: string) {
-  const iconMap: Record<string, React.ReactNode> = {
+  const iconMap: Record<string, ReactNode> = {
     LayoutGrid: <LayoutGrid size={16} />,
     Users: <Users size={16} />,
     WalletCards: <WalletCards size={16} />,
