@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import {
+  Activity,
+  AlertTriangle,
   ArrowDownLeft,
+  ArrowUpRight,
   BarChart3,
   Bell,
   BookOpenText,
@@ -18,9 +21,6 @@ import {
   ShoppingCart,
   Users,
   WalletCards,
-  Activity,
-  ArrowUpRight,
-  AlertTriangle,
 } from 'lucide-react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { mockCustomers, mockDepositRequests, mockMetrics, mockWithdrawalRequests, mockNavItems } from './data/mockData';
@@ -30,6 +30,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/public" element={<LandingPage />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
@@ -118,7 +119,7 @@ function TopHeader() {
 
 function DashboardPage() {
   return (
-    <div className="page-wrap">
+    <div className="page-wrap dashboard-page">
       <header className="page-header dashboard-header">
         <div>
           <p className="eyebrow">Operations overview</p>
@@ -136,8 +137,8 @@ function DashboardPage() {
         ))}
       </div>
 
-      <div className="content-grid two-col">
-        <SectionCard title="Portfolio allocation" subtitle="Simulated allocation — development only">
+      <div className="dashboard-analytics-grid">
+        <SectionCard title="Portfolio allocation" subtitle="Simulated allocation — development only" className="wide-panel">
           <div className="allocation-list">
             {[
               { asset: 'Bitcoin', value: '38%', color: 'var(--primary-blue)' },
@@ -147,15 +148,17 @@ function DashboardPage() {
               { asset: 'Other', value: '10%', color: 'var(--accent-purple)' },
             ].map((item) => (
               <div key={item.asset} className="allocation-row">
-                <span className="swatch" style={{ background: item.color }} />
-                <span>{item.asset}</span>
+                <span className="allocation-meta">
+                  <span className="swatch" style={{ background: item.color }} />
+                  <span>{item.asset}</span>
+                </span>
                 <strong>{item.value}</strong>
               </div>
             ))}
           </div>
         </SectionCard>
 
-        <SectionCard title="System health" subtitle="Integration status">
+        <SectionCard title="System health" subtitle="Integration status" className="compact-panel">
           <div className="stack-list">
             {[
               { name: 'Supabase', status: 'Connected', tone: 'success' },
@@ -411,6 +414,81 @@ function SecurityPage() {
   );
 }
 
+function LandingPage() {
+  return (
+    <div className="landing-shell">
+      <header className="landing-header">
+        <div className="landing-brand">
+          <Logo compact />
+          <span>CryptoInvest</span>
+        </div>
+        <nav className="landing-nav">
+          <a href="#features">Features</a>
+          <a href="#security">Security</a>
+          <a href="#insights">Insights</a>
+        </nav>
+        <div className="landing-actions">
+          <Link to="/login" className="secondary-button">Login</Link>
+          <Link to="/" className="primary-button">Go to admin</Link>
+        </div>
+      </header>
+
+      <main className="landing-main">
+        <section className="hero-panel">
+          <div className="hero-copy">
+            <p className="eyebrow accent">Built for digital capital</p>
+            <h1>Trade, manage, and secure your portfolio with clarity.</h1>
+            <p className="hero-subtitle">
+              A modern crypto operations platform for finance teams, investors, and executive oversight.
+            </p>
+            <div className="hero-actions">
+              <Link to="/" className="primary-button">Open admin</Link>
+              <Link to="/public" className="secondary-button">Explore platform</Link>
+            </div>
+            <div className="stat-row">
+              <div><strong>$7.4M</strong><span>Portfolio tracked</span></div>
+              <div><strong>1248</strong><span>Users onboarded</span></div>
+              <div><strong>99.9%</strong><span>Platform uptime</span></div>
+            </div>
+          </div>
+
+          <div className="hero-visual">
+            <div className="glass-card">
+              <div className="glass-card-header">
+                <span>Portfolio value</span>
+                <StatusBadge tone="success">+12.4%</StatusBadge>
+              </div>
+              <div className="glass-value">$2.84M</div>
+              <div className="mini-bars">
+                <span style={{ height: '32%' }} />
+                <span style={{ height: '45%' }} />
+                <span style={{ height: '58%' }} />
+                <span style={{ height: '70%' }} />
+                <span style={{ height: '85%' }} />
+                <span style={{ height: '100%' }} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="feature-grid" id="features">
+          {[
+            { title: 'Unified treasury', text: 'Monitor deposits, withdrawals, exposure, and wallet activity in one place.' },
+            { title: 'Risk intelligence', text: 'Priority alerts keep your team focused on the exceptions that matter.' },
+            { title: 'Audit ready', text: 'Track actions, approvals, and access with a clean operational trail.' },
+          ].map((feature) => (
+            <div className="feature-card" key={feature.title}>
+              <div className="feature-icon"><BarChart3 size={18} /></div>
+              <h3>{feature.title}</h3>
+              <p>{feature.text}</p>
+            </div>
+          ))}
+        </section>
+      </main>
+    </div>
+  );
+}
+
 function LoginPage() {
   const navigate = useNavigate();
   return (
@@ -486,6 +564,7 @@ function MetricCard({ metric }: { metric: { label: string; value: string; tone?:
     <div className="metric-card">
       <div className="metric-header">
         <span>{metric.label}</span>
+        <span className={`metric-dot ${metric.tone ?? 'info'}`} />
       </div>
       <div className="metric-value">{metric.value}</div>
       <small>{metric.detail}</small>
@@ -493,9 +572,9 @@ function MetricCard({ metric }: { metric: { label: string; value: string; tone?:
   );
 }
 
-function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
+function SectionCard({ title, subtitle, children, className = '' }: { title: string; subtitle?: string; children?: ReactNode; className?: string }) {
   return (
-    <section className="panel-card">
+    <section className={`panel-card ${className}`.trim()}>
       <div className="panel-header">
         <div>
           <h2>{title}</h2>
