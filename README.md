@@ -2,7 +2,8 @@
 MASTER IMPLEMENTATION PROMPT — INVEST BROKER ADMIN PORTAL
 
 Project objective
-
+https://ddselkwekvdvwlpeddzq.supabase.co
+ddselkwekvdvwlpeddzq
 Work on the existing repository:
 Build and verify the complete Invest Broker CEO Admin Portal, including its frontend, backend foundation, database integration, navigation, screens, buttons, forms, investment-management workflows, and automated tests.
 
