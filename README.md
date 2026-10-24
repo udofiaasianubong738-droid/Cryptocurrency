@@ -4,9 +4,6 @@ MASTER IMPLEMENTATION PROMPT — INVEST BROKER ADMIN PORTAL
 Project objective
 
 Work on the existing repository:
-
-"https://github.com/Cyrrenza-v2/Invest-broker"
-
 Build and verify the complete Invest Broker CEO Admin Portal, including its frontend, backend foundation, database integration, navigation, screens, buttons, forms, investment-management workflows, and automated tests.
 
 The admin portal is the first and only implementation target for this phase. Do not start building or redesigning the customer portal until the admin portal passes its acceptance tests.
