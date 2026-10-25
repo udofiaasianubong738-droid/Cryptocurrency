@@ -250,7 +250,7 @@ function WithdrawalsPage() {
           request.customer,
           request.asset,
           `${request.amount} ${request.asset}`,
-          <StatusBadge key={`${request.id}-status`} tone={request.status === 'completed' ? 'success' : request.status === 'rejected' ? 'danger' : 'warning'}>{request.status}</StatusBadge>,
+          <StatusBadge key={`${request.id}-status`} tone={request.status === 'processing' ? 'info' : request.status === 'rejected' ? 'danger' : 'warning'}>{request.status}</StatusBadge>,
           request.destination,
         ])}
       />
