@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "android:sync": "npx cap sync android",
-    "android:open": "npx cap open android"
+    "android:open": "npx cap open android",
+    "deploy:cloudflare": "wrangler deploy"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",
