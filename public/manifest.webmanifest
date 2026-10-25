@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "CryptoInvest",
+  "short_name": "CryptoInvest",
+  "description": "CryptoInvest digital-asset operations dashboard",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f8ff",
+  "theme_color": "#0868f7",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
