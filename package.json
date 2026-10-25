@@ -10,7 +10,8 @@
     "test": "vitest run",
     "android:sync": "npx cap sync android",
     "android:open": "npx cap open android",
-    "deploy:cloudflare": "wrangler deploy"
+    "deploy:cloudflare": "wrangler deploy",
+    "ai:holiday": "tsx index.ts"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",
@@ -19,7 +20,8 @@
     "lucide-react": "^0.453.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^6.28.0",
+    "ai": "^7.0.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -32,6 +34,7 @@
     "jsdom": "^25.0.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "tsx": "^4.20.0"
   }
 }
