@@ -39,4 +39,4 @@ export const mockWithdrawalRequests = [
   { id: 'WDR-5301', customer: 'Ava Walker', asset: 'USDC', amount: '4200', status: 'pending', destination: '0xA8c3...bF14', createdAt: '2026-10-23 10:12 UTC' },
   { id: 'WDR-5302', customer: 'Leo Morgan', asset: 'BTC', amount: '0.12', status: 'processing', destination: 'bc1q...9d4a', createdAt: '2026-10-22 18:40 UTC' },
   { id: 'WDR-5303', customer: 'Noah Singh', asset: 'ETH', amount: '1.50', status: 'rejected', destination: '0x7a81...12c7', createdAt: '2026-10-21 11:00 UTC' },
-];
+] as const;
