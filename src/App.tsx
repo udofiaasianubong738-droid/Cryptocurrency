@@ -27,10 +27,23 @@ import { mockCustomers, mockDepositRequests, mockMetrics, mockWithdrawalRequests
 import type { StatusTone } from './types';
 
 function App() {
+  const hostname = window.location.hostname.toLowerCase();
+  const isPublicHost = hostname === 'cryptoinvest.com' || hostname === 'www.cryptoinvest.com';
+
+  // The apex domain is the public overview. The admin subdomain and temporary
+  // workers.dev host keep the CEO dashboard routes.
+  if (isPublicHost) {
+    return (
+      <Routes>
+        <Route path="*" element={<LandingPage />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/public" element={<LandingPage />} />
+      <Route path="/public" element={<Navigate to="/" replace />} />
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
       <Route path="/*" element={<ProtectedLayout />} />
     </Routes>
@@ -428,8 +441,8 @@ function LandingPage() {
           <a href="#insights">Insights</a>
         </nav>
         <div className="landing-actions">
-          <Link to="/login" className="secondary-button">Login</Link>
-          <Link to="/" className="primary-button">Go to admin</Link>
+          <a href="https://admin.cryptoinvest.com/login" className="secondary-button">Admin login</a>
+          <a href="https://admin.cryptoinvest.com/" className="primary-button">Admin portal</a>
         </div>
       </header>
 
@@ -442,8 +455,8 @@ function LandingPage() {
               A modern crypto operations platform for finance teams, investors, and executive oversight.
             </p>
             <div className="hero-actions">
-              <Link to="/" className="primary-button">Open admin</Link>
-              <Link to="/public" className="secondary-button">Explore platform</Link>
+              <a href="https://admin.cryptoinvest.com/" className="primary-button">Open admin</a>
+              <a href="#features" className="secondary-button">Explore platform</a>
             </div>
             <div className="stat-row">
               <div><strong>$7.4M</strong><span>Portfolio tracked</span></div>
