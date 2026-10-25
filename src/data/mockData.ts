@@ -12,7 +12,7 @@ export const mockNavItems = [
   { label: 'Audit Logs', to: '/audit', icon: 'FileText' },
   { label: 'Integrations', to: '/integrations', icon: 'ServerCog' },
   { label: 'Security', to: '/security', icon: 'Shield' },
-];
+] as const;
 
 export const mockMetrics = [
   { label: 'Registered customers', value: '1,248', detail: '+3.2% vs last month', tone: 'info' },
@@ -21,19 +21,19 @@ export const mockMetrics = [
   { label: 'Portfolio exposure', value: '$7.42M', detail: 'Simulation only', tone: 'success' },
   { label: 'Realized P/L', value: '$128.4K', detail: 'Separate from market moves', tone: 'success' },
   { label: 'Unrealized P/L', value: '$245.7K', detail: 'Market-based estimate', tone: 'info' },
-];
+] as const;
 
 export const mockCustomers = [
   { id: 'C-1001', name: 'Ava Walker', status: 'verified', email: 'ava@northstar.io', portfolio: '$245,000', lastActive: '4 min ago' },
   { id: 'C-1002', name: 'Leo Morgan', status: 'pending', email: 'leo@signalcap.com', portfolio: '$98,400', lastActive: '31 min ago' },
   { id: 'C-1003', name: 'Noah Singh', status: 'restricted', email: 'noah@peakvault.com', portfolio: '$62,900', lastActive: '2 hours ago' },
-];
+] as const;
 
 export const mockDepositRequests = [
   { id: 'DEP-2024-001', customer: 'Ava Walker', asset: 'USDT', amount: '12000', currency: 'USD', status: 'pending', reference: 'P-9782', createdAt: '2026-10-23 08:42 UTC' },
   { id: 'DEP-2024-002', customer: 'Leo Morgan', asset: 'BTC', amount: '0.240', currency: 'BTC', status: 'under_review', reference: 'TX-48310', createdAt: '2026-10-23 06:15 UTC' },
   { id: 'DEP-2024-003', customer: 'Noah Singh', asset: 'ETH', amount: '3.80', currency: 'ETH', status: 'approved', reference: 'TX-87451', createdAt: '2026-10-22 19:00 UTC' },
-];
+] as const;
 
 export const mockWithdrawalRequests = [
   { id: 'WDR-5301', customer: 'Ava Walker', asset: 'USDC', amount: '4200', status: 'pending', destination: '0xA8c3...bF14', createdAt: '2026-10-23 10:12 UTC' },
