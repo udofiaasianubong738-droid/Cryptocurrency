@@ -2,21 +2,11 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import DashboardApp from "./dashboard-app";
+import type { DemoDashboardData } from "../lib/admin-types";
 import { getSupabaseBrowserClient } from "../lib/supabase/client";
 
 type Mode = "loading" | "signed_out" | "mfa" | "checking_admin" | "ready" | "denied" | "config_error";
-type DashboardData = {
-  ok?: boolean;
-  demo_only?: boolean;
-  accounts?: Array<{ id: string; label: string; virtual_balance: number; currency_code: string }>;
-  recent_investments?: Array<{ id: string; asset_code: string; status: string; principal_amount: number }>;
-  recent_orders?: Array<{ id: string; asset_code: string; side: string; status: string; execution_mode: string }>;
-  positions?: Array<{ id: string; asset_code: string; quantity: number }>;
-  market_providers?: Array<{ provider: string; status: string; last_success_at: string | null }>;
-  latest_market_analytics?: { captured_at?: string } | null;
-  live_money_operations_enabled?: boolean;
-  error?: string;
-};
+type DashboardData = DemoDashboardData;
 
 export default function AdminEntry({ activeSection = "overview" }: { activeSection?: string }) {
   const [mode, setMode] = useState<Mode>("loading");
@@ -182,7 +172,7 @@ export default function AdminEntry({ activeSection = "overview" }: { activeSecti
           <div><span>Demo positions</span><strong>{data?.positions?.length ?? 0}</strong></div>
           <p>These counts come from the protected backend. All amounts and order results are simulated.</p>
         </div>
-        <DashboardApp activeSection={activeSection} />
+        <DashboardApp activeSection={activeSection} backendData={data ?? undefined} />
       </>
     );
   }
