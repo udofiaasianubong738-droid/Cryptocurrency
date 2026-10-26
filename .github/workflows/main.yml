@@ -1,1 +1,33 @@
+name: Repository integrity checks
 
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - fix/production-safety-gates
+
+permissions:
+  contents: read
+
+jobs:
+  repository-sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate required project manifests
+        run: |
+          test -s package.json
+          test -s nextjs/package.json
+          test -s .github/workflows/nextjs-ci.yml
+          test -s .github/workflows/deploy-cloudflare-worker.yml
+      - name: Check patch whitespace errors
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --check "origin/${{ github.base_ref }}...HEAD"
+          else
+            git diff --check "HEAD^..HEAD"
+          fi

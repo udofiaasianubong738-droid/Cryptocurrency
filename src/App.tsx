@@ -28,7 +28,7 @@ import type { StatusTone } from './types';
 
 function App() {
   const hostname = window.location.hostname.toLowerCase();
-  const isPublicHost = hostname === 'cryptoinvest.com' || hostname === 'www.cryptoinvest.com';
+  const isPublicHost = hostname === 'cryptoinvest.com' || hostname === 'www.cryptoinvest.com' || hostname.endsWith('.github.io');
 
   // The apex domain is the public overview. The admin subdomain and temporary
   // workers.dev host keep the CEO dashboard routes.
