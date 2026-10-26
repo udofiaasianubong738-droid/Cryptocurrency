@@ -70,7 +70,7 @@ export default function AdminEntry({ activeSection = "overview" }: { activeSecti
       return;
     }
     const { data: factorData, error: factorError } = await supabase.auth.mfa.listFactors();
-    const factor = factorData?.totp?.find((item) => item.status === "verified");
+    const factor = factorData?.totp?.find((item: { id: string; status: string }) => item.status === "verified");
     if (factorError || !factor) {
       setError("Admin access requires a verified authenticator factor. Set up MFA in your account security settings, then sign in again.");
       setMode("denied");
@@ -91,12 +91,12 @@ export default function AdminEntry({ activeSection = "overview" }: { activeSecti
     let active = true;
     try {
       const supabase = getClient();
-      supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+      supabase.auth.getSession().then((sessionResult) => {
         if (!active) return;
-        if (sessionError) {
+        if (sessionResult.error) {
           setError("Unable to restore your session. Please sign in again.");
           setMode("signed_out");
-        } else if (sessionData.session) {
+        } else if (sessionResult.data.session) {
           void startMfa();
         } else {
           setMode("signed_out");
