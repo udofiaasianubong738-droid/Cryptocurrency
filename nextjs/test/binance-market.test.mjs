@@ -61,7 +61,7 @@ test("labels cached prices stale after a failed refresh", async () => {
   assert.equal(result.status, "stale");
   assert.equal(result.staleAgeSeconds, 40);
   assert.match(result.message, /refresh failed/i);
-  assert.equal(result.prices.length, 3);
+  assert.equal(result.prices.length, BINANCE_SPOT_SYMBOLS.length);
 });
 
 test("shows unavailable with no fabricated prices before first success", async () => {
