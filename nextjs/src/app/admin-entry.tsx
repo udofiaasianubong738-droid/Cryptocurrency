@@ -8,6 +8,88 @@ import { getSupabaseBrowserClient } from "../lib/supabase/client";
 type Mode = "loading" | "signed_out" | "mfa" | "checking_admin" | "ready" | "denied" | "config_error";
 type DashboardData = DemoDashboardData;
 
+function DemoWorkflowPanel({ data, onRefresh }: { data: DemoDashboardData; onRefresh: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [noticeError, setNoticeError] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>, action: string) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
+    payload.action = action;
+    payload.idempotency_key = crypto.randomUUID();
+    setBusy(true);
+    setNotice("");
+    setNoticeError(false);
+    try {
+      const response = await fetch("/api/admin/demo", {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json() as { ok?: boolean; error?: string };
+      if (!response.ok || !result.ok) {
+        setNotice(result.error || "The demo action could not be completed.");
+        setNoticeError(true);
+        return;
+      }
+      setNotice("Demo-only action completed. The backend summary has been refreshed.");
+      form.reset();
+      await onRefresh();
+    } catch {
+      setNotice("The demo backend could not be reached.");
+      setNoticeError(true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const accounts = data.accounts ?? [];
+  const investments = data.recent_investments ?? [];
+  return <section className="surface-card demo-workflow-panel">
+    <div className="section-title-row"><div><p className="section-kicker">SIMULATION CONTROLS</p><h2>Admin demo workflows</h2><p className="section-description">These actions change virtual demo records only. No wallet, exchange, deposit or payout is connected.</p></div><span className="status-pill status-locked">Demo only</span></div>
+    {notice && <p className={noticeError ? "demo-action-notice demo-action-error" : "demo-action-notice"} role="status">{notice}</p>}
+    <div className="demo-workflow-grid">
+      <form className="demo-action-card" onSubmit={(event) => void submit(event, "create_demo_account")}>
+        <h3>Create virtual account</h3><p>Creates a test account with a virtual starting balance.</p>
+        <label>Account label<input name="label" maxLength={120} placeholder="QA demo account" required /></label>
+        <label>Starting virtual balance<input name="initial_balance" type="number" min="1" max="1000000000" step="any" defaultValue="10000" required /></label>
+        <input type="hidden" name="currency_code" value="USDT" />
+        <button type="submit" disabled={busy}>{busy ? "Working…" : "Create demo account"}</button>
+      </form>
+      <form className="demo-action-card" onSubmit={(event) => void submit(event, "create_demo_investment")}>
+        <h3>Create demo investment</h3><p>Allocates virtual funds from a selected demo account.</p>
+        <label>Demo account<select name="demo_account_id" required defaultValue=""><option value="" disabled>Select an account</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label} · {a.currency_code}</option>)}</select></label>
+        <label>Asset code<input name="asset_code" minLength={2} maxLength={15} pattern="[A-Za-z0-9]{2,15}" placeholder="BTC" required /></label>
+        <label>Plan label<input name="plan_name" maxLength={120} defaultValue="Demo plan" required /></label>
+        <label>Virtual principal<input name="principal_amount" type="number" min="0.000001" max="1000000000" step="any" required /></label>
+        <input type="hidden" name="currency_code" value="USDT" />
+        <button type="submit" disabled={busy || accounts.length===0}>{busy ? "Working…" : "Create demo investment"}</button>
+      </form>
+      <form className="demo-action-card" onSubmit={(event) => void submit(event, "record_demo_outcome")}>
+        <h3>Record demo outcome</h3><p>Records a simulated profit or loss for a demo investment.</p>
+        <label>Demo investment<select name="investment_id" required defaultValue=""><option value="" disabled>Select an investment</option>{investments.filter(x=>x.status!=="completed"&&x.status!=="loss_recorded").map(x=><option key={x.id} value={x.id}>{x.asset_code} · {x.plan_name} · {x.currency_code}</option>)}</select></label>
+        <label>Simulated outcome amount<input name="outcome_amount" type="number" step="any" min="-1000000000" max="1000000000" placeholder="25 or -20" required /></label>
+        <label>Admin note<input name="outcome_note" maxLength={1000} placeholder="Test scenario result" /></label>
+        <label>Customer-facing note<input name="customer_message" maxLength={1000} placeholder="Demo result recorded" /></label>
+        <button type="submit" disabled={busy || investments.length===0}>{busy ? "Working…" : "Record demo outcome"}</button>
+      </form>
+      <form className="demo-action-card" onSubmit={(event) => void submit(event, "execute_demo_order")}>
+        <h3>Simulate spot order</h3><p>Uses a fresh public quote and virtual funds. It never submits an exchange order.</p>
+        <label>Demo account<select name="demo_account_id" required defaultValue=""><option value="" disabled>Select an account</option>{accounts.map(a=><option key={a.id} value={a.id}>{a.label} · {a.currency_code}</option>)}</select></label>
+        <label>Asset code<input name="asset_code" minLength={2} maxLength={15} pattern="[A-Za-z0-9]{2,15}" placeholder="BTC" required /></label>
+        <label>Side<select name="side" defaultValue="buy"><option value="buy">Simulated buy</option><option value="sell">Simulated sell</option></select></label>
+        <label>Quantity<input name="quantity" type="number" min="0.00000001" max="1000000000" step="any" required /></label>
+        <button type="submit" disabled={busy || accounts.length===0}>{busy ? "Working…" : "Simulate order"}</button>
+      </form>
+    </div>
+    <p className="demo-workflow-disclaimer">Safety gate: financial_operations_enabled remains false. These forms are limited to isolated demo RPCs protected by CEO authorization and MFA.</p>
+  </section>;
+}
+
 export default function AdminEntry({ activeSection = "overview" }: { activeSection?: string }) {
   const [mode, setMode] = useState<Mode>("loading");
   const [email, setEmail] = useState("");
@@ -172,7 +254,7 @@ export default function AdminEntry({ activeSection = "overview" }: { activeSecti
           <div><span>Demo positions</span><strong>{data?.positions?.length ?? 0}</strong></div>
           <p>These counts come from the protected backend. All amounts and order results are simulated.</p>
         </div>
-        <DashboardApp activeSection={activeSection} backendData={data ?? undefined} />
+        {activeSection === "overview" && data && <div className="admin-demo-controls"><DemoWorkflowPanel data={data} onRefresh={loadAdminDashboard} /></div>}\n        <DashboardApp activeSection={activeSection} backendData={data ?? undefined} />
       </>
     );
   }
