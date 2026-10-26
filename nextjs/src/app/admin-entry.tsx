@@ -254,7 +254,8 @@ export default function AdminEntry({ activeSection = "overview" }: { activeSecti
           <div><span>Demo positions</span><strong>{data?.positions?.length ?? 0}</strong></div>
           <p>These counts come from the protected backend. All amounts and order results are simulated.</p>
         </div>
-        {activeSection === "overview" && data && <div className="admin-demo-controls"><DemoWorkflowPanel data={data} onRefresh={loadAdminDashboard} /></div>}\n        <DashboardApp activeSection={activeSection} backendData={data ?? undefined} />
+        {activeSection === "overview" && data && <div className="admin-demo-controls"><DemoWorkflowPanel data={data} onRefresh={loadAdminDashboard} /></div>}
+        <DashboardApp activeSection={activeSection} backendData={data ?? undefined} />
       </>
     );
   }
