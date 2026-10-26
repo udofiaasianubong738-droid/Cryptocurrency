@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 const screens = [
   ["overview","Overview","A calm, clear view of platform readiness.","⌂","Workspace"],
+  ["markets","Live market feed","Live public crypto prices and 24-hour market changes.","↗","Insights"],
   ["customers","Customers","Customer access and profile review.","♙","Workspace"],
   ["deposits","Deposit requests","Incoming-funds requests and evidence review.","↓","Operations"],
   ["withdrawals","Withdrawal requests","Payout requests and verification status.","↑","Operations"],
