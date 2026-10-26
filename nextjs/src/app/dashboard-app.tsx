@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 
 const screens = [
   ["overview","Overview","A calm, clear view of platform readiness.","⌂","Workspace"],
+  ["markets","Live market","Live public crypto prices and 24-hour market changes.","↗","Insights"],
+  ["markets","Live market feed","Live public crypto prices and 24-hour market changes.","↗","Insights"],
   ["customers","Customers","Customer access and profile review.","♙","Workspace"],
   ["deposits","Deposit requests","Incoming-funds requests and evidence review.","↓","Operations"],
   ["withdrawals","Withdrawal requests","Payout requests and verification status.","↑","Operations"],
@@ -33,6 +35,7 @@ const descriptions: Record<string,string> = {
  portfolio:"Balances and performance must come from verified ledger records, not browser-side calculations.",
  orders:"Order history appears after provider integration and idempotent processing are verified.",
  reports:"Reports will be generated from validated platform data. No sample performance figures are displayed.",
+ markets:"Public crypto spot prices, 24-hour changes, highs, lows and volume from Binance. Informational feed only; no trading.",
  ledger:"Ledger entries must be read from the authoritative backend and reconciled before being treated as financial truth.",
  reconciliation:"Provider transactions and internal ledger entries will be compared after integrations are independently verified.",
  audit:"Administrative actions, timestamps and actors will be recorded in the verified audit trail.",
@@ -53,6 +56,7 @@ function Overview(){
 }
 function Content({id,label,icon}:{id:string;label:string;icon:string}){
  if(id==="overview")return <Overview/>;
+ if(id==="markets")return <section className="surface-card"><p className="section-kicker">MARKET INTELLIGENCE</p><h2>Live crypto market</h2><p className="section-description">View the public market feed, refreshed every 15 seconds.</p><Link className="text-link" href="/markets">Open live market feed →</Link></section>;
  if(id==="security")return <div className="content-grid detail-grid"><section className="surface-card"><p className="section-kicker">ACCESS CONTROL</p><h2>Identity and permissions</h2><p className="section-description">Production access remains blocked until backend verification.</p><div className="detail-list">{["CEO-only administration","Multi-factor authentication","Customer role isolation"].map(x=><div key={x}><span>{x}</span><span className="status-pill status-pending">Needs verification</span></div>)}</div></section><section className="surface-card"><p className="section-kicker">PRODUCTION GATE</p><h2>Financial controls</h2><div className="gate-state"><span aria-hidden="true">✓</span><div><strong>Financial operations disabled</strong><p>This must remain off until independent verification is complete.</p></div></div><p className="section-description">No control on this preview can enable live financial operations.</p></section></div>;
  if(id==="customer-portal")return <section className="surface-card customer-preview"><div className="customer-preview-hero"><span className="preview-eyebrow">CUSTOMER EXPERIENCE</span><h2>A clearer way to follow your account</h2><p>Customers can view verified plan information, track account activity and submit requests after secure sign-in is implemented.</p><span className="status-pill status-pending">Design preview · no sign-in</span></div><div className="customer-preview-grid">{[["Account summary","Verified data only"],["Active plans","Awaiting backend"],["Requests","No live actions"]].map(x=><div key={x[0]}><span>{x[0]}</span><strong>—</strong><small>{x[1]}</small></div>)}</div></section>;
  return <section className="surface-card section-placeholder"><div className="placeholder-top"><span className="placeholder-symbol" aria-hidden="true">{icon}</span><span className="status-pill status-pending">Backend not verified</span></div><h2>{label}</h2><p className="section-description placeholder-description">{descriptions[id]||"This screen will show verified platform information."}</p><EmptyState title={id==="integrations"?"No connections verified":"Ready for verified data"} detail="This is a working UI placeholder. It contains no fabricated customer records, balances, transactions or performance figures."/><div className="placeholder-footer"><span aria-hidden="true">▣</span> Read-only preview · no live financial actions</div></section>;
