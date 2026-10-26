@@ -51,7 +51,7 @@ function parseTickers(payload, fetchedAt, nowMs) {
     fetchedAt,
     staleAgeSeconds: stale
       ? Math.max(0, Math.floor(Math.max(...ages) / 1000))
-      : null,
+      : 0,
     message: stale
       ? "Binance responded, but one or more ticker timestamps are outside the freshness threshold. Values are marked stale."
       : "Live public market data fetched successfully.",
