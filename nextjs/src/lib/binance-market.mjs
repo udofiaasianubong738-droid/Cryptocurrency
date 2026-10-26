@@ -1,4 +1,4 @@
-export const BINANCE_SPOT_SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT"];
+export const BINANCE_SPOT_SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "AVAXUSDT", "DOTUSDT", "LINKUSDT"];
 
 const ENDPOINT =
   "https://data-api.binance.vision/api/v3/ticker/24hr?symbols=" +
