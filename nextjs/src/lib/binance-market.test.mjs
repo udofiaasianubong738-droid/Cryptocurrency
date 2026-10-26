@@ -5,8 +5,8 @@ import { BINANCE_SPOT_SYMBOLS, createBinanceMarketFeed } from "./binance-market.
 function tickerPayload(nowMs, ageMs = 10_000) {
   return BINANCE_SPOT_SYMBOLS.map((symbol, index) => ({
     symbol,
-    lastPrice: String([80000, 2300, 700][index]),
-    priceChangePercent: String([1.25, -0.5, 0][index]),
+    lastPrice: String([80000, 2300, 700, 150, 0.5, 0.4, 0.12, 35, 4.5, 15][index]),
+    priceChangePercent: String([1.25, -0.5, 0, 2.1, -1.2, 0.8, -0.3, 1.4, -0.9, 0.6][index]),
     closeTime: nowMs - ageMs,
   }));
 }
