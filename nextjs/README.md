@@ -2,6 +2,13 @@
 
 The Next.js application in `nextjs/` is the proposed primary UI. It brings the best dashboard concepts from the existing root-level Vite prototype into one navigable experience, while preserving the original Vite source for safe comparison until the new app is reviewed.
 
+## Intended public URLs (not active yet)
+
+- Customer portal: `https://cryptoinvest.com`
+- Admin portal: `https://admin.cryptoinvest.com`
+
+These are the intended canonical URLs for application configuration and documentation only. Do not attach the domains to hosting, change DNS/nameservers, or claim they are live/verified until the owner finishes domain payment/verification and the 40-user test phase is complete. Use the generated preview URL for testing in the meantime.
+
 ## Run locally
 
 ```bash
