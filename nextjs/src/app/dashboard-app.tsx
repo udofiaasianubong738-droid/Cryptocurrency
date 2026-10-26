@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import BinanceMarketWidget from "./binance-market-widget";
 
 const screens = [
   ["overview","Overview","A calm, clear view of platform readiness.","⌂","Workspace"],
@@ -44,6 +45,7 @@ function EmptyState({title,detail}:{title:string;detail:string}){return <div cla
 function Overview(){
  return <>
   <div className="metric-grid">{[["Customer accounts","—","Awaiting verified data","♙"],["Published plans","—","No backend connected","◇"],["Requests to review","—","Queue not available","◷"],["System readiness","Review","Production checks remain","⬡"]].map(([label,value,note,icon])=><article className="metric-card" key={label}><div className="metric-top"><span>{label}</span><span className="metric-icon" aria-hidden="true">{icon}</span></div><div className={value==="Review"?"metric-value metric-review":"metric-value"}>{value}</div><p>{note}</p></article>)}</div>
+  <BinanceMarketWidget />
   <div className="content-grid overview-grid">
    <section className="surface-card"><div className="section-title-row"><div><p className="section-kicker">PLATFORM CONTENT</p><h2>Investment plans</h2><p className="section-description">A clean overview, ready for verified plan data.</p></div><Link className="text-link" href="/plans">View plans →</Link></div><EmptyState title="Plans will appear here" detail="Verify the authoritative backend before displaying plan terms or account values."/></section>
    <section className="surface-card"><div className="section-title-row"><div><p className="section-kicker">BEFORE GO-LIVE</p><h2>Readiness checklist</h2><p className="section-description">Safeguards required for a trustworthy platform.</p></div><span className="count-badge">04</span></div><ol className="readiness-list">{setup.map((step,i)=><li key={step[0]}><span className="step-number">{String(i+1).padStart(2,"0")}</span><div className="step-copy"><strong>{step[0]}</strong><p>{step[1]}</p><span className={i===3?"status-pill status-progress":"status-pill status-pending"}>{step[2]}</span></div></li>)}</ol></section>
