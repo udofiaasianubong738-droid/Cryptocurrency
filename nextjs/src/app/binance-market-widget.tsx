@@ -56,9 +56,14 @@ export default function BinanceMarketWidget() {
     } catch {
       setSnapshot((previous) => {
         if (previous?.status === "fresh" || previous?.status === "stale") {
+          const now = Date.now();
           return {
             ...previous,
             status: "stale",
+            checkedAt: new Date(now).toISOString(),
+            staleAgeSeconds: previous.fetchedAt
+              ? Math.max(0, Math.floor((now - Date.parse(previous.fetchedAt)) / 1000))
+              : null,
             message: "The dashboard could not refresh. Showing the previous snapshot; prices may be outdated.",
           };
         }
