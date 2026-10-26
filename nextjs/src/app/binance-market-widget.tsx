@@ -52,6 +52,9 @@ export default function BinanceMarketWidget() {
       ) {
         throw new Error("Unexpected market feed response.");
       }
+      if (!response.ok) {
+        throw new Error(data.message || "Market feed is unavailable.");
+      }
       setSnapshot(data);
     } catch {
       setSnapshot((previous) => {
