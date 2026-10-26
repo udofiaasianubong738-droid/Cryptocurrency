@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - "codex/cryptoinvest-nextjs-foundation"
+      - "feat/binance-public-market-feed"
     paths:
       - "nextjs/**"
       - ".github/workflows/nextjs-ci.yml"
@@ -36,6 +37,8 @@ jobs:
           cache-dependency-path: nextjs/package.json
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
       - name: TypeScript check
         run: npm run typecheck
       - name: Production build
