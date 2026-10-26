@@ -102,7 +102,7 @@ export default function BinanceMarketWidget() {
         <div>
           <p className="section-kicker">PUBLIC MARKET DATA</p>
           <h2 id="market-heading">Spot market watch</h2>
-          <p className="section-description">BTC, ETH and BNB spot pairs · 24-hour change</p>
+          <p className="section-description">10 tracked crypto spot pairs · 24-hour change</p>
         </div>
         <div className="market-status-wrap">
           <span className={`market-status market-status-${status}`}>
