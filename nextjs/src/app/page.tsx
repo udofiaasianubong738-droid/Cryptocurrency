@@ -1,2 +1,5 @@
-import DashboardApp from "./dashboard-app";
-export default function HomePage(){return <DashboardApp activeSection="overview"/>;}
+import AdminEntry from "./admin-entry";
+
+export default function HomePage() {
+  return <AdminEntry activeSection="overview" />;
+}
