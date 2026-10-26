@@ -86,5 +86,5 @@ test("preserves the last successful snapshot as stale after a refresh failure", 
   assert.equal(second.status, "stale");
   assert.deepEqual(second.prices, first.prices);
   assert.equal(second.staleAgeSeconds, 45);
-  assert.match(second.message, /previous snapshot/i);
+  assert.match(second.message, /last successful snapshot/i);
 });
