@@ -1,34 +1,35 @@
-# CryptoInvest Next.js foundation
+# CryptoInvest unified front-end
 
-This is an isolated Next.js application under `nextjs/`. The existing Vite application at the repository root is intentionally left untouched.
+The Next.js application in `nextjs/` is the proposed primary UI. It brings the best dashboard concepts from the existing root-level Vite prototype into one navigable experience, while preserving the original Vite source for safe comparison until the new app is reviewed.
 
-## Local development
+## Run locally
 
 ```bash
 cd nextjs
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
 Open http://localhost:3000.
 
-## Current scope
+## UI scope
 
-- Responsive CryptoInvest dashboard starter UI.
-- No authentication or financial actions are implemented.
-- All metrics are placeholders, not real account records.
+- Responsive CEO workspace with overview, customers, deposits, withdrawals, plans, portfolio, orders, reports, ledger, reconciliation, audit, integrations and security screens.
+- Customer-portal design preview, clearly marked as a preview rather than an authenticated customer account.
+- Sidebar appears on the overview/home screen only. Secondary screens use a screen menu and a return-to-overview link.
+- Keyboard focus indicators, skip-to-content link, labelled search, semantic navigation and reduced-motion support.
+- Automatically follows the device's light/dark system preference, with a balanced neutral-blue palette.
+- All financial figures and record lists remain empty placeholders until the authoritative backend is verified.
+- No authentication, live financial actions or provider connections are implemented in this front-end.
 - No Supabase project is configured until the authoritative backend is confirmed.
-- `FINANCIAL_OPERATIONS_ENABLED=false` is the required safety setting.
-- No deployment or DNS configuration is included in this folder.
+- `financial_operations_enabled = false` remains a non-negotiable safety setting.
 
-## Before connecting a backend
+## Before backend integration or release
 
-1. Confirm the authoritative Supabase project and compare it with existing schema/data.
-2. Implement server-side session verification and role checks; never trust a client-side role.
-3. Verify CEO-only administration, MFA for sensitive actions, and row-level security.
-4. Audit the ledger, idempotency, reconciliation, and payment-provider integration.
-5. Add tests for unauthorized access and cross-account isolation.
-6. Keep deposits, withdrawals, trading, investment approvals and payouts disabled until independently verified.
+1. Confirm the authoritative Supabase project and compare schema/data.
+2. Implement server-side authentication, CEO-only authorization, MFA and customer-role isolation.
+3. Audit ledger integrity, idempotency, reconciliation, provider confirmations and audit history.
+4. Test keyboard navigation, screen-reader landmarks, contrast and responsive layouts.
+5. Keep deposits, withdrawals, trading, approvals and payouts disabled until independent verification is complete.
 
-Never commit `.env.local`, service-role keys, database passwords, or provider secrets. Do not use this UI as evidence that a financial operation succeeded.
+Never commit `.env.local`, service-role keys, database passwords or provider secrets. Do not use this UI as evidence that a financial operation succeeded.
