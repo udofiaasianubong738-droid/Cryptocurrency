@@ -1,0 +1,42 @@
+name: CryptoInvest Next.js build verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "nextjs/**"
+      - ".github/workflows/cryptoinvest-build.yml"
+  pull_request:
+    paths:
+      - "nextjs/**"
+      - ".github/workflows/cryptoinvest-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cryptoinvest-nextjs-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nextjs/package-lock.json
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build Cloudflare Worker bundle
+        run: npm run build
