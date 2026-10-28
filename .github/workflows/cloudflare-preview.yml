@@ -1,0 +1,49 @@
+name: CryptoInvest Cloudflare Preview Build
+
+on:
+  pull_request:
+    paths:
+      - "nextjs/**"
+      - ".github/workflows/cloudflare-preview.yml"
+  push:
+    branches: [main]
+    paths:
+      - "nextjs/**"
+      - ".github/workflows/cloudflare-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview-build:
+    name: Type-check and build Cloudflare preview
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: nextjs/package.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build OpenNext Cloudflare preview
+        run: npm run build
