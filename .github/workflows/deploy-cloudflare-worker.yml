@@ -37,7 +37,7 @@ jobs:
       - name: Type-check Next.js app
         run: npm run typecheck
       - name: Build Cloudflare preview bundle
-        run: npm run build
+        run: npm run build:worker
 
   deploy:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy_to_cloudflare == true }}
