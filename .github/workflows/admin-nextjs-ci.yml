@@ -43,7 +43,3 @@ jobs:
         run: npm run typecheck
       - name: Build Next.js admin app
         run: npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://yniphceoofuwzpelpksd.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-placeholder-not-a-secret
-          FINANCIAL_OPERATIONS_ENABLED: "false"
