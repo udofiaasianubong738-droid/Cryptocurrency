@@ -119,7 +119,7 @@ function TopHeader() {
           <Search size={15} />
           <input placeholder="Quick search" aria-label="Quick search" />
         </div>
-        <button className="icon-button" aria-label="Notifications">
+        <button className="icon-button" aria-label="View notifications in audit log" title="View notifications in audit log" onClick={() => navigate('/audit')}>
           <Bell size={16} />
         </button>
         <button className="icon-button" aria-label="Sign out" onClick={() => navigate('/login')}>
@@ -131,6 +131,7 @@ function TopHeader() {
 }
 
 function DashboardPage() {
+  const navigate = useNavigate();
   return (
     <div className="page-wrap dashboard-page">
       <header className="page-header dashboard-header">
@@ -139,8 +140,8 @@ function DashboardPage() {
           <h1>CEO dashboard</h1>
         </div>
         <div className="header-actions">
-          <button className="secondary-button">Refresh</button>
-          <button className="primary-button">Review pending</button>
+          <button className="secondary-button" type="button" onClick={() => window.location.reload()}>Refresh</button>
+          <button className="primary-button" type="button" onClick={() => navigate('/deposits')}>Review pending</button>
         </div>
       </header>
 
@@ -538,7 +539,7 @@ function PageTemplate({ title, subtitle, children }: { title: string; subtitle: 
           <h1>{title}</h1>
           <p className="section-subtitle">{subtitle}</p>
         </div>
-        <button className="primary-button">Create action</button>
+        <button className="primary-button" type="button" disabled title="Unavailable while financial operations are disabled">Actions disabled</button>
       </header>
       {children}
     </div>
