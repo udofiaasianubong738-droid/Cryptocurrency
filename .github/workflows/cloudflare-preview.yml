@@ -46,4 +46,4 @@ jobs:
         run: npm run typecheck
 
       - name: Build OpenNext Cloudflare preview
-        run: npm run build
+        run: npm run build:worker
