@@ -1,0 +1,49 @@
+name: Admin Next.js CI
+
+on:
+  pull_request:
+    paths:
+      - "nextjs/**"
+      - "netlify.toml"
+      - ".github/workflows/admin-nextjs-ci.yml"
+  push:
+    branches:
+      - main
+      - feat/cryptoinvest-admin-auth-gate
+    paths:
+      - "nextjs/**"
+      - "netlify.toml"
+      - ".github/workflows/admin-nextjs-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-nextjs-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: nextjs/package.json
+      - name: Install dependencies
+        run: npm install
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build Next.js admin app
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://yniphceoofuwzpelpksd.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-placeholder-not-a-secret
+          FINANCIAL_OPERATIONS_ENABLED: "false"
