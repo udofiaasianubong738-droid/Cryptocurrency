@@ -1,0 +1,13 @@
+# Netlify deploys only the Next.js admin application from this repository.
+# Add Supabase URL and publishable key in Netlify Site configuration; never commit secrets.
+[build]
+  base = "nextjs"
+  command = "npm run typecheck && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
