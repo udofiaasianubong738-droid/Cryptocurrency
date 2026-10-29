@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 function Brand(){return <span className="brand-lockup"><span className="brand-mark" aria-hidden="true"><span/></span><span className="brand-name">Crypto<span>Invest</span></span></span>}
@@ -17,8 +17,8 @@ export default function LoginPage(){
  const [busy,setBusy]=useState(false);
  const [message,setMessage]=useState("");
  const router=useRouter();
- const searchParams=useSearchParams();
- const reason=searchParams.get("reason");
+ const [reason,setReason]=useState<string|null>(null);
+ useEffect(()=>{setReason(new URLSearchParams(window.location.search).get("reason"));},[]);
  const configurationError=reason==="configuration"?"This deployment is missing its Supabase public URL or publishable key.":reason==="unauthorized"?"This account is not authorized for the CEO workspace.":reason==="mfa"?"Complete authenticator verification to continue.":reason==="callback"?"The secure sign-in callback failed. Please sign in again.":"";
 
  async function handlePassword(e:React.FormEvent<HTMLFormElement>){
