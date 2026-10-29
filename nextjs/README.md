@@ -33,3 +33,12 @@ Open http://localhost:3000.
 5. Keep deposits, withdrawals, trading, approvals and payouts disabled until independent verification is complete.
 
 Never commit `.env.local`, service-role keys, database passwords or provider secrets. Do not use this UI as evidence that a financial operation succeeded.
+
+
+## Supabase CEO authentication and read-only data
+
+- Set `NEXT_PUBLIC_SUPABASE_URL` to the verified Supabase project URL and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to that project's publishable/anon key in the local environment and Cloudflare build environment. These are public-client values; never put a service-role key in a `NEXT_PUBLIC_*` variable.
+- CEO sign-in uses Supabase password authentication, verifies the caller has an enabled row in `public.ceo_admins`, then requires a verified TOTP authenticator and an `aal2` session.
+- The dashboard overview reads counts and latest market quotes from Supabase through an authenticated read-only endpoint that refreshes every 60 seconds. No fake market values are substituted when the endpoint fails.
+- Other detail screens remain read-only placeholders until their individual queries and permissions have been tested. Deposits, withdrawals, trading, approvals and payouts remain disabled. Keep `financial_operations_enabled = false`.
+- Cloudflare's custom domain is not considered live until the zone is active, the correct Worker serves the app, and the canonical URL passes end-to-end login checks.
