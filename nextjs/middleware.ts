@@ -1,14 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  const loginUrl = new URL("/login", request.url);
-  if (!url || !key) return NextResponse.redirect(loginUrl);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yniphceoofuwzpelpksd.supabase.co";
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_IiY4eMNa-IPD3u-7D5FrTg_C7jT02Kd";
 
+function deny(request: NextRequest, status: number, message: string) {
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: message }, { status });
+  }
+  const target = new URL("/login", request.url);
+  if (status === 403) target.searchParams.set("mfa", "required");
+  return NextResponse.redirect(target);
+}
+
+export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
-  const supabase = createServerClient(url, key, {
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookies) {
@@ -20,7 +27,7 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return NextResponse.redirect(loginUrl);
+  if (error || !user) return deny(request, 401, "Authentication required.");
 
   const { data: ceo, error: ceoError } = await supabase
     .from("ceo_admins")
@@ -31,17 +38,16 @@ export async function middleware(request: NextRequest) {
 
   if (ceoError || !ceo) {
     await supabase.auth.signOut();
-    return NextResponse.redirect(loginUrl);
+    return deny(request, 403, "CEO authorization required.");
   }
 
   const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || assurance?.currentLevel !== "aal2") {
-    const mfaUrl = new URL("/login?mfa=required", request.url);
-    return NextResponse.redirect(mfaUrl);
+    return deny(request, 403, "AAL2 authenticator verification required.");
   }
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico|icon.svg|api).*)"],
+  matcher: ["/((?!login|_next/static|_next/image|favicon.ico|icon.svg).*)"],
 };
