@@ -79,7 +79,7 @@ export default function MfaSetupPage() {
         friendly_name: factor.friendly_name ?? null,
         status: factor.status,
       })));
-      setCurrentLevel(aalData.currentLevel ?? "aal1");
+      setCurrentLevel(aalData.currentLevel === "aal2" && aalData.nextLevel === "aal2" ? "aal2" : "aal1");
     } catch {
       setError("We could not verify this session. Sign in again or contact the system owner.");
     } finally {
@@ -142,7 +142,7 @@ export default function MfaSetupPage() {
       setEnrollment(null);
       await refreshStatus(false);
 
-      if (assurance.currentLevel === "aal2") {
+      if (assurance.currentLevel === "aal2" && assurance.nextLevel === "aal2") {
         setCurrentLevel("aal2");
         setNotice("Authenticator verified. Supabase confirms this session is now AAL2.");
       } else {
