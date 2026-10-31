@@ -13,7 +13,16 @@ export default function MfaSetupPage() {
   const [safeNext, setSafeNext] = useState("/overview");
   useEffect(() => {
     const requestedNext = new URLSearchParams(window.location.search).get("next");
-    if (requestedNext?.startsWith("/") && !requestedNext.startsWith("//")) setSafeNext(requestedNext);
+    if (requestedNext) {
+      try {
+        const destination = new URL(requestedNext, window.location.origin);
+        if (destination.origin === window.location.origin) {
+          setSafeNext(`${destination.pathname}${destination.search}${destination.hash}`);
+        }
+      } catch {
+        setSafeNext("/overview");
+      }
+    }
   }, []);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
