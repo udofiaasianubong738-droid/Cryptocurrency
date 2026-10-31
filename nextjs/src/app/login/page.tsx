@@ -10,7 +10,7 @@ function Brand(){return <span className="brand-lockup"><span className="brand-ma
 
 export default function LoginPage(){
  const router=useRouter();
- const [email,setEmail]=useState("");
+ const [email,setEmail]=useState("Cyrrenza@outlook.com");
  const [password,setPassword]=useState("");
  const [code,setCode]=useState("");
  const [stage,setStage]=useState<Stage>("password");
