@@ -50,7 +50,7 @@ export async function getCeoSession(requireAal2 = false) {
 
   const { data: assurance, error: assuranceError } =
     await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  const aal2 = !assuranceError && assurance.currentLevel === "aal2";
+  const aal2 = !assuranceError && assurance.currentLevel === "aal2" && assurance.nextLevel === "aal2";
 
   return {
     supabase,
