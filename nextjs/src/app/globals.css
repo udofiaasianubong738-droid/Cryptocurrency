@@ -44,3 +44,7 @@
 .mfa-error{border:1px solid #f0c7c7;background:#fff5f5;color:#9c3636}
 .mfa-notice{border:1px solid #cfe2d8;background:#f1faf5;color:#28664f}
 @media(prefers-color-scheme:dark){.mfa-status-row,.mfa-verify-panel{border-color:#303d50;background:#222e3f;color:#b0bdcf}.mfa-status-row strong{color:#a4c5ff}.mfa-section-heading,.mfa-factor-list strong{color:#e6ebf3}.mfa-factor-list li{border-color:#303d50}.mfa-secondary-button{border-color:#42536a;background:#243753;color:#b5d0ff}.mfa-verified-label{color:#80c9ad}.mfa-secret-details{color:#b0bdcf}.mfa-secret-details code{background:#303d50;color:#e6ebf3}.mfa-muted{color:#aab7c8}.mfa-error{border-color:#744141;background:#3a2428;color:#f3b6b6}.mfa-notice{border-color:#315c4c;background:#20372f;color:#a8ddc3}}
+
+.mfa-captcha-wrap{display:grid;gap:8px;padding:12px;border:1px solid #e0e7f0;border-radius:11px;background:#f9fbfe}
+.mfa-captcha-wrap>div{min-height:64px;display:flex;align-items:center;justify-content:center}
+@media(prefers-color-scheme:dark){.mfa-captcha-wrap{border-color:#303d50;background:#222e3f}}
