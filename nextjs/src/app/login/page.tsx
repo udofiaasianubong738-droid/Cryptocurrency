@@ -28,8 +28,11 @@ function Brand() {
 export default function LoginPage() {
   const router = useRouter();
   const [reason, setReason] = useState("");
+  const [requestedNext, setRequestedNext] = useState("");
   useEffect(() => {
-    setReason(new URLSearchParams(window.location.search).get("reason") ?? "");
+    const params = new URLSearchParams(window.location.search);
+    setReason(params.get("reason") ?? "");
+    setRequestedNext(params.get("next") ?? "");
   }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -99,7 +102,8 @@ export default function LoginPage() {
         throw new Error("This account is not authorized for the CEO workspace.");
       }
 
-      router.replace("/security/mfa");
+      const mfaPath = requestedNext ? `/security/mfa?next=${encodeURIComponent(requestedNext)}` : "/security/mfa";
+      router.replace(mfaPath);
       router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Secure sign-in failed. Please try again.");
