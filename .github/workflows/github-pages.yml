@@ -1,14 +1,17 @@
-name: GitHub Pages build and deploy
+name: GitHub Pages informational site build and deploy
 
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/github-pages.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: github-pages
@@ -20,32 +23,16 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Run unit tests
-        run: npm test
-      - name: Build static public site
-        env:
-          GITHUB_ACTIONS: "true"
-        run: npm run build
-      - name: Add SPA fallback for GitHub Pages
-        run: cp dist/index.html dist/404.html
-      - name: Upload Pages artifact
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload informational site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: docs
 
   deploy:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
