@@ -31,7 +31,14 @@ export default function LoginPage(){
   if(factorError)throw factorError;
   const verified=factors?.totp?.find(f=>f.status==="verified");
   if(verified){setFactorId(verified.id);setStage("mfa");return;}
-  const {data:enrolled,error:enrollError}=await supabase.auth.mfa.enroll({factorType:"totp",friendlyName:"CryptoInvest CEO authenticator "+new Date().toISOString()});
+  // Remove only this signed-in CEO user's unfinished TOTP enrollments before
+  // starting a fresh setup. Use Supabase Auth rather than editing auth tables.
+  const pending=factors?.totp?.filter(f=>f.status!=="verified") ?? [];
+  for(const factor of pending){
+   const {error:removeError}=await supabase.auth.mfa.unenroll({factorId:factor.id});
+   if(removeError)throw new Error("Could not clear an unfinished authenticator setup. Please sign out and contact support.");
+  }
+  const {data:enrolled,error:enrollError}=await supabase.auth.mfa.enroll({factorType:"totp",friendlyName:"CryptoInvest CEO authenticator"});
   if(enrollError||!enrolled)throw enrollError||new Error("Could not start authenticator setup.");
   setFactorId(enrolled.id);setQr(enrolled.totp.qr_code);setStage("enroll");
  }
