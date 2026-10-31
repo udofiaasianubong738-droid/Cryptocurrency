@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
   if (isDashboard || isAdminApi) {
     const { data: assurance, error: assuranceError } =
       await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assuranceError || assurance.currentLevel !== "aal2") {
+    if (assuranceError || assurance.currentLevel !== "aal2" || assurance.nextLevel !== "aal2") {
       if (isAdminApi) return copyCookies(response, NextResponse.json({ error: "AAL2 verification required." }, { status: 403 }));
       const destination = new URL("/security/mfa", request.url);
       destination.searchParams.set("next", pathname);
