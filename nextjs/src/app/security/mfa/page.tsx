@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Factor = { id: string; friendly_name: string | null; status: string };
@@ -10,9 +10,11 @@ type Enrollment = { qrCode: string; secret: string };
 
 export default function MfaSetupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedNext = searchParams.get("next");
-  const safeNext = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/overview";
+  const [safeNext, setSafeNext] = useState("/overview");
+  useEffect(() => {
+    const requestedNext = new URLSearchParams(window.location.search).get("next");
+    if (requestedNext?.startsWith("/") && !requestedNext.startsWith("//")) setSafeNext(requestedNext);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [isCeo, setIsCeo] = useState(false);
