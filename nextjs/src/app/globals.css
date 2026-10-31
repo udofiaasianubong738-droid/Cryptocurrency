@@ -16,3 +16,35 @@
 .auth-welcome-card,.auth-login-card{width:min(100%,520px);background:rgba(255,255,255,.96);border:1px solid #e0e7f0;border-radius:26px;box-shadow:0 24px 80px rgba(27,53,90,.09);padding:clamp(25px,5vw,48px)}
 .auth-welcome-brand{display:flex;justify-content:center;margin-bottom:38px}.auth-welcome-card>.auth-eyebrow{text-align:center}.auth-eyebrow{display:block;color:#61748d;font-size:10px;letter-spacing:.15em;font-weight:800;margin:0 0 14px}.auth-welcome-mark{width:62px;height:62px;margin:22px auto 25px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#e3edff,#f1f6ff);color:#2457b7;font-size:21px;font-weight:850;letter-spacing:-.06em;border:1px solid #d6e4fb}.auth-welcome-card h1,.auth-login-card h1{margin:0;color:#182a43;font-size:clamp(28px,5vw,36px);letter-spacing:-.045em;line-height:1.15}.auth-welcome-copy{color:#66758b;font-size:14px;line-height:1.75;margin:15px 0 25px}.auth-security-note{display:flex;gap:13px;padding:16px;border:1px solid #e0e9f6;background:#f7faff;border-radius:14px;margin:25px 0}.auth-security-note>span{font-size:22px;color:#3569c2}.auth-security-note strong{font-size:12px;color:#203754}.auth-security-note p{margin:5px 0 0;color:#6b7a90;font-size:11px;line-height:1.6}.auth-primary-link,.auth-primary-button{display:flex;width:100%;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:13px 16px;border:0;border-radius:12px;background:#2459bd;color:white;font-size:13px;font-weight:750;text-decoration:none}.auth-primary-link:hover{background:#19499f}.auth-footnote{color:#8491a3;font-size:10px;line-height:1.7;text-align:center;margin:22px 0 0}.auth-welcome-footer{padding:20px 0 0;color:#8491a3;font-size:10px;text-align:center}.auth-login-card>.brand-lockup{margin:22px 0 34px}.auth-back-link{display:inline-block;color:#6b7b91;text-decoration:none;font-size:12px}.auth-login-card .auth-eyebrow{margin-bottom:12px}.auth-login-card form{display:grid;gap:9px;margin-top:25px}.auth-field-label{font-size:11px;font-weight:750;color:#344761;margin-top:8px}.auth-field{width:100%;min-height:46px;border:1px solid #d9e2ed;border-radius:10px;background:#fff;padding:12px 13px;color:#1d2d43;font-size:14px;outline:none}.auth-field:focus{border-color:#4e7ed0;box-shadow:0 0 0 3px rgba(78,126,208,.12)}.auth-primary-button:disabled{cursor:not-allowed;background:#9eacc2;color:#f9fbff}.auth-setup-warning{margin-top:19px;padding:15px;border:1px solid #f0d9a5;background:#fffaf0;border-radius:12px}.auth-setup-warning strong{font-size:11px;color:#76521a}.auth-setup-warning p{font-size:11px;line-height:1.7;color:#806d4e;margin:6px 0 0}.auth-flow-steps{display:flex;gap:8px;margin-top:19px}.auth-flow-steps span{flex:1;padding:10px 8px;border:1px solid #e0e7f0;border-radius:9px;text-align:center;color:#8390a3;font-size:10px}.auth-flow-steps .auth-step-active{background:#eff5ff;border-color:#cbdcf8;color:#2c5db0;font-weight:750}
 @media(max-width:520px){.auth-welcome-shell{padding:18px 12px}.auth-welcome-card,.auth-login-card{border-radius:20px;padding:25px 21px}.auth-welcome-brand{margin-bottom:28px}}
+
+
+/* CEO-only authenticator setup */
+.mfa-setup-card{max-width:560px}
+.mfa-status-row{display:flex;justify-content:space-between;gap:12px;padding:13px 14px;margin:18px 0;border:1px solid #dce6f2;border-radius:11px;background:#f7faff;color:#4c607b;font-size:11px}
+.mfa-status-row strong{color:#2459bd}
+.mfa-section-heading{margin:23px 0 10px;color:#203754;font-size:14px}
+.mfa-factor-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.mfa-factor-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid #e0e7f0;border-radius:11px}
+.mfa-factor-list strong,.mfa-factor-list small{display:block}
+.mfa-factor-list strong{font-size:11px;color:#263a55}
+.mfa-factor-list small{margin-top:4px;color:#8491a3;font-size:10px}
+.mfa-secondary-button{padding:8px 10px;border:1px solid #cbd9ec;border-radius:8px;background:#f7faff;color:#315d9e;font-size:10px;font-weight:700}
+.mfa-verified-label{color:#267a62;font-size:10px;font-weight:700}
+.mfa-verify-panel{display:grid;gap:11px;margin-top:18px;padding:15px;border:1px solid #dce6f2;border-radius:13px;background:#f9fbfe}
+.mfa-qr-code{display:block;width:190px;height:190px;max-width:100%;margin:4px auto;padding:8px;border:1px solid #e0e7f0;border-radius:10px;background:white}
+.mfa-secret-details{color:#425873;font-size:10px}
+.mfa-secret-details summary{cursor:pointer;font-weight:700}
+.mfa-secret-details code{display:block;overflow-wrap:anywhere;margin:10px 0;padding:10px;border-radius:8px;background:#edf2f8;color:#24364f}
+.mfa-secret-details p{margin:0;color:#806d4e;line-height:1.6}
+.mfa-muted{color:#6b7a90;font-size:10px;line-height:1.65}
+.mfa-warning{margin:16px 0 0}
+.mfa-start-button{margin-top:17px}
+.mfa-text-button{justify-self:center;padding:7px;border:0;background:transparent;color:#6b7b91;font-size:10px;font-weight:700}
+.mfa-error,.mfa-notice{margin:14px 0 0;padding:11px 12px;border-radius:9px;font-size:10px;line-height:1.6}
+.mfa-error{border:1px solid #f0c7c7;background:#fff5f5;color:#9c3636}
+.mfa-notice{border:1px solid #cfe2d8;background:#f1faf5;color:#28664f}
+@media(prefers-color-scheme:dark){.mfa-status-row,.mfa-verify-panel{border-color:#303d50;background:#222e3f;color:#b0bdcf}.mfa-status-row strong{color:#a4c5ff}.mfa-section-heading,.mfa-factor-list strong{color:#e6ebf3}.mfa-factor-list li{border-color:#303d50}.mfa-secondary-button{border-color:#42536a;background:#243753;color:#b5d0ff}.mfa-verified-label{color:#80c9ad}.mfa-secret-details{color:#b0bdcf}.mfa-secret-details code{background:#303d50;color:#e6ebf3}.mfa-muted{color:#aab7c8}.mfa-error{border-color:#744141;background:#3a2428;color:#f3b6b6}.mfa-notice{border-color:#315c4c;background:#20372f;color:#a8ddc3}}
+
+.mfa-captcha-wrap{display:grid;gap:8px;padding:12px;border:1px solid #e0e7f0;border-radius:11px;background:#f9fbfe}
+.mfa-captcha-wrap>div{min-height:64px;display:flex;align-items:center;justify-content:center}
+@media(prefers-color-scheme:dark){.mfa-captcha-wrap{border-color:#303d50;background:#222e3f}}
