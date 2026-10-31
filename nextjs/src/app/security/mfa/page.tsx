@@ -74,7 +74,7 @@ export default function MfaSetupPage() {
       if (factorError) throw factorError;
       if (aalError) throw aalError;
 
-      setFactors(factorData.totp.map((factor) => ({
+      setFactors(factorData.totp.map((factor: { id: string; friendly_name?: string | null; status: string }) => ({
         id: factor.id,
         friendly_name: factor.friendly_name ?? null,
         status: factor.status,
