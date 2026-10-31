@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const section = pathname.split("/")[1] ?? "";
   const isMfaSetup = pathname === "/security/mfa";
-  const isDashboard = protectedSections.has(section);
+  const isDashboard = !isMfaSetup && protectedSections.has(section);
 
   if (!isMfaSetup && !isDashboard) return NextResponse.next();
 
