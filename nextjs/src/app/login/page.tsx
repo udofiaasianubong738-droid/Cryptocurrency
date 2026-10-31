@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 declare global {
@@ -27,7 +27,10 @@ function Brand() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [reason, setReason] = useState("");
+  useEffect(() => {
+    setReason(new URLSearchParams(window.location.search).get("reason") ?? "");
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
@@ -107,7 +110,6 @@ export default function LoginPage() {
     }
   }
 
-  const reason = searchParams.get("reason");
   return (
     <main className="auth-welcome-shell">
       {siteKey ? <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" strategy="afterInteractive" onReady={() => setCaptchaReady(true)} /> : null}
