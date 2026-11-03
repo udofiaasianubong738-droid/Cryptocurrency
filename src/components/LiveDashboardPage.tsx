@@ -17,7 +17,7 @@ export function LiveDashboardPage() {
     const [qr, pr, ar] = await Promise.all([
      supabase.from('market_quotes').select('id,price,change_24h_pct,volume_24h,market_cap,received_at,is_delayed,asset_id,market_assets(symbol,name)').order('received_at', { ascending: false }).limit(700),
      supabase.from('market_provider_status').select('provider,status,last_success_at,latency_ms,updated_at').order('provider'),
-     supabase.from('market_assets').select('id', { count: 'exact', head: true }).eq('enabled', true),
+     supabase.from('market_assets').select('id', { count: 'exact', head: true }).eq('is_enabled', true),
     ]);
     const issue = qr.error || pr.error || ar.error; if (issue) throw issue;
    const unique = new Map<string, Quote>(); for (const q of (qr.data ?? []) as unknown as Quote[]) if (!unique.has(q.asset_id)) unique.set(q.asset_id,q);
