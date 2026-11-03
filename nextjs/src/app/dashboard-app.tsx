@@ -56,7 +56,7 @@ function ChartPlaceholder() {
 
 function Overview() {
   return <>
-    <section className="ci-welcome-banner"><div className="ci-banner-copy"><span className="ci-banner-eyebrow">CEO WORKSPACE</span><h1>Welcome back, Cyrrenza!</h1><p>Here’s what’s happening with your CryptoInvest platform.</p><small>⌑ &nbsp;Secure admin preview · live figures will appear after verification</small></div><div className="ci-banner-art" aria-hidden="true"><div className="ci-globe">₿</div><span className="ci-orbit ci-orbit-one"/><span className="ci-orbit ci-orbit-two"/><span className="ci-art-bars"><i/><i/><i/><i/><i/></span></div></section>
+    <section className="ci-welcome-banner"><div className="ci-banner-copy"><span className="ci-banner-eyebrow">CEO WORKSPACE</span><h1>Platform overview</h1><p>Review readiness and verified platform data in one workspace.</p><small>⌑ &nbsp;Secure admin preview · live figures will appear after verification</small></div><div className="ci-banner-art" aria-hidden="true"><div className="ci-globe">₿</div><span className="ci-orbit ci-orbit-one"/><span className="ci-orbit ci-orbit-two"/><span className="ci-art-bars"><i/><i/><i/><i/><i/></span></div></section>
     <div className="ci-metrics">
       {[["Total Customers","—","Awaiting verified records","♙","blue"],["Total Deposits","—","No verified totals available","↓","green"],["Total Withdrawals","—","No verified totals available","↑","purple"],["Total Investments","—","Awaiting ledger verification","▥","gold"]].map(([label,value,note,icon,tone])=><article className="ci-metric" key={label}><div className="ci-metric-top"><span>{label}</span><span className={`ci-metric-icon ${tone}`}>{icon}</span></div><strong>{value}</strong><small>{note}</small><div className={`ci-sparkline ${tone}`}><i/><i/><i/><i/><i/><i/></div></article>)}
     </div>
@@ -80,38 +80,38 @@ function SectionContent({ id, label }: { id: string; label: string }) {
   return <section className="ci-card ci-secondary-content"><div className="ci-secondary-symbol">{screens.find(s => s[0] === id)?.[3] ?? "◇"}</div><span className="ci-kicker">{screens.find(s => s[0] === id)?.[4].toUpperCase() ?? "WORKSPACE"}</span><h2>{label}</h2><p className="ci-section-copy">{descriptions[id] || "This screen is ready to display verified platform information when its authorized backend source is connected."}</p><EmptyState title={id === "plans" ? "No verified plans available" : "Ready for verified data"} detail={descriptions[id] || "Connect this screen to its authorized data source before showing records."}/><div className="ci-readonly-note">▣ &nbsp; Read-only preview · no live financial actions</div></section>;
 }
 
-export default function DashboardApp({ activeSection = "overview" }: { activeSection?: string }) {
+export default function DashboardApp({ activeSection = "overview", basePath = "/admin", previewMode = false }: { activeSection?: string; basePath?: string; previewMode?: boolean }) {
   const current = screens.find(s => s[0] === activeSection) || screens[0];
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const filtered = useMemo(() => screens.filter(s => s[1].toLowerCase().includes(query.toLowerCase())), [query]);
-  const href = (id: ScreenId) => id === "overview" ? "/admin" : `/admin/${id}`;
+  const href = (id: ScreenId) => id === "overview" ? basePath : `${basePath}/${id}`;
   return <div className="ci-app-shell">
     <a className="ci-skip-link" href="#ci-main">Skip to main content</a>
-    {current[0] === "overview" && <aside className="ci-sidebar" aria-label="Home dashboard sidebar">
+    <aside className="ci-sidebar" aria-label="Admin navigation">
       <Link href="/admin" className="ci-sidebar-brand" aria-label="CryptoInvest home dashboard"><Brand/></Link>
       <nav className="ci-side-nav" aria-label="Primary navigation">
         {screens.map(s => <Link key={s[0]} href={href(s[0])} className={s[0] === current[0] ? "ci-nav-item active" : "ci-nav-item"} aria-current={s[0] === current[0] ? "page" : undefined}><span>{s[3]}</span>{s[1]}</Link>)}
       </nav>
       <div className="ci-sidebar-status"><span className="ci-status-shield">✓</span><div><strong>Safety gate active</strong><small>Financial operations disabled</small></div><Link href="/admin/security" aria-label="Review security">↗</Link></div>
       <div className="ci-sidebar-version">CryptoInvest · Admin Workspace</div>
-    </aside>}
-    <main id="ci-main" className={current[0] === "overview" ? "ci-main with-sidebar" : "ci-main"}>
+    </aside>
+    <main id="ci-main" className="ci-main with-sidebar">
       <header className="ci-topbar">
-        <div className="ci-topbar-left">{current[0] === "overview" ? <span className="ci-home-crumb">Home Dashboard</span> : <Link href="/admin" className="ci-back-home">← Home Dashboard</Link>}</div>
+        <div className="ci-topbar-left">{current[0] === "overview" ? <span className="ci-home-crumb">Home Dashboard</span> : <Link href={basePath} className="ci-back-home">← Home Dashboard</Link>}</div>
         <div className="ci-topbar-actions">
           <label className="ci-search"><span aria-hidden="true">⌕</span><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Search admin screens" placeholder="Search customers, transactions…"/><kbd>/</kbd></label>
           <details className="ci-screen-menu"><summary aria-label="Open admin navigation">☷ <span>Navigate</span></summary><div className="ci-screen-menu-panel"><strong>Admin screens</strong>{filtered.map(s=><Link href={href(s[0])} key={s[0]}>{s[3]} &nbsp;{s[1]}{s[0] === current[0] && <small>Current</small>}</Link>)}{filtered.length === 0 && <p>No screens match “{query}”.</p>}</div></details>
-          <div className="ci-user"><span className="ci-user-avatar">CA</span><span><strong>Cyrrenza Admin</strong><small>CEO access · AAL2 required</small></span></div>
+          <div className="ci-user"><span className="ci-user-avatar">CI</span><span><strong>CEO workspace</strong><small>{previewMode ? "Read-only design preview" : "CEO access · AAL2 required"}</small></span></div>
           <button className="ci-mobile-nav-button" type="button" onClick={() => setMobileOpen(v => !v)} aria-expanded={mobileOpen}>{mobileOpen ? "Close" : "Menu"}</button>
         </div>
       </header>
       {mobileOpen && <nav className="ci-mobile-nav" aria-label="Admin screens">{screens.map(s=><Link key={s[0]} href={href(s[0])} onClick={() => setMobileOpen(false)} aria-current={s[0] === current[0] ? "page" : undefined}>{s[3]} {s[1]}</Link>)}</nav>}
       <div className="ci-page-content">
-        {current[0] !== "overview" && <div className="ci-secondary-heading"><div><span className="ci-kicker">{current[4].toUpperCase()}</span><h1>{current[1]}</h1><p>{current[2]}</p></div><Link href="/admin" className="ci-home-button">⌂ Home dashboard</Link></div>}
+        {current[0] !== "overview" && <div className="ci-secondary-heading"><div><span className="ci-kicker">{current[4].toUpperCase()}</span><h1>{current[1]}</h1><p>{current[2]}</p></div><Link href={basePath} className="ci-home-button">⌂ Home dashboard</Link></div>}
         <SafetyNotice/>
         {current[0] === "overview" ? <Overview/> : <SectionContent id={current[0]} label={current[1]}/>}
-        <footer className="ci-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>CEO access required · financial operations disabled</span></footer>
+        <footer className="ci-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>{previewMode ? "Read-only preview · live records not connected" : "CEO access required · financial operations disabled"}</span></footer>
       </div>
     </main>
   </div>;
