@@ -37,7 +37,7 @@ export default function LandingPage() {
           <p className="ci-landing-intro">Manage CryptoInvest from a clear, security-first workspace built for authorized CEO administration.</p>
           <div className="ci-landing-actions">
             <Link href="/login" className="ci-landing-primary">Continue to CEO sign in <span aria-hidden="true">→</span></Link>
-            <Link href="/admin" className="ci-landing-secondary">Open admin workspace</Link>
+            <Link href="/preview/admin" className="ci-landing-secondary">Explore admin preview</Link>
           </div>
           <div className="ci-landing-trust"><span className="ci-trust-icon">✓</span><span><strong>Protected access</strong><small>CEO authorization and authenticator verification required</small></span></div>
         </div>
