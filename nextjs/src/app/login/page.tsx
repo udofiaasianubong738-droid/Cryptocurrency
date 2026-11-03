@@ -10,7 +10,7 @@ type Mode = "password" | "totp" | "enroll";
 
 export default function LoginPage(){
  const router = useRouter();
- const [email,setEmail]=useState("Cyrrenza@outlook.com");
+ const [email,setEmail]=useState("");
  const [password,setPassword]=useState("");
  const [code,setCode]=useState("");
  const [mode,setMode]=useState<Mode>("password");
