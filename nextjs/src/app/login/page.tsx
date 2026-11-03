@@ -15,6 +15,7 @@ export default function LoginPage(){
  const [code,setCode]=useState("");
  const [mode,setMode]=useState<Mode>("password");
  const [factorId,setFactorId]=useState("");
+ const [challengeId,setChallengeId]=useState("");
  const [qrCode,setQrCode]=useState("");
  const [secret,setSecret]=useState("");
  const [busy,setBusy]=useState(false);
@@ -33,7 +34,10 @@ export default function LoginPage(){
   }
   const { data, error: enrollError } = await client.auth.mfa.enroll({ factorType: "totp", friendlyName: "CryptoInvest CEO authenticator" });
   if (enrollError) throw enrollError;
+  const { data: challenge, error: challengeError } = await client.auth.mfa.challenge({ factorId: data.id });
+  if (challengeError) throw challengeError;
   setFactorId(data.id);
+  setChallengeId(challenge.id);
   setQrCode(data.totp.qr_code);
   setSecret(data.totp.secret);
   setMode("enroll");
@@ -52,7 +56,7 @@ export default function LoginPage(){
     if (signInError) throw signInError;
     await startMfa(client);
    } else if (mode === "enroll") {
-    const { error: verifyError } = await client.auth.mfa.verify({ factorId, code: code.trim() });
+    const { error: verifyError } = await client.auth.mfa.verify({ factorId, challengeId, code: code.trim() });
     if (verifyError) throw verifyError;
     setNotice("Authenticator verified. Checking CEO authorization and session assurance…");
     const { data: assurance, error: assuranceError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -80,7 +84,7 @@ export default function LoginPage(){
  {mode==="password" ? <><label className="auth-field-label" htmlFor="ceo-email">CEO email</label><input className="auth-field" id="ceo-email" type="email" autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} required/><label className="auth-field-label" htmlFor="ceo-password">Password</label><input className="auth-field" id="ceo-password" type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required/></> : <><label className="auth-field-label" htmlFor="totp-code">Six-digit authenticator code</label><input className="auth-field" id="totp-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} required/></>}
  <button className="auth-primary-button" type="submit" disabled={busy}>{busy?"Please wait…":mode==="password"?"Continue securely":mode==="enroll"?"Verify authenticator":"Verify and sign in"}</button>
  </form>
- {mode!=="password" && <button className="auth-back-link" type="button" onClick={()=>{setMode("password");setCode("");setQrCode("");setSecret("");setFactorId("");setNotice("");setError("");}}>Back to sign in</button>}
+ {mode!=="password" && <button className="auth-back-link" type="button" onClick={()=>{setMode("password");setCode("");setQrCode("");setSecret("");setFactorId("");setChallengeId("");setNotice("");setError("");}}>Back to sign in</button>}
  <div className="auth-setup-warning"><strong>Security checks</strong><p>Supabase manages the session cookies. Privileged routes separately verify the authenticated user, enabled CEO authorization, and AAL2 on the server. Financial operations remain disabled.</p></div>
  <p className="auth-footnote">Never share your password or authenticator code. If an existing factor is unverified, this flow enrolls a fresh factor and requires verification before continuing.</p></section><footer className="auth-welcome-footer">© {new Date().getFullYear()} CryptoInvest · Financial operations disabled</footer></main>
 }
