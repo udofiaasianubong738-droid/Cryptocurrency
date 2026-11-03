@@ -29,10 +29,19 @@ import type { StatusTone } from './types';
 
 function App() {
   const hostname = window.location.hostname.toLowerCase();
-  const isPublicHost = hostname === 'cryptoinvest.com' || hostname === 'www.cryptoinvest.com' || hostname.endsWith('.github.io');
+  const isGitHubPages = hostname.endsWith('.github.io');
+  const isPublicHost = hostname === 'cryptoinvest.com' || hostname === 'www.cryptoinvest.com';
 
-  // The apex domain is the public overview. The admin subdomain and temporary
-  // workers.dev host keep the CEO dashboard routes.
+  // GitHub Pages is a public static host: show only the read-only market dashboard,
+  // never the admin/customer-management routes. The apex domain remains the public landing page.
+  if (isGitHubPages) {
+    return (
+      <Routes>
+        <Route path="/" element={<div className="app-shell"><Sidebar /><main className="main-content dashboard-main"><DashboardPage /></main></div>} />
+        <Route path="*" element={<PublicRouteNotice />} />
+      </Routes>
+    );
+  }
   if (isPublicHost) {
     return (
       <Routes>
@@ -420,6 +429,10 @@ function LandingPage() {
       </main>
     </div>
   );
+}
+
+function PublicRouteNotice() {
+  return <div className="auth-shell"><section className="auth-card"><Logo compact /><h1>Admin section unavailable</h1><p className="auth-subtitle">This GitHub Pages deployment is a public, read-only dashboard. Administrative screens require the secured authenticated application.</p><Link to="/" className="primary-button full-width text-link">Back to dashboard</Link></section></div>;
 }
 
 function LoginPage() {
