@@ -33,8 +33,11 @@ export default function LoginPage(){
    return;
   }
   const unfinished = factors.totp.filter((factor) => factor.status === "unverified");
-  if (unfinished.length) {
-   throw new Error("An unfinished authenticator setup already exists. Open Supabase Auth > Users > your CEO account > MFA Factors, remove only the unverified factor, then retry. Keep any verified factor.");
+  for (const factor of unfinished) {
+   const { error: removeError } = await client.auth.mfa.unenroll({ factorId: factor.id });
+   if (removeError) {
+    throw new Error("Could not clear an unfinished authenticator setup. Retry sign-in; no verified authenticator was removed.");
+   }
   }
   const { data, error: enrollError } = await client.auth.mfa.enroll({ factorType: "totp", friendlyName: "CryptoInvest CEO authenticator" });
   if (enrollError) throw enrollError;
