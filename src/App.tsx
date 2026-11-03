@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { LiveDashboardPage } from './components/LiveDashboardPage';
 import {
   Activity,
   AlertTriangle,
@@ -131,92 +132,7 @@ function TopHeader() {
 }
 
 function DashboardPage() {
-  const navigate = useNavigate();
-  return (
-    <div className="page-wrap dashboard-page">
-      <header className="page-header dashboard-header">
-        <div>
-          <p className="eyebrow">Operations overview</p>
-          <h1>CEO dashboard</h1>
-        </div>
-        <div className="header-actions">
-          <button className="secondary-button" type="button" onClick={() => window.location.reload()}>Refresh</button>
-          <button className="primary-button" type="button" onClick={() => navigate('/deposits')}>Review pending</button>
-        </div>
-      </header>
-
-      <div className="metrics-grid">
-        {mockMetrics.map((metric) => (
-          <MetricCard key={metric.label} metric={metric} />
-        ))}
-      </div>
-
-      <div className="dashboard-analytics-grid">
-        <SectionCard title="Portfolio allocation" subtitle="Simulated allocation — development only" className="wide-panel">
-          <div className="allocation-list">
-            {[
-              { asset: 'Bitcoin', value: '38%', color: 'var(--primary-blue)' },
-              { asset: 'Ethereum', value: '27%', color: 'var(--electric-cyan)' },
-              { asset: 'Solana', value: '14%', color: 'var(--dark-navy)' },
-              { asset: 'Stablecoins', value: '11%', color: 'var(--success-green)' },
-              { asset: 'Other', value: '10%', color: 'var(--accent-purple)' },
-            ].map((item) => (
-              <div key={item.asset} className="allocation-row">
-                <span className="allocation-meta">
-                  <span className="swatch" style={{ background: item.color }} />
-                  <span>{item.asset}</span>
-                </span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-
-        <SectionCard title="System health" subtitle="Integration status" className="compact-panel">
-          <div className="stack-list">
-            {[
-              { name: 'Supabase', status: 'Connected', tone: 'success' },
-              { name: 'Cloudflare Worker', status: 'Operational', tone: 'success' },
-              { name: 'Market data feed', status: 'Degraded', tone: 'warning' },
-              { name: 'Wallet provider', status: 'Not configured', tone: 'neutral' },
-            ].map((item) => (
-              <div key={item.name} className="status-row">
-                <span>{item.name}</span>
-                <StatusBadge tone={item.tone as StatusTone}>{item.status}</StatusBadge>
-              </div>
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
-      <div className="content-grid two-col">
-        <SectionCard title="Recent activity" subtitle="Administrative events">
-          <ul className="timeline">
-            {[
-              'Deposit approved for Ava Walker',
-              'Risk review queued for Noah Singh',
-              'BTC buy order simulation created',
-              'Market data provider check resumed',
-            ].map((item) => (
-              <li key={item}>
-                <Activity size={14} />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </SectionCard>
-
-        <SectionCard title="Pending review" subtitle="Customer-facing operations requiring action">
-          <div className="stack-list">
-            <div className="status-row"><span>Deposits</span><strong>14</strong></div>
-            <div className="status-row"><span>Withdrawals</span><strong>7</strong></div>
-            <div className="status-row"><span>Orders</span><strong>9</strong></div>
-            <div className="status-row"><span>Reconciliation</span><strong>3 warnings</strong></div>
-          </div>
-        </SectionCard>
-      </div>
-    </div>
-  );
+  return <LiveDashboardPage />;
 }
 
 function CustomersPage() {
