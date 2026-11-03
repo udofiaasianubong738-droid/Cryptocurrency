@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "../lib/supabase-browser";
+import { createSupabaseBrowserClient } from "../../lib/supabase-browser";
 
 export default function AdminSessionGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
