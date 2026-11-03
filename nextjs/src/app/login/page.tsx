@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
 
 function Brand(){return <span className="brand-lockup"><span className="brand-mark" aria-hidden="true"><span/></span><span className="brand-name">Crypto<span>Invest</span></span></span>}
@@ -10,7 +10,6 @@ type Mode = "password" | "totp" | "enroll";
 
 export default function LoginPage(){
  const router = useRouter();
- const searchParams = useSearchParams();
  const [email,setEmail]=useState("Cyrrenza@outlook.com");
  const [password,setPassword]=useState("");
  const [code,setCode]=useState("");
@@ -21,8 +20,6 @@ export default function LoginPage(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
- const nextPath=searchParams.get("next");
- const destination=nextPath && (nextPath.startsWith("/admin") || nextPath.startsWith("/dashboard")) ? nextPath : "/";
 
  async function startMfa(client: ReturnType<typeof createSupabaseBrowserClient>) {
   const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
@@ -46,6 +43,8 @@ export default function LoginPage(){
  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   event.preventDefault();
   setBusy(true); setError(""); setNotice("");
+  const nextPath = new URLSearchParams(window.location.search).get("next");
+  const destination = nextPath && (nextPath.startsWith("/admin") || nextPath.startsWith("/dashboard")) ? nextPath : "/";
   try {
    const client=createSupabaseBrowserClient();
    if (mode === "password") {
