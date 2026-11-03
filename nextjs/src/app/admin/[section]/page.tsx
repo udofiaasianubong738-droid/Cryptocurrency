@@ -14,7 +14,8 @@ const sections = new Set([
   "audit",
   "integrations",
   "security",
-  "customer-portal",
+  "settings",
+  "system-status",
 ]);
 
 export async function generateMetadata({ params }: { params: Promise<{ section: string }> }) {
