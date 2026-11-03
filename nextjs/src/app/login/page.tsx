@@ -55,7 +55,8 @@ export default function LoginPage(){
   event.preventDefault();
   setBusy(true); setError(""); setNotice("");
   const nextPath = new URLSearchParams(window.location.search).get("next");
-  const destination = nextPath && (nextPath.startsWith("/admin") || nextPath.startsWith("/dashboard")) ? nextPath : "/";
+  const safeNext = nextPath && nextPath.startsWith("/admin") && !nextPath.startsWith("//") ? nextPath : null;
+  const destination = safeNext || "/admin";
   try {
    const client=createSupabaseBrowserClient();
    if (mode === "password") {
