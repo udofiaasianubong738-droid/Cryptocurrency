@@ -14,7 +14,12 @@ export function LiveDashboardPage() {
   if (!supabase) { setLoading(false); setError('Supabase is not configured for this GitHub Pages build. Add the VITE_SUPABASE_ANON_KEY repository secret and redeploy.'); return; }
   setLoading(true); setError(null);
   try {
-     const issue = qr.error || pr.error || ar.error; if (issue) throw issue;
+    const [qr, pr, ar] = await Promise.all([
+     supabase.from('market_quotes').select('id,price,change_24h_pct,volume_24h,market_cap,received_at,is_delayed,asset_id,market_assets(symbol,name)').order('received_at', { ascending: false }).limit(700),
+     supabase.from('market_provider_status').select('provider,status,last_success_at,latency_ms,updated_at').order('provider'),
+     supabase.from('market_assets').select('id', { count: 'exact', head: true }).eq('enabled', true),
+    ]);
+    const issue = qr.error || pr.error || ar.error; if (issue) throw issue;
    const unique = new Map<string, Quote>(); for (const q of (qr.data ?? []) as unknown as Quote[]) if (!unique.has(q.asset_id)) unique.set(q.asset_id,q);
    setQuotes([...unique.values()].sort((a,b)=>Math.abs(Number(b.change_24h_pct ?? 0))-Math.abs(Number(a.change_24h_pct ?? 0)))); setProviders((pr.data ?? []) as Provider[]); setAssetCount(ar.count ?? null); const quoteRows=[...unique.values()]; const validChanges=quoteRows.map(q=>Number(q.change_24h_pct)).filter(n=>Number.isFinite(n)); const newest=quoteRows.reduce<string|null>((latest,q)=>!latest||new Date(q.received_at)>new Date(latest)?q.received_at:latest,null); setSnapshot({captured_at:newest??new Date().toISOString(),tracked_assets:ar.count??quoteRows.length,quoted_assets:quoteRows.length,fresh_assets:quoteRows.filter(q=>Date.now()-new Date(q.received_at).getTime()<300000).length,average_change_24h_pct:validChanges.length?validChanges.reduce((sum,n)=>sum+n,0)/validChanges.length:null,gainers_count:validChanges.filter(n=>n>0).length,losers_count:validChanges.filter(n=>n<0).length}); setUpdatedAt(new Date().toISOString());
   } catch(e) { setError(e instanceof Error ? e.message : 'Unable to load market data. Check Supabase access policies and connection settings.'); } finally { setLoading(false); }
