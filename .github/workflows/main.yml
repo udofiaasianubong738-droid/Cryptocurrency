@@ -23,7 +23,6 @@ jobs:
           test -s package.json
           test -s nextjs/package.json
           test -s .github/workflows/nextjs-ci.yml
-          test -s .github/workflows/deploy-cloudflare-worker.yml
       - name: Check patch whitespace errors
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
