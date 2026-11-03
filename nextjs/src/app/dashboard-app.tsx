@@ -54,7 +54,7 @@ function ChartPlaceholder() {
   return <div className="ci-chart-placeholder"><div className="ci-chart-legend"><span><i className="blue-dot"/> Deposits</span><span><i className="purple-dot"/> Withdrawals</span><span><i className="green-dot"/> Investments</span></div><div className="ci-chart-area"><div className="ci-chart-lines"><span/><span/><span/><span/></div><div className="ci-chart-message"><span>▥</span><strong>Platform performance</strong><small>Verified transaction history will appear here after reconciliation.</small></div></div><div className="ci-chart-labels"><span>Awaiting verified data</span><span>Live metrics unavailable</span></div></div>;
 }
 
-function Overview() {
+function Overview({ basePath }: { basePath: string }) {
   return <>
     <section className="ci-welcome-banner"><div className="ci-banner-copy"><span className="ci-banner-eyebrow">CEO WORKSPACE</span><h1>Platform overview</h1><p>Review readiness and verified platform data in one workspace.</p><small>⌑ &nbsp;Secure admin preview · live figures will appear after verification</small></div><div className="ci-banner-art" aria-hidden="true"><div className="ci-globe">₿</div><span className="ci-orbit ci-orbit-one"/><span className="ci-orbit ci-orbit-two"/><span className="ci-art-bars"><i/><i/><i/><i/><i/></span></div></section>
     <div className="ci-metrics">
@@ -65,9 +65,9 @@ function Overview() {
       <section className="ci-card ci-activity"><div className="ci-card-heading"><div><span className="ci-kicker">PLATFORM FEED</span><h2>Recent Activity</h2></div><span className="ci-unavailable">Not connected</span></div><EmptyState title="Activity will appear here" detail="Verified deposit, withdrawal and account events will appear after the audit source is connected."/></section>
     </div>
     <div className="ci-bottom-grid">
-      <section className="ci-card ci-plans"><div className="ci-card-heading"><div><span className="ci-kicker">PLAN MANAGEMENT</span><h2>Investment Plans</h2></div><Link href="/admin/plans" className="ci-view-link">View plans →</Link></div><EmptyState title="No verified plans to display" detail="Connect and verify the plan records before publishing plan terms or returns."/></section>
-      <section className="ci-card ci-security"><div className="ci-card-heading"><div><span className="ci-kicker">ACCESS CONTROL</span><h2>Security Overview</h2></div><Link href="/admin/security" className="ci-view-link">View details →</Link></div><div className="ci-security-body"><div className="ci-shield">✓</div><div><strong>Production safety gate is active</strong><p><span>✓</span> CEO-only access required</p><p><span>✓</span> MFA verification required</p><p><span>✓</span> Financial operations disabled</p></div></div></section>
-      <section className="ci-card ci-controls"><div className="ci-card-heading"><div><span className="ci-kicker">SYSTEM CONTROL</span><h2>System Controls</h2></div></div><div className="ci-control-box"><span className="ci-control-power">⏻</span><div><strong>Financial Operations</strong><b>Currently Disabled</b><small>Live money movement is paused for safety.</small></div></div><Link href="/admin/system-status" className="ci-primary-link">View system status</Link></section>
+      <section className="ci-card ci-plans"><div className="ci-card-heading"><div><span className="ci-kicker">PLAN MANAGEMENT</span><h2>Investment Plans</h2></div><Link href={`${basePath}/plans`} className="ci-view-link">View plans →</Link></div><EmptyState title="No verified plans to display" detail="Connect and verify the plan records before publishing plan terms or returns."/></section>
+      <section className="ci-card ci-security"><div className="ci-card-heading"><div><span className="ci-kicker">ACCESS CONTROL</span><h2>Security Overview</h2></div><Link href={`${basePath}/security`} className="ci-view-link">View details →</Link></div><div className="ci-security-body"><div className="ci-shield">✓</div><div><strong>Production safety gate is active</strong><p><span>✓</span> CEO-only access required</p><p><span>✓</span> MFA verification required</p><p><span>✓</span> Financial operations disabled</p></div></div></section>
+      <section className="ci-card ci-controls"><div className="ci-card-heading"><div><span className="ci-kicker">SYSTEM CONTROL</span><h2>System Controls</h2></div></div><div className="ci-control-box"><span className="ci-control-power">⏻</span><div><strong>Financial Operations</strong><b>Currently Disabled</b><small>Live money movement is paused for safety.</small></div></div><Link href={`${basePath}/system-status`} className="ci-primary-link">View system status</Link></section>
     </div>
   </>;
 }
@@ -110,7 +110,7 @@ export default function DashboardApp({ activeSection = "overview", basePath = "/
       <div className="ci-page-content">
         {current[0] !== "overview" && <div className="ci-secondary-heading"><div><span className="ci-kicker">{current[4].toUpperCase()}</span><h1>{current[1]}</h1><p>{current[2]}</p></div><Link href={basePath} className="ci-home-button">⌂ Home dashboard</Link></div>}
         <SafetyNotice/>
-        {current[0] === "overview" ? <Overview/> : <SectionContent id={current[0]} label={current[1]}/>}
+        {current[0] === "overview" ? <Overview basePath={basePath}/> : <SectionContent id={current[0]} label={current[1]}/>}
         <footer className="ci-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>{previewMode ? "Read-only preview · live records not connected" : "CEO access required · financial operations disabled"}</span></footer>
       </div>
     </main>
