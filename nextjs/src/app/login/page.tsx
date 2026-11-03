@@ -32,6 +32,10 @@ export default function LoginPage(){
    setNotice("Enter the current six-digit code from your verified authenticator app.");
    return;
   }
+  const unfinished = factors.totp.filter((factor) => factor.status === "unverified");
+  if (unfinished.length) {
+   throw new Error("An unfinished authenticator setup already exists. Open Supabase Auth > Users > your CEO account > MFA Factors, remove only the unverified factor, then retry. Keep any verified factor.");
+  }
   const { data, error: enrollError } = await client.auth.mfa.enroll({ factorType: "totp", friendlyName: "CryptoInvest CEO authenticator" });
   if (enrollError) throw enrollError;
   const { data: challenge, error: challengeError } = await client.auth.mfa.challenge({ factorId: data.id });
