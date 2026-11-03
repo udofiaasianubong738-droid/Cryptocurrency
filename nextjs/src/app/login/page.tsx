@@ -149,7 +149,14 @@ export default function LoginPage() {
         setMessage(error?.message ?? "Could not start authenticator setup. Check Supabase MFA settings and retry.");
         return;
       }
+      const { data: challenge, error: challengeError } = await client.auth.mfa.challenge({ factorId: data.id });
+      if (challengeError || !challenge) {
+        await client.auth.mfa.unenroll({ factorId: data.id }).catch(() => undefined);
+        setMessage("Authenticator setup was created but its verification challenge could not start. The unfinished factor was cleaned up when possible; retry setup.");
+        return;
+      }
       setFactorId(data.id);
+      setChallengeId(challenge.id);
       setQrCode(data.totp.qr_code);
       setSecret(data.totp.secret);
       setCode("");
@@ -205,7 +212,7 @@ export default function LoginPage() {
           return;
         }
       } else {
-        const { error } = await client.auth.mfa.challengeAndVerify({ factorId, code: code.trim() });
+        const { error } = await client.auth.mfa.verify({ factorId, challengeId, code: code.trim() });
         if (error) {
           setMessage("Authenticator verification failed. Confirm the code and try again.");
           return;
