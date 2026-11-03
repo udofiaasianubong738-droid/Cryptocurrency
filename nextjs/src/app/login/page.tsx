@@ -33,11 +33,21 @@ export default function LoginPage(){
    return;
   }
   const unfinished = factors.all.filter((factor) => factor.factor_type === "totp" && String(factor.status) === "unverified");
+  // Cleanup only factors explicitly identified as unverified TOTP.
+  // If Supabase rejects cleanup, stop before creating another enrollment.
   for (const factor of unfinished) {
    const { error: removeError } = await client.auth.mfa.unenroll({ factorId: factor.id });
    if (removeError) {
-    throw new Error("Could not clear an unfinished authenticator setup. Retry sign-in; no verified authenticator was removed.");
+    console.error("MFA unfinished TOTP cleanup failed", { code: "code" in removeError ? removeError.code : undefined, message: removeError.message });
+    throw new Error(`Could not clear an unfinished authenticator setup (${removeError.message}). No verified authenticator was removed.`);
    }
+  }
+  // Confirm server-side cleanup before attempting a fresh enrollment.
+  const { data: afterCleanup, error: verifyCleanupError } = await client.auth.mfa.listFactors();
+  if (verifyCleanupError) throw new Error(`Could not verify authenticator cleanup (${verifyCleanupError.message}). No new setup was started.`);
+  const remainingUnverified = afterCleanup.all.filter((factor) => factor.factor_type === "totp" && String(factor.status) === "unverified");
+  if (remainingUnverified.length > 0) {
+   throw new Error(`Authenticator cleanup is incomplete: ${remainingUnverified.length} unfinished setup(s) remain. No new setup was started.`);
   }
   const { data, error: enrollError } = await client.auth.mfa.enroll({ factorType: "totp", friendlyName: "CryptoInvest CEO authenticator" });
   if (enrollError) throw enrollError;
