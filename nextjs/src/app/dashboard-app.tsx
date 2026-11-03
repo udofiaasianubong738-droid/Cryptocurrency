@@ -1,71 +1,118 @@
 "use client";
+
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 const screens = [
-  ["overview","Overview","A calm, clear view of platform readiness.","⌂","Workspace"],
-  ["customers","Customers","Customer access and profile review.","♙","Workspace"],
-  ["deposits","Deposit requests","Incoming-funds requests and evidence review.","↓","Operations"],
-  ["withdrawals","Withdrawal requests","Payout requests and verification status.","↑","Operations"],
-  ["plans","Investment plans","Plan information and publication readiness.","◇","Operations"],
-  ["portfolio","Portfolio","Investment visibility and account summaries.","▥","Operations"],
-  ["orders","Orders","Order lifecycle and provider readiness.","⇄","Operations"],
-  ["reports","Reports","Operational summaries from verified data.","▤","Insights"],
-  ["ledger","Ledger","Accounting records and balances.","≋","Controls"],
-  ["reconciliation","Reconciliation","Compare provider activity with internal records.","⟳","Controls"],
-  ["audit","Audit trail","Security and administrative events.","◷","Controls"],
-  ["integrations","Integrations","Backend and provider connection status.","⌘","Controls"],
-  ["security","Security","Access controls and production safety gates.","⬡","Controls"],
-  ["customer-portal","Customer portal","Customer-facing experience preview.","◎","Portal"],
+  ["overview", "Home Dashboard", "Your platform at a glance", "⌂", "Workspace"],
+  ["customers", "Customers", "Customer accounts and access", "♙", "Workspace"],
+  ["deposits", "Deposits", "Incoming deposit requests", "↓", "Operations"],
+  ["withdrawals", "Withdrawals", "Withdrawal requests and checks", "↑", "Operations"],
+  ["plans", "Investment Plans", "Plan terms and publication status", "◇", "Operations"],
+  ["orders", "Orders", "Order lifecycle and provider status", "⇄", "Operations"],
+  ["portfolio", "Portfolio", "Verified account and investment summaries", "▥", "Operations"],
+  ["reports", "Reports", "Reports from verified records", "▤", "Insights"],
+  ["ledger", "Ledger", "Accounting entries and balances", "≋", "Controls"],
+  ["reconciliation", "Reconciliation", "Provider and ledger comparison", "⟳", "Controls"],
+  ["audit", "Audit Logs", "Administrative events and audit history", "◷", "Controls"],
+  ["integrations", "Integrations", "Backend and provider connectivity", "⌘", "Controls"],
+  ["security", "Security", "Identity, access and safety gates", "⬡", "Controls"],
+  ["settings", "Settings", "Workspace preferences and configuration", "⚙", "Controls"],
+  ["system-status", "System Status", "Readiness and service checks", "✦", "Controls"],
 ] as const;
+
 type ScreenId = typeof screens[number][0];
-const setup = [
-  ["Confirm the authoritative backend","Identify the correct Supabase project and compare its schema.","Needs review"],
-  ["Verify authentication and CEO access","Enforce server-side roles and MFA before privileged access.","Not started"],
-  ["Validate ledger and reconciliation","Verify idempotency, balances, audit history and provider records.","Not started"],
-  ["Complete accessibility and device checks","Review keyboard use, contrast, mobile layouts and system theme.","In progress"],
-] as const;
-const descriptions: Record<string,string> = {
- customers:"Customer lists and account details appear only after real authentication and verified records are connected.",
- deposits:"Payment evidence and provider confirmations will be shown here. Approval controls are intentionally unavailable.",
- withdrawals:"Requests require balance validation, protected approvals and a complete audit trail before this screen is active.",
- plans:"Plan terms and eligibility must come from the verified backend. No returns are estimated in this preview.",
- portfolio:"Balances and performance must come from verified ledger records, not browser-side calculations.",
- orders:"Order history appears after provider integration and idempotent processing are verified.",
- reports:"Reports will be generated from validated platform data. No sample performance figures are displayed.",
- ledger:"Ledger entries must be read from the authoritative backend and reconciled before being treated as financial truth.",
- reconciliation:"Provider transactions and internal ledger entries will be compared after integrations are independently verified.",
- audit:"Administrative actions, timestamps and actors will be recorded in the verified audit trail.",
- integrations:"Connection health will be confirmed from real server-side checks. No provider is claimed as connected.",
+const descriptions: Record<string, string> = {
+  customers: "Review customer access and profile information after authenticated, verified records are available.",
+  deposits: "Incoming deposit requests will appear here when real provider evidence and transaction records are connected.",
+  withdrawals: "Review requests only after balance checks, server-side approval rules and audit logging are verified.",
+  plans: "Create and review plan definitions from the authoritative backend. No fabricated returns or performance claims are shown.",
+  orders: "Order history and provider states will be populated from verified integrations.",
+  portfolio: "Account balances and investment summaries must be sourced from the authoritative ledger.",
+  reports: "Generate reports from verified platform data; this preview does not invent customer or financial figures.",
+  ledger: "Accounting entries and balances must be read from the authoritative backend and reconciled before being treated as financial truth.",
+  reconciliation: "Compare provider activity against internal ledger entries after integration and idempotency checks are complete.",
+  audit: "Review administrative events, timestamps and actors after the verified audit source is connected.",
+  integrations: "Connection health must be established from real server-side checks; no provider is currently claimed as verified here.",
+  settings: "Workspace preferences can be configured here. Identity and financial safety controls remain protected.",
+  "system-status": "A readiness view for authentication, database connectivity, build health and financial safety gates.",
 };
-function Brand(){return <span className="brand-lockup"><span className="brand-mark" aria-hidden="true"><span/></span><span className="brand-name">Crypto<span>Invest</span></span></span>}
-function SafetyNotice(){return <section className="safety-notice" aria-label="Financial operations status"><span className="safety-icon" aria-hidden="true">✓</span><div className="safety-copy"><strong>Protected preview · financial operations are disabled</strong><p>No deposits, withdrawals, trades, approvals or balance changes can be performed here.</p></div><span className="status-pill status-locked">Locked</span></section>}
-function EmptyState({title,detail}:{title:string;detail:string}){return <div className="empty-state"><span className="empty-orbit" aria-hidden="true">◇</span><h3>{title}</h3><p>{detail}</p><span className="empty-note">No sample financial records are shown</span></div>}
-function Overview(){
- return <>
-  <div className="metric-grid">{[["Customer accounts","—","Awaiting verified data","♙"],["Published plans","—","No backend connected","◇"],["Requests to review","—","Queue not available","◷"],["System readiness","Review","Production checks remain","⬡"]].map(([label,value,note,icon])=><article className="metric-card" key={label}><div className="metric-top"><span>{label}</span><span className="metric-icon" aria-hidden="true">{icon}</span></div><div className={value==="Review"?"metric-value metric-review":"metric-value"}>{value}</div><p>{note}</p></article>)}</div>
-  <div className="content-grid overview-grid">
-   <section className="surface-card"><div className="section-title-row"><div><p className="section-kicker">PLATFORM CONTENT</p><h2>Investment plans</h2><p className="section-description">A clean overview, ready for verified plan data.</p></div><Link className="text-link" href="/admin/plans">View plans →</Link></div><EmptyState title="Plans will appear here" detail="Verify the authoritative backend before displaying plan terms or account values."/></section>
-   <section className="surface-card"><div className="section-title-row"><div><p className="section-kicker">BEFORE GO-LIVE</p><h2>Readiness checklist</h2><p className="section-description">Safeguards required for a trustworthy platform.</p></div><span className="count-badge">04</span></div><ol className="readiness-list">{setup.map((step,i)=><li key={step[0]}><span className="step-number">{String(i+1).padStart(2,"0")}</span><div className="step-copy"><strong>{step[0]}</strong><p>{step[1]}</p><span className={i===3?"status-pill status-progress":"status-pill status-pending"}>{step[2]}</span></div></li>)}</ol></section>
-  </div>
-  <section className="surface-card quick-links"><div className="section-title-row"><div><p className="section-kicker">QUICK ACCESS</p><h2>Move around your workspace</h2></div><p className="section-description">All screens are available from the screen menu.</p></div><div className="quick-link-grid">{screens.filter(s=>["deposits","withdrawals","ledger","security"].includes(s[0])).map(s=><Link className="quick-link" href={`/admin/${s[0]}`} key={s[0]}><span className="quick-link-icon" aria-hidden="true">{s[3]}</span><span><strong>{s[1]}</strong><small>{s[2]}</small></span><span className="quick-arrow" aria-hidden="true">↗</span></Link>)}</div></section>
- </>;
+
+function Brand() {
+  return <span className="ci-brand"><span className="ci-brand-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 35V27M18 35V20M28 35V15M38 35V8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/><path d="M7 18 18 13 26 17 40 5" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M32 5h8v8" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span><strong>CryptoInvest</strong><small>Invest · Grow · Prosper</small></span></span>;
 }
-function Content({id,label,icon}:{id:string;label:string;icon:string}){
- if(id==="overview")return <Overview/>;
- if(id==="security")return <div className="content-grid detail-grid"><section className="surface-card"><p className="section-kicker">ACCESS CONTROL</p><h2>Identity and permissions</h2><p className="section-description">Production access remains blocked until backend verification.</p><div className="detail-list">{["CEO-only administration","Multi-factor authentication","Customer role isolation"].map(x=><div key={x}><span>{x}</span><span className="status-pill status-pending">Needs verification</span></div>)}</div></section><section className="surface-card"><p className="section-kicker">PRODUCTION GATE</p><h2>Financial controls</h2><div className="gate-state"><span aria-hidden="true">✓</span><div><strong>Financial operations disabled</strong><p>This must remain off until independent verification is complete.</p></div></div><p className="section-description">No control on this preview can enable live financial operations.</p></section></div>;
- if(id==="customer-portal")return <section className="surface-card customer-preview"><div className="customer-preview-hero"><span className="preview-eyebrow">CUSTOMER EXPERIENCE</span><h2>A clearer way to follow your account</h2><p>Customers can view verified plan information, track account activity and submit requests after secure sign-in is implemented.</p><span className="status-pill status-pending">Design preview · no sign-in</span></div><div className="customer-preview-grid">{[["Account summary","Verified data only"],["Active plans","Awaiting backend"],["Requests","No live actions"]].map(x=><div key={x[0]}><span>{x[0]}</span><strong>—</strong><small>{x[1]}</small></div>)}</div></section>;
- return <section className="surface-card section-placeholder"><div className="placeholder-top"><span className="placeholder-symbol" aria-hidden="true">{icon}</span><span className="status-pill status-pending">Backend not verified</span></div><h2>{label}</h2><p className="section-description placeholder-description">{descriptions[id]||"This screen will show verified platform information."}</p><EmptyState title={id==="integrations"?"No connections verified":"Ready for verified data"} detail="This is a working UI placeholder. It contains no fabricated customer records, balances, transactions or performance figures."/><div className="placeholder-footer"><span aria-hidden="true">▣</span> Read-only preview · no live financial actions</div></section>;
+
+function SafetyNotice() {
+  return <section className="ci-safety"><span className="ci-safety-icon">✓</span><div><strong>Financial operations are currently disabled</strong><p>Live deposits, withdrawals, payouts and balance changes are paused until backend, ledger and security checks are verified.</p></div><span className="ci-locked">LOCKED</span></section>;
 }
-export default function DashboardApp({activeSection="overview"}:{activeSection?:string}){
- const current=screens.find(s=>s[0]===activeSection)||screens[0];
- const [query,setQuery]=useState(""); const [mobileOpen,setMobileOpen]=useState(false);
- const filtered=useMemo(()=>screens.filter(s=>s[1].toLowerCase().includes(query.toLowerCase())),[query]);
- const groups=Array.from(new Set(filtered.map(s=>s[4])));
- const href=(id:string)=>id==="overview"?"/admin":`/admin/${id}`;
- return <div className="app-shell"><a className="skip-link" href="#main-content">Skip to main content</a>
- {current[0]==="overview"&&<aside className="sidebar" aria-label="Workspace sidebar"><Link className="brand-link" href="/admin" aria-label="CryptoInvest admin overview"><Brand/></Link><div className="workspace-chip"><span className="workspace-avatar">CI</span><span><strong>CEO workspace</strong><small>Safe preview</small></span><span className="workspace-chevron" aria-hidden="true">⌄</span></div><nav className="sidebar-nav" aria-label="Primary navigation">{groups.map(group=><div className="nav-group" key={group}><p className="nav-group-title">{group}</p>{filtered.filter(s=>s[4]===group).map(s=><Link key={s[0]} href={href(s[0])} className={s[0]===current[0]?"nav-item nav-active":"nav-item"} aria-current={s[0]===current[0]?"page":undefined}><span className="nav-icon" aria-hidden="true">{s[3]}</span><span>{s[1]}</span></Link>)}</div>)}</nav><div className="sidebar-bottom"><div className="sidebar-safety"><span aria-hidden="true">✦</span><strong>Safety comes first</strong><p>Live money movement is disabled while the platform is being verified.</p><Link href="/admin/security">Review safeguards →</Link></div><div className="sidebar-profile"><span className="profile-avatar">CI</span><span><strong>CryptoInvest</strong><small>Development preview</small></span></div></div></aside>}
- <main className={current[0]==="overview"?"main-panel with-sidebar":"main-panel"} id="main-content"><header className="topbar"><div className="topbar-leading">{current[0]!=="overview"?<Link className="back-home" href="/admin"><span aria-hidden="true">←</span> Overview</Link>:<span className="breadcrumb">Workspace <span aria-hidden="true">/</span> Overview</span>}<div className="mobile-brand"><Brand/></div></div><div className="topbar-actions"><label className="nav-search"><span aria-hidden="true">⌕</span><input value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search workspace screens" placeholder="Find a screen…"/><kbd>/</kbd></label><details className="screen-menu"><summary aria-label="Open screen navigation"><span aria-hidden="true">☷</span><span className="menu-summary-label">Screens</span></summary><div className="screen-menu-panel"><strong>Go to a screen</strong><p>Choose a workspace area.</p>{filtered.map(s=><Link key={s[0]} href={href(s[0])}><span aria-hidden="true">{s[3]}</span>{s[1]}{s[0]===current[0]?<span className="current-mark">Current</span>:null}</Link>)}{filtered.length===0?<p className="no-results">No screens match “{query}”.</p>:null}</div></details><span className="preview-indicator"><span aria-hidden="true"/>Preview mode</span><button className="mobile-menu-button" type="button" aria-expanded={mobileOpen} aria-controls="mobile-screen-menu" onClick={()=>setMobileOpen(v=>!v)}>{mobileOpen?"Close":"Menu"}</button></div></header>
- {mobileOpen&&<nav id="mobile-screen-menu" className="mobile-screen-menu" aria-label="Screen navigation">{screens.map(s=><Link key={s[0]} href={href(s[0])} onClick={()=>setMobileOpen(false)} aria-current={s[0]===current[0]?"page":undefined}>{s[3]} {s[1]}</Link>)}</nav>}
- <div className="page-content"><div className="page-heading"><div><p className="eyebrow">{current[0]==="overview"?"YOUR PLATFORM AT A GLANCE":current[4].toUpperCase()}</p><h1>{current[0]==="overview"?"Good to see you.":current[1]}</h1><p className="page-subtitle">{current[2]}</p></div><span className="environment-badge"><span aria-hidden="true">●</span> Development preview</span></div><SafetyNotice/><Content id={current[0]} label={current[1]} icon={current[3]}/><footer className="page-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span><span className="footer-lock" aria-hidden="true">▣</span> Secure preview · financial operations disabled</span></footer></div></main></div>;
+
+function EmptyState({ title, detail }: { title: string; detail: string }) {
+  return <div className="ci-empty"><span aria-hidden="true">◇</span><strong>{title}</strong><p>{detail}</p><small>No sample financial records are displayed.</small></div>;
+}
+
+function ChartPlaceholder() {
+  return <div className="ci-chart-placeholder"><div className="ci-chart-legend"><span><i className="blue-dot"/> Deposits</span><span><i className="purple-dot"/> Withdrawals</span><span><i className="green-dot"/> Investments</span></div><div className="ci-chart-area"><div className="ci-chart-lines"><span/><span/><span/><span/></div><div className="ci-chart-message"><span>▥</span><strong>Platform performance</strong><small>Verified transaction history will appear here after reconciliation.</small></div></div><div className="ci-chart-labels"><span>Awaiting verified data</span><span>Live metrics unavailable</span></div></div>;
+}
+
+function Overview() {
+  return <>
+    <section className="ci-welcome-banner"><div className="ci-banner-copy"><span className="ci-banner-eyebrow">CEO WORKSPACE</span><h1>Welcome back, Cyrrenza!</h1><p>Here’s what’s happening with your CryptoInvest platform.</p><small>⌑ &nbsp;Secure admin preview · live figures will appear after verification</small></div><div className="ci-banner-art" aria-hidden="true"><div className="ci-globe">₿</div><span className="ci-orbit ci-orbit-one"/><span className="ci-orbit ci-orbit-two"/><span className="ci-art-bars"><i/><i/><i/><i/><i/></span></div></section>
+    <div className="ci-metrics">
+      {[["Total Customers","—","Awaiting verified records","♙","blue"],["Total Deposits","—","No verified totals available","↓","green"],["Total Withdrawals","—","No verified totals available","↑","purple"],["Total Investments","—","Awaiting ledger verification","▥","gold"]].map(([label,value,note,icon,tone])=><article className="ci-metric" key={label}><div className="ci-metric-top"><span>{label}</span><span className={`ci-metric-icon ${tone}`}>{icon}</span></div><strong>{value}</strong><small>{note}</small><div className={`ci-sparkline ${tone}`}><i/><i/><i/><i/><i/><i/></div></article>)}
+    </div>
+    <div className="ci-main-grid">
+      <section className="ci-card ci-performance"><div className="ci-card-heading"><div><span className="ci-kicker">PLATFORM ANALYTICS</span><h2>Platform Performance</h2></div><span className="ci-period">Last 30 days⌄</span></div><ChartPlaceholder/></section>
+      <section className="ci-card ci-activity"><div className="ci-card-heading"><div><span className="ci-kicker">PLATFORM FEED</span><h2>Recent Activity</h2></div><span className="ci-unavailable">Not connected</span></div><EmptyState title="Activity will appear here" detail="Verified deposit, withdrawal and account events will appear after the audit source is connected."/></section>
+    </div>
+    <div className="ci-bottom-grid">
+      <section className="ci-card ci-plans"><div className="ci-card-heading"><div><span className="ci-kicker">PLAN MANAGEMENT</span><h2>Investment Plans</h2></div><Link href="/admin/plans" className="ci-view-link">View plans →</Link></div><EmptyState title="No verified plans to display" detail="Connect and verify the plan records before publishing plan terms or returns."/></section>
+      <section className="ci-card ci-security"><div className="ci-card-heading"><div><span className="ci-kicker">ACCESS CONTROL</span><h2>Security Overview</h2></div><Link href="/admin/security" className="ci-view-link">View details →</Link></div><div className="ci-security-body"><div className="ci-shield">✓</div><div><strong>Production safety gate is active</strong><p><span>✓</span> CEO-only access required</p><p><span>✓</span> MFA verification required</p><p><span>✓</span> Financial operations disabled</p></div></div></section>
+      <section className="ci-card ci-controls"><div className="ci-card-heading"><div><span className="ci-kicker">SYSTEM CONTROL</span><h2>System Controls</h2></div></div><div className="ci-control-box"><span className="ci-control-power">⏻</span><div><strong>Financial Operations</strong><b>Currently Disabled</b><small>Live money movement is paused for safety.</small></div></div><Link href="/admin/system-status" className="ci-primary-link">View system status</Link></section>
+    </div>
+  </>;
+}
+
+function SectionContent({ id, label }: { id: string; label: string }) {
+  if (id === "security") return <div className="ci-section-grid"><section className="ci-card"><span className="ci-kicker">ACCESS CONTROL</span><h2>Identity and permissions</h2><div className="ci-check-list">{["CEO-only administration","Verified authenticator MFA","Customer and admin role isolation","Session expiry and audit events"].map(x=><p key={x}><span>✓</span>{x}<b>Verify</b></p>)}</div></section><section className="ci-card"><span className="ci-kicker">PRODUCTION GATE</span><h2>Financial controls</h2><div className="ci-gate"><span>✓</span><div><strong>Financial operations disabled</strong><p>Do not enable deposits, withdrawals, payouts or balance changes until independent verification is complete.</p></div></div></section></div>;
+  if (id === "settings") return <section className="ci-card"><span className="ci-kicker">WORKSPACE</span><h2>Settings</h2><p className="ci-section-copy">Branding, installation and navigation are configured for this workspace. Security-critical settings remain server-controlled.</p><div className="ci-settings-list"><div><span>Application name</span><strong>CryptoInvest</strong></div><div><span>Installation support</span><strong>Web app manifest and app icon</strong></div><div><span>Financial operations</span><strong className="ci-red-text">Disabled</strong></div></div></section>;
+  if (id === "system-status") return <section className="ci-card"><span className="ci-kicker">READINESS</span><h2>System Status</h2><p className="ci-section-copy">This screen does not claim service health until it can read real health checks.</p><div className="ci-check-list">{["Cloudflare Worker deployment","Supabase connectivity","CEO login and MFA","Audit trail and reconciliation","Financial operations safety gate"].map(x=><p key={x}><span>•</span>{x}<b>Needs verification</b></p>)}</div></section>;
+  if (id === "integrations") return <section className="ci-card"><span className="ci-kicker">CONNECTIONS</span><h2>Integrations</h2><p className="ci-section-copy">Connected providers must be verified from server-side status checks before they are shown as healthy.</p><EmptyState title="No provider health confirmed" detail="Supabase and external provider connection statuses are not fabricated."/></section>;
+  return <section className="ci-card ci-secondary-content"><div className="ci-secondary-symbol">{screens.find(s => s[0] === id)?.[3] ?? "◇"}</div><span className="ci-kicker">{screens.find(s => s[0] === id)?.[4].toUpperCase() ?? "WORKSPACE"}</span><h2>{label}</h2><p className="ci-section-copy">{descriptions[id] || "This screen is ready to display verified platform information when its authorized backend source is connected."}</p><EmptyState title={id === "plans" ? "No verified plans available" : "Ready for verified data"} detail={descriptions[id] || "Connect this screen to its authorized data source before showing records."}/><div className="ci-readonly-note">▣ &nbsp; Read-only preview · no live financial actions</div></section>;
+}
+
+export default function DashboardApp({ activeSection = "overview" }: { activeSection?: string }) {
+  const current = screens.find(s => s[0] === activeSection) || screens[0];
+  const [query, setQuery] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const filtered = useMemo(() => screens.filter(s => s[1].toLowerCase().includes(query.toLowerCase())), [query]);
+  const href = (id: ScreenId) => id === "overview" ? "/admin" : `/admin/${id}`;
+  return <div className="ci-app-shell">
+    <a className="ci-skip-link" href="#ci-main">Skip to main content</a>
+    {current[0] === "overview" && <aside className="ci-sidebar" aria-label="Home dashboard sidebar">
+      <Link href="/admin" className="ci-sidebar-brand" aria-label="CryptoInvest home dashboard"><Brand/></Link>
+      <nav className="ci-side-nav" aria-label="Primary navigation">
+        {screens.map(s => <Link key={s[0]} href={href(s[0])} className={s[0] === current[0] ? "ci-nav-item active" : "ci-nav-item"} aria-current={s[0] === current[0] ? "page" : undefined}><span>{s[3]}</span>{s[1]}</Link>)}
+      </nav>
+      <div className="ci-sidebar-status"><span className="ci-status-shield">✓</span><div><strong>Safety gate active</strong><small>Financial operations disabled</small></div><Link href="/admin/security" aria-label="Review security">↗</Link></div>
+      <div className="ci-sidebar-version">CryptoInvest · Admin Workspace</div>
+    </aside>}
+    <main id="ci-main" className={current[0] === "overview" ? "ci-main with-sidebar" : "ci-main"}>
+      <header className="ci-topbar">
+        <div className="ci-topbar-left">{current[0] === "overview" ? <span className="ci-home-crumb">Home Dashboard</span> : <Link href="/admin" className="ci-back-home">← Home Dashboard</Link>}</div>
+        <div className="ci-topbar-actions">
+          <label className="ci-search"><span aria-hidden="true">⌕</span><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Search admin screens" placeholder="Search customers, transactions…"/><kbd>/</kbd></label>
+          <details className="ci-screen-menu"><summary aria-label="Open admin navigation">☷ <span>Navigate</span></summary><div className="ci-screen-menu-panel"><strong>Admin screens</strong>{filtered.map(s=><Link href={href(s[0])} key={s[0]}>{s[3]} &nbsp;{s[1]}{s[0] === current[0] && <small>Current</small>}</Link>)}{filtered.length === 0 && <p>No screens match “{query}”.</p>}</div></details>
+          <div className="ci-user"><span className="ci-user-avatar">CA</span><span><strong>Cyrrenza Admin</strong><small>CEO access · AAL2 required</small></span></div>
+          <button className="ci-mobile-nav-button" type="button" onClick={() => setMobileOpen(v => !v)} aria-expanded={mobileOpen}>{mobileOpen ? "Close" : "Menu"}</button>
+        </div>
+      </header>
+      {mobileOpen && <nav className="ci-mobile-nav" aria-label="Admin screens">{screens.map(s=><Link key={s[0]} href={href(s[0])} onClick={() => setMobileOpen(false)} aria-current={s[0] === current[0] ? "page" : undefined}>{s[3]} {s[1]}</Link>)}</nav>}
+      <div className="ci-page-content">
+        {current[0] !== "overview" && <div className="ci-secondary-heading"><div><span className="ci-kicker">{current[4].toUpperCase()}</span><h1>{current[1]}</h1><p>{current[2]}</p></div><Link href="/admin" className="ci-home-button">⌂ Home dashboard</Link></div>}
+        <SafetyNotice/>
+        {current[0] === "overview" ? <Overview/> : <SectionContent id={current[0]} label={current[1]}/>}
+        <footer className="ci-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>CEO access required · financial operations disabled</span></footer>
+      </div>
+    </main>
+  </div>;
 }
