@@ -89,11 +89,11 @@ export default function DashboardApp({ activeSection = "overview", basePath = "/
   return <div className="ci-app-shell">
     <a className="ci-skip-link" href="#ci-main">Skip to main content</a>
     <aside className="ci-sidebar" aria-label="Admin navigation">
-      <Link href="/admin" className="ci-sidebar-brand" aria-label="CryptoInvest home dashboard"><Brand/></Link>
+      <Link href={basePath} className="ci-sidebar-brand" aria-label="CryptoInvest home dashboard"><Brand/></Link>
       <nav className="ci-side-nav" aria-label="Primary navigation">
         {screens.map(s => <Link key={s[0]} href={href(s[0])} className={s[0] === current[0] ? "ci-nav-item active" : "ci-nav-item"} aria-current={s[0] === current[0] ? "page" : undefined}><span>{s[3]}</span>{s[1]}</Link>)}
       </nav>
-      <div className="ci-sidebar-status"><span className="ci-status-shield">✓</span><div><strong>Safety gate active</strong><small>Financial operations disabled</small></div><Link href="/admin/security" aria-label="Review security">↗</Link></div>
+      <div className="ci-sidebar-status"><span className="ci-status-shield">✓</span><div><strong>Safety gate active</strong><small>Financial operations disabled</small></div><Link href={`${basePath}/security`} aria-label="Review security">↗</Link></div>
       <div className="ci-sidebar-version">CryptoInvest · Admin Workspace</div>
     </aside>
     <main id="ci-main" className="ci-main with-sidebar">
