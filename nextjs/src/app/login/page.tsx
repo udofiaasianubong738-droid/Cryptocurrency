@@ -32,7 +32,7 @@ export default function LoginPage(){
    setNotice("Enter the current six-digit code from your verified authenticator app.");
    return;
   }
-  const unfinished = factors.all.filter((factor) => factor.factor_type === "totp" && factor.status === "unverified");
+  const unfinished = factors.all.filter((factor) => factor.factor_type === "totp" && String(factor.status) === "unverified");
   for (const factor of unfinished) {
    const { error: removeError } = await client.auth.mfa.unenroll({ factorId: factor.id });
    if (removeError) {
