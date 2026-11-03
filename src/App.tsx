@@ -442,12 +442,15 @@ function LandingPage() {
           <a href="#insights">Insights</a>
         </nav>
         <div className="landing-actions">
-          <a href="https://admin.cryptoinvest.com/login" className="secondary-button">Admin login</a>
-          <a href="https://admin.cryptoinvest.com/" className="primary-button">Admin portal</a>
+          <span className="secondary-button" aria-disabled="true">Admin sign-in not live</span>
         </div>
       </header>
 
       <main className="landing-main">
+        <div className="static-host-notice" id="security" role="status">
+          Public website preview hosted on GitHub Pages. CEO sign-in and MFA are not enabled on this static site.
+          Financial operations remain disabled.
+        </div>
         <section className="hero-panel">
           <div className="hero-copy">
             <p className="eyebrow accent">Built for digital capital</p>
@@ -456,8 +459,8 @@ function LandingPage() {
               A modern crypto operations platform for finance teams, investors, and executive oversight.
             </p>
             <div className="hero-actions">
-              <a href="https://admin.cryptoinvest.com/" className="primary-button">Open admin</a>
-              <a href="#features" className="secondary-button">Explore platform</a>
+              <a href="#features" className="primary-button">Explore platform</a>
+              <a href="#security" className="secondary-button">Security status</a>
             </div>
             <div className="stat-row">
               <div><strong>$7.4M</strong><span>Portfolio tracked</span></div>
