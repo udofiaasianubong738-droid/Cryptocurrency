@@ -10,7 +10,7 @@ const sections = new Set([
 export async function generateMetadata({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
   if (!sections.has(section)) return { title: "Not found" };
-  const label = section.replace(/-/g, " ").replace(/\\b\\w/g, (letter) => letter.toUpperCase());
+  const label = section.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
   return { title: `${label} · Admin Preview`, robots: { index: false, follow: false } };
 }
 
