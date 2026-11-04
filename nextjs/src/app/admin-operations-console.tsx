@@ -8,7 +8,7 @@ type Finding = { id: string; finding_type: string; severity: string; status: str
 type EmailTemplate = { id: string; template_key: string; name: string; subject_template: string; body_text_template: string; category: string; enabled: boolean };
 type OutboxItem = { id: string; recipient_email: string; category: string; subject: string; status: string; created_at: string; provider_error: string | null };
 type InboundMessage = { id: string; sender_email: string; recipient_email: string; subject: string; received_at: string; status: string; body_text: string };
-type ComplianceDoc = { id: string; document_key: string; version: number; jurisdiction: string; document_type: string; title: string; status: string; effective_at: string | null; created_at: string };
+type ComplianceDoc = { id: string; document_key: string; version: number; jurisdiction: string; document_type: string; title: string; status: string; effective_at: string | null; created_at: string };\ntype AuditRow = { id: number; actor_user_id: string | null; action: string; entity_type: string | null; entity_id: string | null; request_id: string | null; metadata: Record<string, unknown>; created_at: string };\ntype SupportRow = { id: string; user_id: string; subject: string; message: string; status: string; admin_notes: string | null; created_at: string };\ntype RetentionPolicy = { id: string; policy_key: string; data_category: string; jurisdiction: string; retention_days: number; rationale: string; status: string; legal_hold: boolean; created_at: string };
 
 const panelStyle: CSSProperties = { border: "1px solid var(--ci-border, #dbe2ea)", borderRadius: 14, padding: 18, background: "var(--ci-card, #fff)", minWidth: 0 };
 const inputStyle: React.CSSProperties = { display: "block", width: "100%", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", marginTop: 6, marginBottom: 12, background: "white", color: "#0f172a" };
@@ -156,7 +156,7 @@ function EmailPanel() {
     if (error) setMessage("Template not saved: " + error.message);
     else { setTemplateName(""); setTemplateSubject(""); setTemplateBody(""); setMessage("Template saved. It has not sent an email."); await load(); }
   }
-  async function saveDraft(event: FormEvent) {
+  async function syncMailbox() {\n    if (!auth.allowed) return;\n    setMessage("Syncing Microsoft 365 inbox…");\n    const { data, error } = await auth.client.functions.invoke("admin-mail-sync", { body: {} });\n    if (error) setMessage("Mailbox sync failed: " + error.message);\n    else if (data?.error) setMessage("Mailbox sync failed: " + data.error);\n    else { setMessage(`Mailbox sync complete: ${data.messages_fetched} message(s) fetched. Existing provider message IDs are deduplicated.`); await load(); }\n  }\n  async function sendDraft(id: string) {\n    if (!auth.allowed || !window.confirm("Send this one email to the registered user with a confirmed email address? This sends a real email if Microsoft Graph is configured.")) return;\n    setMessage("Submitting the approved email to Microsoft Graph…");\n    const { data, error } = await auth.client.functions.invoke("admin-email-send", { body: { outbox_id: id, confirm_send: true } });\n    if (error) setMessage("Email send failed: " + error.message);\n    else if (data?.error) setMessage("Email send failed: " + data.error);\n    else { setMessage(data?.graph_accepted ? "Microsoft Graph accepted the email request. Inbox delivery is not guaranteed." : "Email request completed; check provider status."); await load(); }\n  }\n  async function saveDraft(event: FormEvent) {
     event.preventDefault();
     if (!auth.allowed || !auth.userId) return;
     const { error } = await auth.client.from("admin_email_outbox").insert({ recipient_email: recipient.trim(), category, subject: subject.trim(), body_text: body.trim(), status: "draft", created_by: auth.userId });
@@ -166,7 +166,7 @@ function EmailPanel() {
   if (auth.loading) return <section style={panelStyle}><h2>Email and Notifications</h2><p>Verifying CEO session…</p></section>;
   if (!auth.allowed) return <section style={panelStyle}><h2>Email and Notifications</h2><Notice kind="error">{auth.error || "CEO AAL2 authorization required."}</Notice><button style={buttonStyle} onClick={() => void auth.refresh()}>Recheck session</button></section>;
   return <div style={{ display: "grid", gap: 16 }}>
-    <section style={panelStyle}><span className="ci-kicker">MAIL OPERATIONS</span><h2>Email and Notifications</h2><p className="ci-section-copy">Templates and drafts are stored in Supabase. Microsoft 365 Graph is not connected yet; inbound messages only appear after a verified ingestion service is configured. No message is sent by this screen.</p>{message && <Notice kind={message.includes("failed") || message.includes("not saved") ? "error" : "success"}>{message}</Notice>}<button style={buttonStyle} onClick={() => void load()}>Refresh mailbox and outbox</button></section>
+    <section style={panelStyle}><span className="ci-kicker">MAIL OPERATIONS</span><h2>Email and Notifications</h2><p className="ci-section-copy">Templates and drafts are stored in Supabase. Microsoft 365 Graph is not connected yet; inbound messages only appear after a verified ingestion service is configured. No message is sent by this screen.</p>{message && <Notice kind={message.includes("failed") || message.includes("not saved") ? "error" : "success"}>{message}</Notice>}<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button style={buttonStyle} onClick={() => void load()}>Refresh mailbox and outbox</button><button style={buttonStyle} onClick={() => void syncMailbox()}>Sync Microsoft 365 inbox</button></div></section>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
       <section style={panelStyle}><h3>Create email template</h3><form onSubmit={saveTemplate}>
         <label style={labelStyle}>Template name<input style={inputStyle} required minLength={3} maxLength={160} value={templateName} onChange={e => setTemplateName(e.target.value)} /></label>
@@ -184,14 +184,14 @@ function EmailPanel() {
       </form></section>
     </div>
     <section style={panelStyle}><h3>Templates ({templates.length})</h3>{templates.length === 0 ? <p>No templates yet.</p> : templates.map(t=><article key={t.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{t.name}</strong><p>{t.subject_template}</p><small>{t.category} · {t.enabled ? "enabled" : "disabled"}</small></article>)}</section>
-    <section style={panelStyle}><h3>Outbox ({outbox.length})</h3>{outbox.length === 0 ? <p>No drafts or delivery records yet.</p> : outbox.map(o=><article key={o.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{o.subject}</strong><p>{o.recipient_email} · {o.category}</p><small>{o.status} · created {new Date(o.created_at).toLocaleString()}</small>{o.provider_error && <p role="alert">{o.provider_error}</p>}</article>)}</section>
+    <section style={panelStyle}><h3>Outbox ({outbox.length})</h3>{outbox.length === 0 ? <p>No drafts or delivery records yet.</p> : outbox.map(o=><article key={o.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{o.subject}</strong><p>{o.recipient_email} · {o.category}</p><small>{o.status} · created {new Date(o.created_at).toLocaleString()}</small>{o.provider_error && <p role="alert">{o.provider_error}</p>}{o.status === "draft" && <button style={buttonStyle} onClick={() => void sendDraft(o.id)}>Review & send this email</button>}</article>)}</section>
     <section style={panelStyle}><h3>Inbound messages ({inbox.length})</h3>{inbox.length === 0 ? <p>No ingested inbound messages. This does not mean the mailbox is empty; Graph sync is not connected.</p> : inbox.map(i=><details key={i.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><summary>{i.subject} — {i.sender_email}</summary><small>To {i.recipient_email} · {new Date(i.received_at).toLocaleString()} · {i.status}</small><p style={{ whiteSpace: "pre-wrap" }}>{i.body_text}</p></details>)}</section>
   </div>;
 }
 
 function CompliancePanel() {
   const auth = useCeoSession();
-  const [docs, setDocs] = useState<ComplianceDoc[]>([]);
+  const [docs, setDocs] = useState<ComplianceDoc[]>([]);\n  const [auditRows, setAuditRows] = useState<AuditRow[]>([]);\n  const [tickets, setTickets] = useState<SupportRow[]>([]);\n  const [retention, setRetention] = useState<RetentionPolicy[]>([]);\n  const [retentionKey, setRetentionKey] = useState("");\n  const [retentionCategory, setRetentionCategory] = useState("");\n  const [retentionJurisdiction, setRetentionJurisdiction] = useState("");\n  const [retentionDays, setRetentionDays] = useState("365");\n  const [retentionRationale, setRetentionRationale] = useState("");
   const [message, setMessage] = useState("");
   const [key, setKey] = useState("");
   const [version, setVersion] = useState("1");
@@ -201,9 +201,15 @@ function CompliancePanel() {
   const [content, setContent] = useState("");
   const load = useCallback(async () => {
     if (!auth.allowed) return;
-    const { data, error } = await auth.client.from("admin_compliance_documents").select("id,document_key,version,jurisdiction,document_type,title,status,effective_at,created_at").order("created_at", { ascending: false }).limit(100);
-    if (error) setMessage("Compliance records could not be loaded: " + error.message);
-    else { setDocs((data || []) as ComplianceDoc[]); setMessage(""); }
+    const [documents, audit, support, retentionRows] = await Promise.all([
+      auth.client.from("admin_compliance_documents").select("id,document_key,version,jurisdiction,document_type,title,status,effective_at,created_at").order("created_at", { ascending: false }).limit(100),
+      auth.client.from("audit_logs").select("id,actor_user_id,action,entity_type,entity_id,request_id,metadata,created_at").order("created_at", { ascending: false }).limit(100),
+      auth.client.from("support_tickets").select("id,user_id,subject,message,status,admin_notes,created_at").order("created_at", { ascending: false }).limit(100),
+      auth.client.from("admin_retention_policies").select("id,policy_key,data_category,jurisdiction,retention_days,rationale,status,legal_hold,created_at").order("created_at", { ascending: false }).limit(100)
+    ]);
+    const error = documents.error || audit.error || support.error || retentionRows.error;
+    if (error) setMessage("Compliance/audit records could not all be loaded: " + error.message);
+    else { setDocs((documents.data || []) as ComplianceDoc[]); setAuditRows((audit.data || []) as AuditRow[]); setTickets((support.data || []) as SupportRow[]); setRetention((retentionRows.data || []) as RetentionPolicy[]); setMessage(""); }
   }, [auth.allowed, auth.client]);
   useEffect(() => { void load(); }, [load]);
   async function saveDraft(event: FormEvent) {
@@ -212,6 +218,24 @@ function CompliancePanel() {
     const { error } = await auth.client.from("admin_compliance_documents").insert({ document_key: key.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-"), version: Number(version), jurisdiction: jurisdiction.trim(), document_type: type, title: title.trim(), content_markdown: content.trim(), status: "draft", created_by: auth.userId });
     if (error) setMessage("Document not saved: " + error.message);
     else { setKey(""); setVersion("1"); setJurisdiction(""); setTitle(""); setContent(""); setMessage("Draft saved. Publishing and legal review are not performed by this action."); await load(); }
+  }
+  async function saveRetention(event: FormEvent) {
+    event.preventDefault();
+    if (!auth.allowed || !auth.userId) return;
+    const policyKey = retentionKey.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+    const { error } = await auth.client.from("admin_retention_policies").insert({ policy_key: policyKey, data_category: retentionCategory.trim(), jurisdiction: retentionJurisdiction.trim(), retention_days: Number(retentionDays), rationale: retentionRationale.trim(), status: "draft", legal_hold: false, created_by: auth.userId });
+    if (error) setMessage("Retention policy draft not saved: " + error.message);
+    else { setRetentionKey(""); setRetentionCategory(""); setRetentionJurisdiction(""); setRetentionDays("365"); setRetentionRationale(""); setMessage("Retention policy saved as draft. No data is automatically deleted."); await load(); }
+  }
+  async function updateTicket(ticket: SupportRow, status: string) {
+    if (!auth.allowed || !auth.userId) return;
+    const note = window.prompt("Add an internal review note for the audit trail:", ticket.admin_notes || "");
+    if (note === null) return;
+    const values: Record<string, unknown> = { status, admin_notes: note.trim(), reviewed_by: auth.userId, reviewed_at: new Date().toISOString() };
+    if (status === "closed") values.closed_at = new Date().toISOString();
+    const { error } = await auth.client.from("support_tickets").update(values).eq("id", ticket.id);
+    setMessage(error ? "Ticket update failed: " + error.message : "Support ticket updated.");
+    if (!error) await load();
   }
   if (auth.loading) return <section style={panelStyle}><h2>Compliance and Audit</h2><p>Verifying CEO session…</p></section>;
   if (!auth.allowed) return <section style={panelStyle}><h2>Compliance and Audit</h2><Notice kind="error">{auth.error || "CEO AAL2 authorization required."}</Notice><button style={buttonStyle} onClick={() => void auth.refresh()}>Recheck session</button></section>;
@@ -227,6 +251,16 @@ function CompliancePanel() {
       <button style={buttonStyle}>Save draft</button>
     </form></section>
     <section style={panelStyle}><h3>Document register ({docs.length})</h3>{docs.length === 0 ? <p>No compliance documents registered.</p> : docs.map(d=><article key={d.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{d.title}</strong><p>{d.document_type.replaceAll("_", " ")} · {d.jurisdiction} · version {d.version}</p><small>{d.status} · created {new Date(d.created_at).toLocaleString()}</small></article>)}</section>
+    <section style={panelStyle}><h3>Retention policy register ({retention.length})</h3><p>Policies are stored as drafts for legal review. This does not automatically delete or purge data.</p><form onSubmit={saveRetention}>
+      <label style={labelStyle}>Policy key<input style={inputStyle} required minLength={3} maxLength={100} value={retentionKey} onChange={e => setRetentionKey(e.target.value)} placeholder="support-tickets" /></label>
+      <label style={labelStyle}>Data category<input style={inputStyle} required minLength={2} maxLength={120} value={retentionCategory} onChange={e => setRetentionCategory(e.target.value)} placeholder="Support tickets" /></label>
+      <label style={labelStyle}>Jurisdiction<input style={inputStyle} required minLength={2} maxLength={120} value={retentionJurisdiction} onChange={e => setRetentionJurisdiction(e.target.value)} /></label>
+      <label style={labelStyle}>Retention days<input style={inputStyle} type="number" min={1} max={36500} required value={retentionDays} onChange={e => setRetentionDays(e.target.value)} /></label>
+      <label style={labelStyle}>Rationale / legal basis<textarea style={{ ...inputStyle, minHeight: 90 }} required minLength={10} maxLength={5000} value={retentionRationale} onChange={e => setRetentionRationale(e.target.value)} /></label>
+      <button style={buttonStyle}>Save retention draft</button>
+    </form>{retention.map(r=><article key={r.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{r.data_category}</strong><p>{r.jurisdiction} · {r.retention_days} days · {r.status}{r.legal_hold ? " · legal hold" : ""}</p><small>{r.policy_key} · {new Date(r.created_at).toLocaleString()}</small></article>)}</section>
+    <section style={panelStyle}><h3>Complaints and support tickets ({tickets.length})</h3>{tickets.length === 0 ? <p>No support tickets available to this CEO session.</p> : tickets.map(t=><article key={t.id} style={{ padding: 12, borderBottom: "1px solid #e2e8f0" }}><strong>{t.subject}</strong><p>{t.message}</p><small>User {t.user_id} · {t.status} · {new Date(t.created_at).toLocaleString()}</small>{t.admin_notes && <p><strong>Internal note:</strong> {t.admin_notes}</p>}<div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>{["in_progress","waiting_for_user","closed"].filter(s => s !== t.status).map(s=><button key={s} style={buttonStyle} onClick={() => void updateTicket(t,s)}>{s.replaceAll("_"," ")}</button>)}</div></article>)}</section>
+    <section style={panelStyle}><h3>Recent audit trail ({auditRows.length})</h3>{auditRows.length === 0 ? <p>No audit events returned by this query.</p> : auditRows.map(a=><article key={a.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{a.action}</strong><p>{a.entity_type || "event"} {a.entity_id ? "· " + a.entity_id : ""}</p><small>{new Date(a.created_at).toLocaleString()} · actor {a.actor_user_id || "system"} · request {a.request_id || "—"}</small></article>)}</section>
   </div>;
 }
 
