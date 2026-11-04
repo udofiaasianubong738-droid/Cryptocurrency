@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import AdminOperationsConsole from "./admin-operations-console";
 
 const screens = [
   ["overview", "Home Dashboard", "Your platform at a glance", "⌂", "Workspace"],
@@ -19,6 +20,10 @@ const screens = [
   ["security", "Security", "Identity, access and safety gates", "⬡", "Controls"],
   ["settings", "Settings", "Workspace preferences and configuration", "⚙", "Controls"],
   ["system-status", "System Status", "Readiness and service checks", "✦", "Controls"],
+  ["ai-operations", "AI Operations", "Security findings and human-reviewed recommendations", "✧", "Intelligence"],
+  ["communications", "Email & Notifications", "Email templates, drafts and inbound message register", "✉", "Communications"],
+  ["compliance-audit", "Compliance & Audit", "Policy versions, jurisdiction and governance records", "§", "Governance"],
+  ["system-testing", "System Settings & Tests", "Integration configuration and verified readiness checks", "✓", "Controls"],
 ] as const;
 
 type ScreenId = typeof screens[number][0];
@@ -36,6 +41,10 @@ const descriptions: Record<string, string> = {
   integrations: "Connection health must be established from real server-side checks; no provider is currently claimed as verified here.",
   settings: "Workspace preferences can be configured here. Identity and financial safety controls remain protected.",
   "system-status": "A readiness view for authentication, database connectivity, build health and financial safety gates.",
+  "ai-operations": "Review security findings, data-quality concerns and recommendations. Automated detection remains a separate integration step.",
+  communications: "Manage protected email templates, drafts, inbound-message records and delivery status. Microsoft 365 Graph must be connected before mail can be sent or synced.",
+  "compliance-audit": "Maintain versioned compliance document drafts and governance records for human and jurisdiction-specific review.",
+  "system-testing": "Run authenticated Supabase permission checks and see which external integrations and deployment tests remain unverified.",
 };
 
 function Brand() {
@@ -73,6 +82,7 @@ function Overview({ basePath }: { basePath: string }) {
 }
 
 function SectionContent({ id, label }: { id: string; label: string }) {
+  if (id === "ai-operations" || id === "communications" || id === "compliance-audit" || id === "system-testing") return <AdminOperationsConsole section={id} />;
   if (id === "security") return <div className="ci-section-grid"><section className="ci-card"><span className="ci-kicker">ACCESS CONTROL</span><h2>Identity and permissions</h2><div className="ci-check-list">{["CEO-only administration","Verified authenticator MFA","Customer and admin role isolation","Session expiry and audit events"].map(x=><p key={x}><span>✓</span>{x}<b>Verify</b></p>)}</div></section><section className="ci-card"><span className="ci-kicker">PRODUCTION GATE</span><h2>Financial controls</h2><div className="ci-gate"><span>✓</span><div><strong>Financial operations disabled</strong><p>Do not enable deposits, withdrawals, payouts or balance changes until independent verification is complete.</p></div></div></section></div>;
   if (id === "settings") return <section className="ci-card"><span className="ci-kicker">WORKSPACE</span><h2>Settings</h2><p className="ci-section-copy">Branding, installation and navigation are configured for this workspace. Security-critical settings remain server-controlled.</p><div className="ci-settings-list"><div><span>Application name</span><strong>CryptoInvest</strong></div><div><span>Installation support</span><strong>Web app manifest and app icon</strong></div><div><span>Financial operations</span><strong className="ci-red-text">Disabled</strong></div></div></section>;
   if (id === "system-status") return <section className="ci-card"><span className="ci-kicker">READINESS</span><h2>System Status</h2><p className="ci-section-copy">This screen does not claim service health until it can read real health checks.</p><div className="ci-check-list">{["Cloudflare Worker deployment","Supabase connectivity","CEO login and MFA","Audit trail and reconciliation","Financial operations safety gate"].map(x=><p key={x}><span>•</span>{x}<b>Needs verification</b></p>)}</div></section>;
