@@ -92,9 +92,10 @@ function AdminAiPanel() {
   async function updateFinding(id: string, status: string) {
     const note = status === "resolved" ? window.prompt("Resolution note (required for your audit record):") : null;
     if (status === "resolved" && !note?.trim()) return;
-    const { error } = await auth.client.from("admin_ai_findings").update({ status, reviewed_by: auth.userId, reviewed_at: new Date().toISOString(), resolution_note: note?.trim() || null }).eq("id", id);
-    setMessage(error ? "Could not update finding: " + error.message : "Finding review updated.");
-    if (!error) await load();
+    const { data, error } = await auth.client.functions.invoke("admin-review-action", { body: { entity_type: "finding", entity_id: id, status, note: note?.trim() || "" } });
+    if (error) setMessage("Could not update finding: " + error.message);
+    else if (data?.error) setMessage("Could not update finding: " + data.error);
+    else { setMessage(data?.audit_recorded ? "Finding reviewed and audit event recorded." : "Finding reviewed, but the audit write needs investigation."); await load(); }
   }
 
   if (auth.loading) return <section style={panelStyle}><h2>AI Operations Centre</h2><p>Verifying CEO session and MFA…</p></section>;
@@ -284,11 +285,10 @@ function CompliancePanel() {
     if (!auth.allowed || !auth.userId) return;
     const note = window.prompt("Add an internal review note for the audit trail:", ticket.admin_notes || "");
     if (note === null) return;
-    const values: Record<string, unknown> = { status, admin_notes: note.trim(), reviewed_by: auth.userId, reviewed_at: new Date().toISOString() };
-    if (status === "closed") values.closed_at = new Date().toISOString();
-    const { error } = await auth.client.from("support_tickets").update(values).eq("id", ticket.id);
-    setMessage(error ? "Ticket update failed: " + error.message : "Support ticket updated.");
-    if (!error) await load();
+    const { data, error } = await auth.client.functions.invoke("admin-review-action", { body: { entity_type: "support_ticket", entity_id: ticket.id, status, note: note.trim() } });
+    if (error) setMessage("Ticket update failed: " + error.message);
+    else if (data?.error) setMessage("Ticket update failed: " + data.error);
+    else { setMessage(data?.audit_recorded ? "Support ticket updated and audit event recorded." : "Support ticket updated, but the audit write needs investigation."); await load(); }
   }
   if (auth.loading) return <section style={panelStyle}><h2>Compliance and Audit</h2><p>Verifying CEO session…</p></section>;
   if (!auth.allowed) return <section style={panelStyle}><h2>Compliance and Audit</h2><Notice kind="error">{auth.error || "CEO AAL2 authorization required."}</Notice><button style={buttonStyle} onClick={() => void auth.refresh()}>Recheck session</button></section>;
