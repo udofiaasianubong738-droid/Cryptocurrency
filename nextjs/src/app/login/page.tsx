@@ -111,7 +111,9 @@ export default function LoginPage(){
   try {
    const client=createSupabaseBrowserClient();
    if (mode === "password") {
-    const { error: signInError } = await client.auth.signInWithPassword({ email: email.trim(), password });
+    if (!captchaSiteKey) throw new Error("CAPTCHA is required for this project, but NEXT_PUBLIC_TURNSTILE_SITE_KEY is not configured. Configure the public Turnstile site key and verify Supabase CAPTCHA provider settings.");
+    if (!captchaToken) throw new Error("Complete the CAPTCHA challenge before signing in.");
+    const { error: signInError } = await client.auth.signInWithPassword({ email: email.trim(), password, options: { captchaToken } });
     if (signInError) throw signInError;
     await startMfa(client);
    } else if (mode === "enroll") {
