@@ -14,9 +14,9 @@ type SupportRow = { id: string; user_id: string; subject: string; message: strin
 type RetentionPolicy = { id: string; policy_key: string; data_category: string; jurisdiction: string; retention_days: number; rationale: string; status: string; legal_hold: boolean; created_at: string };
 
 const panelStyle: CSSProperties = { border: "1px solid var(--ci-border, #dbe2ea)", borderRadius: 14, padding: 18, background: "var(--ci-card, #fff)", minWidth: 0 };
-const inputStyle: React.CSSProperties = { display: "block", width: "100%", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", marginTop: 6, marginBottom: 12, background: "white", color: "#0f172a" };
-const buttonStyle: React.CSSProperties = { border: "1px solid #cbd5e1", borderRadius: 8, padding: "9px 12px", cursor: "pointer", background: "#f8fafc", color: "#0f172a", fontWeight: 600 };
-const labelStyle: React.CSSProperties = { display: "block", fontWeight: 600, fontSize: 13, color: "var(--ci-text, #334155)" };
+const inputStyle: CSSProperties = { display: "block", width: "100%", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", marginTop: 6, marginBottom: 12, background: "white", color: "#0f172a" };
+const buttonStyle: CSSProperties = { border: "1px solid #cbd5e1", borderRadius: 8, padding: "9px 12px", cursor: "pointer", background: "#f8fafc", color: "#0f172a", fontWeight: 600 };
+const labelStyle: CSSProperties = { display: "block", fontWeight: 600, fontSize: 13, color: "var(--ci-text, #334155)" };
 
 function Notice({ children, kind = "info" }: { children: ReactNode; kind?: "info" | "error" | "success" }) {
   const color = kind === "error" ? "#b91c1c" : kind === "success" ? "#166534" : "#475569";
@@ -100,7 +100,7 @@ function AdminAiPanel() {
   return <div style={{ display: "grid", gap: 16 }}>
     <section style={panelStyle}>
       <span className="ci-kicker">SECURITY AND DATA QUALITY</span><h2>AI Operations Centre</h2>
-      <p className="ci-section-copy">Findings below come from the protected database. This console currently supports recording and triaging findings; automated AI detection and scheduled log ingestion are not yet connected, so no monitoring coverage is implied.</p>
+      <p className="ci-section-copy">Findings below come from the protected database. The manual-triggered rule-based scan checks market freshness, quote coverage, email failures, pending outcome reviews, and user bootstrap counts. A generative AI model and scheduled log ingestion are not connected, so no continuous monitoring coverage is implied.</p>
       {message && <Notice kind={message.startsWith("Could not") || message.startsWith("Finding was not") ? "error" : "success"}>{message}</Notice>}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button style={buttonStyle} onClick={() => void load()} disabled={loading}>{loading ? "Refreshing…" : "Refresh findings"}</button><button style={buttonStyle} onClick={() => void runMonitor()}>Run security/data-quality scan</button></div>
       <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
