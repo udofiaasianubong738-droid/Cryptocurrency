@@ -7,7 +7,7 @@ import { createSupabaseBrowserClient } from "../lib/supabase/browser";
 type Finding = { id: string; finding_type: string; severity: string; status: string; title: string; summary: string; recommendation: string | null; detected_at: string; resolution_note: string | null };
 type EmailTemplate = { id: string; template_key: string; name: string; subject_template: string; body_text_template: string; category: string; enabled: boolean };
 type OutboxItem = { id: string; recipient_email: string; category: string; subject: string; status: string; created_at: string; provider_error: string | null };
-type InboundMessage = { id: string; sender_email: string; recipient_email: string; subject: string; received_at: string; status: string; body_text: string };
+type InboundMessage = { id: string; sender_email: string; recipient_email: string; subject: string; received_at: string; status: string; body_text: string };\ntype UserProfile = { id: string; display_name: string | null };\ntype UserNotification = { id: string; user_id: string; category: string; title: string; body: string; created_at: string; read_at: string | null };
 type ComplianceDoc = { id: string; document_key: string; version: number; jurisdiction: string; document_type: string; title: string; status: string; effective_at: string | null; created_at: string };
 type AuditRow = { id: number; actor_user_id: string | null; action: string; entity_type: string | null; entity_id: string | null; request_id: string | null; metadata: Record<string, unknown>; created_at: string };
 type SupportRow = { id: string; user_id: string; subject: string; message: string; status: string; admin_notes: string | null; created_at: string };
@@ -101,7 +101,7 @@ function AdminAiPanel() {
     <section style={panelStyle}>
       <span className="ci-kicker">SECURITY AND DATA QUALITY</span><h2>AI Operations Centre</h2>
       <p className="ci-section-copy">Findings below come from the protected database. The manual-triggered rule-based scan checks market freshness, quote coverage, email failures, pending outcome reviews, and user bootstrap counts. A generative AI model and scheduled log ingestion are not connected, so no continuous monitoring coverage is implied.</p>
-      {message && <Notice kind={message.startsWith("Could not") || message.startsWith("Finding was not") ? "error" : "success"}>{message}</Notice>}
+      {message && <Notice kind={message.startsWith("Could not") || message.startsWith("Finding was not") || message.startsWith("Monitoring run failed") ? "error" : "success"}>{message}</Notice>}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button style={buttonStyle} onClick={() => void load()} disabled={loading}>{loading ? "Refreshing…" : "Refresh findings"}</button><button style={buttonStyle} onClick={() => void runMonitor()}>Run security/data-quality scan</button></div>
       <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
         {rows.length === 0 && <Notice>No findings have been recorded yet, or the database returned no rows.</Notice>}
@@ -130,7 +130,7 @@ function EmailPanel() {
   const auth = useCeoSession();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [outbox, setOutbox] = useState<OutboxItem[]>([]);
-  const [inbox, setInbox] = useState<InboundMessage[]>([]);
+  const [inbox, setInbox] = useState<InboundMessage[]>([]);\n  const [profiles, setProfiles] = useState<UserProfile[]>([]);\n  const [notifications, setNotifications] = useState<UserNotification[]>([]);\n  const [notifyUserId, setNotifyUserId] = useState("");\n  const [notifyCategory, setNotifyCategory] = useState("general");\n  const [notifyTitle, setNotifyTitle] = useState("");\n  const [notifyBody, setNotifyBody] = useState("");
   const [message, setMessage] = useState("");
   const [recipient, setRecipient] = useState("");
   const [subject, setSubject] = useState("");
@@ -141,14 +141,16 @@ function EmailPanel() {
   const [templateBody, setTemplateBody] = useState("");
   const load = useCallback(async () => {
     if (!auth.allowed) return;
-    const [t, o, i] = await Promise.all([
+    const [t, o, i, p, n] = await Promise.all([
       auth.client.from("admin_email_templates").select("id,template_key,name,subject_template,body_text_template,category,enabled").order("name").limit(100),
       auth.client.from("admin_email_outbox").select("id,recipient_email,category,subject,status,created_at,provider_error").order("created_at", { ascending: false }).limit(100),
-      auth.client.from("admin_inbound_messages").select("id,sender_email,recipient_email,subject,received_at,status,body_text").order("received_at", { ascending: false }).limit(50)
+      auth.client.from("admin_inbound_messages").select("id,sender_email,recipient_email,subject,received_at,status,body_text").order("received_at", { ascending: false }).limit(50),
+      auth.client.from("profiles").select("id,display_name").order("display_name").limit(1000),
+      auth.client.from("user_notifications").select("id,user_id,category,title,body,created_at,read_at").order("created_at", { ascending: false }).limit(100)
     ]);
-    const error = t.error || o.error || i.error;
-    if (error) setMessage("Email workspace query failed: " + error.message);
-    else { setTemplates((t.data || []) as EmailTemplate[]); setOutbox((o.data || []) as OutboxItem[]); setInbox((i.data || []) as InboundMessage[]); setMessage(""); }
+    const error = t.error || o.error || i.error || p.error || n.error;
+    if (error) setMessage("Email/notification workspace query failed: " + error.message);
+    else { setTemplates((t.data || []) as EmailTemplate[]); setOutbox((o.data || []) as OutboxItem[]); setInbox((i.data || []) as InboundMessage[]); setProfiles((p.data || []) as UserProfile[]); setNotifications((n.data || []) as UserNotification[]); setMessage(""); }
   }, [auth.allowed, auth.client]);
   useEffect(() => { void load(); }, [load]);
   async function saveTemplate(event: FormEvent) {
@@ -158,6 +160,14 @@ function EmailPanel() {
     const { error } = await auth.client.from("admin_email_templates").insert({ template_key: key, name: templateName.trim(), subject_template: templateSubject.trim(), body_text_template: templateBody.trim(), category, created_by: auth.userId, updated_by: auth.userId });
     if (error) setMessage("Template not saved: " + error.message);
     else { setTemplateName(""); setTemplateSubject(""); setTemplateBody(""); setMessage("Template saved. It has not sent an email."); await load(); }
+  }
+  async function createNotification(event: FormEvent) {
+    event.preventDefault();
+    if (!auth.allowed) return;
+    const { data, error } = await auth.client.functions.invoke("admin-notification-create", { body: { user_id: notifyUserId, category: notifyCategory, title: notifyTitle.trim(), body: notifyBody.trim() } });
+    if (error) setMessage("Notification was not created: " + error.message);
+    else if (data?.error) setMessage("Notification was not created: " + data.error);
+    else { setNotifyTitle(""); setNotifyBody(""); setMessage("In-app notification created for the selected user. No email was sent."); await load(); }
   }
   async function syncMailbox() {
     if (!auth.allowed) return;
@@ -186,6 +196,14 @@ function EmailPanel() {
   if (!auth.allowed) return <section style={panelStyle}><h2>Email and Notifications</h2><Notice kind="error">{auth.error || "CEO AAL2 authorization required."}</Notice><button style={buttonStyle} onClick={() => void auth.refresh()}>Recheck session</button></section>;
   return <div style={{ display: "grid", gap: 16 }}>
     <section style={panelStyle}><span className="ci-kicker">MAIL OPERATIONS</span><h2>Email and Notifications</h2><p className="ci-section-copy">Templates and drafts are stored in Supabase. Microsoft 365 Graph is not connected yet; inbound messages only appear after a verified ingestion service is configured. No message is sent by this screen.</p>{message && <Notice kind={message.includes("failed") || message.includes("not saved") ? "error" : "success"}>{message}</Notice>}<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button style={buttonStyle} onClick={() => void load()}>Refresh mailbox and outbox</button><button style={buttonStyle} onClick={() => void syncMailbox()}>Sync Microsoft 365 inbox</button></div></section>
+    <section style={panelStyle}><h3>Send an in-app notification</h3><p>Creates a notification in the customer's app and records the admin action. It does not send email or change a financial balance.</p><form onSubmit={createNotification}>
+      <label style={labelStyle}>Customer<select style={inputStyle} required value={notifyUserId} onChange={e => setNotifyUserId(e.target.value)}><option value="">Select customer</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.display_name || "Customer"} · {p.id}</option>)}</select></label>
+      <label style={labelStyle}>Category<select style={inputStyle} value={notifyCategory} onChange={e => setNotifyCategory(e.target.value)}>{["general","account","security","market","investment","support"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+      <label style={labelStyle}>Title<input style={inputStyle} required minLength={1} maxLength={160} value={notifyTitle} onChange={e => setNotifyTitle(e.target.value)} /></label>
+      <label style={labelStyle}>Message<textarea style={{ ...inputStyle, minHeight: 100 }} required maxLength={4000} value={notifyBody} onChange={e => setNotifyBody(e.target.value)} /></label>
+      <button style={buttonStyle}>Create in-app notification</button>
+    </form></section>
+    <section style={panelStyle}><h3>Recent user notifications ({notifications.length})</h3>{notifications.length === 0 ? <p>No notifications have been recorded.</p> : notifications.map(n=><article key={n.id} style={{ padding: 10, borderBottom: "1px solid #e2e8f0" }}><strong>{n.title}</strong><p>{n.body}</p><small>{n.category} · user {n.user_id} · {new Date(n.created_at).toLocaleString()} · {n.read_at ? "read" : "unread"}</small></article>)}</section>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
       <section style={panelStyle}><h3>Create email template</h3><form onSubmit={saveTemplate}>
         <label style={labelStyle}>Template name<input style={inputStyle} required minLength={3} maxLength={160} value={templateName} onChange={e => setTemplateName(e.target.value)} /></label>
