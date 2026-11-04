@@ -326,21 +326,24 @@ function SystemTestingPanel() {
     setRunning(true); setMessage("");
     if (!auth.allowed) { setResults([{ name: "CEO authorization and MFA", status: "FAIL", detail: auth.error || "AAL2 CEO session not verified." }]); setRunning(false); return; }
     const checks: { name: string; status: string; detail: string }[] = [];
-    const [{ data: control, error: controlError }, { error: findingsError }, { error: templateError }, { error: docError }, { error: inboxError }] = await Promise.all([
+    const [{ data: control, error: controlError }, { error: findingsError }, { error: templateError }, { error: docError }, { error: inboxError }, { error: notificationError }, { error: retentionError }, { error: supportError }] = await Promise.all([
       auth.client.from("platform_control").select("financial_operations_enabled").limit(1).maybeSingle(),
       auth.client.from("admin_ai_findings").select("id").limit(1),
       auth.client.from("admin_email_templates").select("id").limit(1),
       auth.client.from("admin_compliance_documents").select("id").limit(1),
-      auth.client.from("admin_inbound_messages").select("id").limit(1)
+      auth.client.from("admin_inbound_messages").select("id").limit(1),
+      auth.client.from("user_notifications").select("id").limit(1),
+      auth.client.from("admin_retention_policies").select("id").limit(1),
+      auth.client.from("support_tickets").select("id").limit(1)
     ]);
     checks.push({ name: "CEO authorization + AAL2", status: "PASS", detail: "Current browser session passed CEO row and authenticator assurance checks." });
     checks.push({ name: "Supabase platform-control read", status: controlError ? "FAIL" : "PASS", detail: controlError ? controlError.message : "Platform control row is readable." });
     checks.push({ name: "Financial safety gate", status: !controlError && control?.financial_operations_enabled === false ? "PASS" : "FAIL", detail: !controlError && control?.financial_operations_enabled === false ? "financial_operations_enabled is false." : "Could not verify the financial safety gate is false." });
     checks.push({ name: "AI findings table permission", status: findingsError ? "FAIL" : "PASS", detail: findingsError?.message || "Authorized query succeeded." });
-    checks.push({ name: "Email workspace table permission", status: templateError || inboxError ? "FAIL" : "PASS", detail: templateError?.message || inboxError?.message || "Templates and inbound-message reads succeeded; Graph delivery is not tested." });
+    checks.push({ name: "Email workspace table permission", status: templateError || inboxError ? "FAIL" : "PASS", detail: templateError?.message || inboxError?.message || "Templates and inbound-message reads succeeded; Graph delivery is not tested." });\n    checks.push({ name: "In-app notification permission", status: notificationError ? "FAIL" : "PASS", detail: notificationError?.message || "CEO notification read succeeded; creation uses a server-side function." });\n    checks.push({ name: "Retention policy permission", status: retentionError ? "FAIL" : "PASS", detail: retentionError?.message || "Retention policy draft register is readable; no automated deletion is enabled." });\n    checks.push({ name: "Complaints/support permission", status: supportError ? "FAIL" : "PASS", detail: supportError?.message || "CEO support ticket read succeeded; review changes use an audited server action." });
     checks.push({ name: "Compliance document permission", status: docError ? "FAIL" : "PASS", detail: docError?.message || "Authorized query succeeded." });
-    checks.push({ name: "Microsoft Graph mail delivery", status: "NOT CONFIGURED", detail: "No provider send/receive test has been run." });
-    checks.push({ name: "Automated AI monitoring", status: "NOT CONFIGURED", detail: "No scheduled detector/alert ingestion has been run." });
+    checks.push({ name: "Microsoft Graph mail delivery", status: "NOT VERIFIED", detail: "No provider send/receive test has been run." });
+    checks.push({ name: "Rule-based security monitoring", status: "MANUAL ONLY", detail: "A CEO can run the scan manually. Scheduled monitoring and a generative AI model are not configured." });
     checks.push({ name: "Production build and E2E", status: "NOT RUN", detail: "This panel does not replace CI build, browser E2E, or production smoke tests." });
     setResults(checks); setRunning(false);
   }, [auth.allowed, auth.client, auth.error]);
