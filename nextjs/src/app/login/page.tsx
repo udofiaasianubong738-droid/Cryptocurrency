@@ -1,10 +1,20 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
 
 function Brand(){return <span className="brand-lockup"><span className="brand-mark" aria-hidden="true"><span/></span><span className="brand-name">Crypto<span>Invest</span></span></span>}
+
+declare global {
+ interface Window {
+  turnstile?: {
+   render: (container: HTMLElement, options: { sitekey: string; callback: (token: string) => void; "expired-callback"?: () => void; "error-callback"?: () => void }) => string;
+   reset: (widgetId?: string) => void;
+   remove?: (widgetId: string) => void;
+  };
+ }
+}
 
 type Mode = "password" | "totp" | "enroll";
 
@@ -21,6 +31,37 @@ export default function LoginPage(){
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [notice,setNotice]=useState("");
+ const [captchaToken,setCaptchaToken]=useState("");
+ const captchaContainer=useRef<HTMLDivElement>(null);
+ const captchaWidgetId=useRef<string|null>(null);
+ const captchaSiteKey=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+
+ useEffect(()=>{
+  if(mode!=="password" || !captchaSiteKey) return;
+  let cancelled=false;
+  const mount=()=>{
+   if(cancelled || !window.turnstile || !captchaContainer.current || captchaWidgetId.current) return;
+   captchaWidgetId.current=window.turnstile.render(captchaContainer.current,{
+    sitekey:captchaSiteKey,
+    callback:(token)=>setCaptchaToken(token),
+    "expired-callback":()=>setCaptchaToken(""),
+    "error-callback":()=>setCaptchaToken("")
+   });
+  };
+  if(window.turnstile) mount();
+  else {
+   let script=document.getElementById("ci-turnstile-script") as HTMLScriptElement|null;
+   if(!script){script=document.createElement("script");script.id="ci-turnstile-script";script.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";script.async=true;script.defer=true;document.head.appendChild(script);}
+   script.addEventListener("load",mount);
+  }
+  return ()=>{
+   cancelled=true;
+   const script=document.getElementById("ci-turnstile-script");
+   script?.removeEventListener("load",mount);
+   if(captchaWidgetId.current && window.turnstile){window.turnstile.remove?.(captchaWidgetId.current);captchaWidgetId.current=null;}
+   setCaptchaToken("");
+  };
+ },[mode,captchaSiteKey]);
 
  async function startMfa(client: ReturnType<typeof createSupabaseBrowserClient>) {
   const { data: factors, error: factorsError } = await client.auth.mfa.listFactors();
@@ -91,6 +132,7 @@ export default function LoginPage(){
    }
   } catch (e) {
    setError(e instanceof Error ? e.message : "Sign-in could not be completed. Check the Supabase configuration and try again.");
+   if(mode==="password" && captchaWidgetId.current && window.turnstile){window.turnstile.reset(captchaWidgetId.current);setCaptchaToken("");}
   } finally { setBusy(false); }
  }
 
@@ -100,7 +142,10 @@ export default function LoginPage(){
  {mode==="enroll" && <div className="auth-setup-warning"><strong>Scan this QR code</strong>{qrCode ? <img src={qrCode} alt="Fresh CryptoInvest TOTP enrollment QR code" width="220" height="220" style={{display:"block",maxWidth:"100%",margin:"16px auto",background:"#fff",padding:8}}/> : null}<p>If scanning is unavailable, enter this secret manually into your authenticator app:</p><code style={{overflowWrap:"anywhere"}}>{secret}</code></div>}
  <form onSubmit={handleSubmit}>
  {mode==="password" ? <><label className="auth-field-label" htmlFor="ceo-email">CEO email</label><input className="auth-field" id="ceo-email" type="email" autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} required/><label className="auth-field-label" htmlFor="ceo-password">Password</label><input className="auth-field" id="ceo-password" type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} required/></> : <><label className="auth-field-label" htmlFor="totp-code">Six-digit authenticator code</label><input className="auth-field" id="totp-code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))} required/></>}
- <button className="auth-primary-button" type="submit" disabled={busy}>{busy?"Please wait…":mode==="password"?"Continue securely":mode==="enroll"?"Verify authenticator":"Verify and sign in"}</button>
+ {mode==="password" && <div className="auth-captcha-block" aria-label="CAPTCHA verification">
+  {captchaSiteKey ? <div ref={captchaContainer} /> : <div className="auth-setup-warning" role="alert"><strong>CAPTCHA configuration required</strong><p>Sign-in is blocked until the public Turnstile site key is configured and matches the Supabase CAPTCHA provider.</p></div>}
+ </div>}
+ <button className="auth-primary-button" type="submit" disabled={busy || (mode==="password" && (!captchaSiteKey || !captchaToken))}>{busy?"Please wait…":mode==="password"?"Continue securely":mode==="enroll"?"Verify authenticator":"Verify and sign in"}</button>
  </form>
  {mode!=="password" && <button className="auth-back-link" type="button" onClick={()=>{setMode("password");setCode("");setQrCode("");setSecret("");setFactorId("");setChallengeId("");setNotice("");setError("");}}>Back to sign in</button>}
  <div className="auth-setup-warning"><strong>Security checks</strong><p>Supabase manages the session cookies. Privileged routes separately verify the authenticated user, enabled CEO authorization, and AAL2 on the server. Financial operations remain disabled.</p></div>
