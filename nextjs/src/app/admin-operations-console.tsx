@@ -144,7 +144,8 @@ function EmailPanel() {
   const [recipient, setRecipient] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const [templateCategory, setTemplateCategory] = useState("service");\n  const [draftCategory, setDraftCategory] = useState("service");
+  const [templateCategory, setTemplateCategory] = useState("service");
+  const [draftCategory, setDraftCategory] = useState("service");
   const [templateName, setTemplateName] = useState("");
   const [templateSubject, setTemplateSubject] = useState("");
   const [templateBody, setTemplateBody] = useState("");
@@ -340,7 +341,10 @@ function SystemTestingPanel() {
     checks.push({ name: "Supabase platform-control read", status: controlError ? "FAIL" : "PASS", detail: controlError ? controlError.message : "Platform control row is readable." });
     checks.push({ name: "Financial safety gate", status: !controlError && control?.financial_operations_enabled === false ? "PASS" : "FAIL", detail: !controlError && control?.financial_operations_enabled === false ? "financial_operations_enabled is false." : "Could not verify the financial safety gate is false." });
     checks.push({ name: "AI findings table permission", status: findingsError ? "FAIL" : "PASS", detail: findingsError?.message || "Authorized query succeeded." });
-    checks.push({ name: "Email workspace table permission", status: templateError || inboxError ? "FAIL" : "PASS", detail: templateError?.message || inboxError?.message || "Templates and inbound-message reads succeeded; Graph delivery is not tested." });\n    checks.push({ name: "In-app notification permission", status: notificationError ? "FAIL" : "PASS", detail: notificationError?.message || "CEO notification read succeeded; creation uses a server-side function." });\n    checks.push({ name: "Retention policy permission", status: retentionError ? "FAIL" : "PASS", detail: retentionError?.message || "Retention policy draft register is readable; no automated deletion is enabled." });\n    checks.push({ name: "Complaints/support permission", status: supportError ? "FAIL" : "PASS", detail: supportError?.message || "CEO support ticket read succeeded; review changes use an audited server action." });
+    checks.push({ name: "Email workspace table permission", status: templateError || inboxError ? "FAIL" : "PASS", detail: templateError?.message || inboxError?.message || "Templates and inbound-message reads succeeded; Graph delivery is not tested." });
+    checks.push({ name: "In-app notification permission", status: notificationError ? "FAIL" : "PASS", detail: notificationError?.message || "CEO notification read succeeded; creation uses a server-side function." });
+    checks.push({ name: "Retention policy permission", status: retentionError ? "FAIL" : "PASS", detail: retentionError?.message || "Retention policy draft register is readable; no automated deletion is enabled." });
+    checks.push({ name: "Complaints/support permission", status: supportError ? "FAIL" : "PASS", detail: supportError?.message || "CEO support ticket read succeeded; review changes use an audited server action." });
     checks.push({ name: "Compliance document permission", status: docError ? "FAIL" : "PASS", detail: docError?.message || "Authorized query succeeded." });
     checks.push({ name: "Microsoft Graph mail delivery", status: "NOT VERIFIED", detail: "No provider send/receive test has been run." });
     checks.push({ name: "Rule-based security monitoring", status: "MANUAL ONLY", detail: "A CEO can run the scan manually. Scheduled monitoring and a generative AI model are not configured." });
