@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { createSupabaseBrowserClient } from "../lib/supabase/browser";
 
 type Finding = { id: string; finding_type: string; severity: string; status: string; title: string; summary: string; recommendation: string | null; detected_at: string; resolution_note: string | null };
@@ -9,12 +10,12 @@ type OutboxItem = { id: string; recipient_email: string; category: string; subje
 type InboundMessage = { id: string; sender_email: string; recipient_email: string; subject: string; received_at: string; status: string; body_text: string };
 type ComplianceDoc = { id: string; document_key: string; version: number; jurisdiction: string; document_type: string; title: string; status: string; effective_at: string | null; created_at: string };
 
-const panelStyle: React.CSSProperties = { border: "1px solid var(--ci-border, #dbe2ea)", borderRadius: 14, padding: 18, background: "var(--ci-card, #fff)", minWidth: 0 };
+const panelStyle: CSSProperties = { border: "1px solid var(--ci-border, #dbe2ea)", borderRadius: 14, padding: 18, background: "var(--ci-card, #fff)", minWidth: 0 };
 const inputStyle: React.CSSProperties = { display: "block", width: "100%", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", marginTop: 6, marginBottom: 12, background: "white", color: "#0f172a" };
 const buttonStyle: React.CSSProperties = { border: "1px solid #cbd5e1", borderRadius: 8, padding: "9px 12px", cursor: "pointer", background: "#f8fafc", color: "#0f172a", fontWeight: 600 };
 const labelStyle: React.CSSProperties = { display: "block", fontWeight: 600, fontSize: 13, color: "var(--ci-text, #334155)" };
 
-function Notice({ children, kind = "info" }: { children: React.ReactNode; kind?: "info" | "error" | "success" }) {
+function Notice({ children, kind = "info" }: { children: ReactNode; kind?: "info" | "error" | "success" }) {
   const color = kind === "error" ? "#b91c1c" : kind === "success" ? "#166534" : "#475569";
   return <p role={kind === "error" ? "alert" : "status"} style={{ color, background: kind === "error" ? "#fef2f2" : kind === "success" ? "#f0fdf4" : "#f8fafc", borderRadius: 8, padding: "10px 12px", fontSize: 13 }}>{children}</p>;
 }
