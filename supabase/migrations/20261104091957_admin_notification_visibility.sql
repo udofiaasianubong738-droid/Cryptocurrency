@@ -1,0 +1,2 @@
+drop policy if exists user_notifications_ceo_aal2_select on public.user_notifications;
+create policy user_notifications_ceo_aal2_select on public.user_notifications for select to authenticated using (private.is_ceo() and (select auth.jwt()->>'aal')='aal2');
