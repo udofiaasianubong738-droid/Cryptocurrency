@@ -144,7 +144,7 @@ function EmailPanel() {
   const [recipient, setRecipient] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
-  const [category, setCategory] = useState("service");
+  const [templateCategory, setTemplateCategory] = useState("service");\n  const [draftCategory, setDraftCategory] = useState("service");
   const [templateName, setTemplateName] = useState("");
   const [templateSubject, setTemplateSubject] = useState("");
   const [templateBody, setTemplateBody] = useState("");
@@ -166,7 +166,7 @@ function EmailPanel() {
     event.preventDefault();
     if (!auth.allowed || !auth.userId) return;
     const key = templateName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
-    const { error } = await auth.client.from("admin_email_templates").insert({ template_key: key, name: templateName.trim(), subject_template: templateSubject.trim(), body_text_template: templateBody.trim(), category, created_by: auth.userId, updated_by: auth.userId });
+    const { error } = await auth.client.from("admin_email_templates").insert({ template_key: key, name: templateName.trim(), subject_template: templateSubject.trim(), body_text_template: templateBody.trim(), category: templateCategory, created_by: auth.userId, updated_by: auth.userId });
     if (error) setMessage("Template not saved: " + error.message);
     else { setTemplateName(""); setTemplateSubject(""); setTemplateBody(""); setMessage("Template saved. It has not sent an email."); await load(); }
   }
@@ -197,7 +197,7 @@ function EmailPanel() {
   async function saveDraft(event: FormEvent) {
     event.preventDefault();
     if (!auth.allowed || !auth.userId) return;
-    const { error } = await auth.client.from("admin_email_outbox").insert({ recipient_email: recipient.trim(), category, subject: subject.trim(), body_text: body.trim(), status: "draft", created_by: auth.userId });
+    const { error } = await auth.client.from("admin_email_outbox").insert({ recipient_email: recipient.trim(), category: draftCategory, subject: subject.trim(), body_text: body.trim(), status: "draft", created_by: auth.userId });
     if (error) setMessage("Email draft not saved: " + error.message);
     else { setRecipient(""); setSubject(""); setBody(""); setMessage("Email saved as a draft. Delivery is not connected."); await load(); }
   }
@@ -216,14 +216,14 @@ function EmailPanel() {
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
       <section style={panelStyle}><h3>Create email template</h3><form onSubmit={saveTemplate}>
         <label style={labelStyle}>Template name<input style={inputStyle} required minLength={3} maxLength={160} value={templateName} onChange={e => setTemplateName(e.target.value)} /></label>
-        <label style={labelStyle}>Category<select style={inputStyle} value={category} onChange={e => setCategory(e.target.value)}>{["security","account","investment","support","service","marketing"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+        <label style={labelStyle}>Category<select style={inputStyle} value={templateCategory} onChange={e => setTemplateCategory(e.target.value)}>{["security","account","investment","support","service","marketing"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
         <label style={labelStyle}>Subject<input style={inputStyle} required maxLength={250} value={templateSubject} onChange={e => setTemplateSubject(e.target.value)} /></label>
         <label style={labelStyle}>Plain-text body<textarea style={{ ...inputStyle, minHeight: 120 }} required maxLength={20000} value={templateBody} onChange={e => setTemplateBody(e.target.value)} /></label>
         <button style={buttonStyle}>Save template</button>
       </form></section>
       <section style={panelStyle}><h3>Compose email draft</h3><form onSubmit={saveDraft}>
         <label style={labelStyle}>Recipient email<input style={inputStyle} type="email" required maxLength={320} value={recipient} onChange={e => setRecipient(e.target.value)} /></label>
-        <label style={labelStyle}>Category<select style={inputStyle} value={category} onChange={e => setCategory(e.target.value)}>{["security","account","investment","support","service","marketing"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
+        <label style={labelStyle}>Category<select style={inputStyle} value={draftCategory} onChange={e => setDraftCategory(e.target.value)}>{["security","account","investment","support","service","marketing"].map(x=><option key={x} value={x}>{x}</option>)}</select></label>
         <label style={labelStyle}>Subject<input style={inputStyle} required maxLength={250} value={subject} onChange={e => setSubject(e.target.value)} /></label>
         <label style={labelStyle}>Message<textarea style={{ ...inputStyle, minHeight: 120 }} required maxLength={20000} value={body} onChange={e => setBody(e.target.value)} /></label>
         <button style={buttonStyle}>Save draft only</button>
