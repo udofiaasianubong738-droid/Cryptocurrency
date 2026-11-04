@@ -69,6 +69,14 @@ function AdminAiPanel() {
   }, [auth.allowed, auth.client]);
   useEffect(() => { void load(); }, [load]);
 
+  async function runMonitor() {
+    if (!auth.allowed) return;
+    setMessage("Running security and data-quality checks…");
+    const { data, error } = await auth.client.functions.invoke("admin-ai-monitor", { body: {} });
+    if (error) setMessage("Monitoring run failed: " + error.message);
+    else if (data?.error) setMessage("Monitoring run failed: " + data.error);
+    else { setMessage(`Monitoring completed: ${data.findings_detected} finding(s) detected, ${data.findings_saved} new finding(s) recorded. Audit record: ${data.audit_recorded ? "written" : "not written"}.`); await load(); }
+  }
   async function createFinding(event: FormEvent) {
     event.preventDefault();
     if (!auth.allowed || !auth.userId) return;
@@ -91,7 +99,7 @@ function AdminAiPanel() {
       <span className="ci-kicker">SECURITY AND DATA QUALITY</span><h2>AI Operations Centre</h2>
       <p className="ci-section-copy">Findings below come from the protected database. This console currently supports recording and triaging findings; automated AI detection and scheduled log ingestion are not yet connected, so no monitoring coverage is implied.</p>
       {message && <Notice kind={message.startsWith("Could not") || message.startsWith("Finding was not") ? "error" : "success"}>{message}</Notice>}
-      <button style={buttonStyle} onClick={() => void load()} disabled={loading}>{loading ? "Refreshing…" : "Refresh findings"}</button>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button style={buttonStyle} onClick={() => void load()} disabled={loading}>{loading ? "Refreshing…" : "Refresh findings"}</button><button style={buttonStyle} onClick={() => void runMonitor()}>Run security/data-quality scan</button></div>
       <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
         {rows.length === 0 && <Notice>No findings have been recorded yet, or the database returned no rows.</Notice>}
         {rows.map(row => <article key={row.id} style={{ border: "1px solid #e2e8f0", borderRadius: 10, padding: 14 }}>
