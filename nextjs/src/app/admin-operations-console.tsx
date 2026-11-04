@@ -8,7 +8,10 @@ type Finding = { id: string; finding_type: string; severity: string; status: str
 type EmailTemplate = { id: string; template_key: string; name: string; subject_template: string; body_text_template: string; category: string; enabled: boolean };
 type OutboxItem = { id: string; recipient_email: string; category: string; subject: string; status: string; created_at: string; provider_error: string | null };
 type InboundMessage = { id: string; sender_email: string; recipient_email: string; subject: string; received_at: string; status: string; body_text: string };
-type ComplianceDoc = { id: string; document_key: string; version: number; jurisdiction: string; document_type: string; title: string; status: string; effective_at: string | null; created_at: string };\ntype AuditRow = { id: number; actor_user_id: string | null; action: string; entity_type: string | null; entity_id: string | null; request_id: string | null; metadata: Record<string, unknown>; created_at: string };\ntype SupportRow = { id: string; user_id: string; subject: string; message: string; status: string; admin_notes: string | null; created_at: string };\ntype RetentionPolicy = { id: string; policy_key: string; data_category: string; jurisdiction: string; retention_days: number; rationale: string; status: string; legal_hold: boolean; created_at: string };
+type ComplianceDoc = { id: string; document_key: string; version: number; jurisdiction: string; document_type: string; title: string; status: string; effective_at: string | null; created_at: string };
+type AuditRow = { id: number; actor_user_id: string | null; action: string; entity_type: string | null; entity_id: string | null; request_id: string | null; metadata: Record<string, unknown>; created_at: string };
+type SupportRow = { id: string; user_id: string; subject: string; message: string; status: string; admin_notes: string | null; created_at: string };
+type RetentionPolicy = { id: string; policy_key: string; data_category: string; jurisdiction: string; retention_days: number; rationale: string; status: string; legal_hold: boolean; created_at: string };
 
 const panelStyle: CSSProperties = { border: "1px solid var(--ci-border, #dbe2ea)", borderRadius: 14, padding: 18, background: "var(--ci-card, #fff)", minWidth: 0 };
 const inputStyle: React.CSSProperties = { display: "block", width: "100%", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 12px", marginTop: 6, marginBottom: 12, background: "white", color: "#0f172a" };
@@ -156,7 +159,23 @@ function EmailPanel() {
     if (error) setMessage("Template not saved: " + error.message);
     else { setTemplateName(""); setTemplateSubject(""); setTemplateBody(""); setMessage("Template saved. It has not sent an email."); await load(); }
   }
-  async function syncMailbox() {\n    if (!auth.allowed) return;\n    setMessage("Syncing Microsoft 365 inbox…");\n    const { data, error } = await auth.client.functions.invoke("admin-mail-sync", { body: {} });\n    if (error) setMessage("Mailbox sync failed: " + error.message);\n    else if (data?.error) setMessage("Mailbox sync failed: " + data.error);\n    else { setMessage(`Mailbox sync complete: ${data.messages_fetched} message(s) fetched. Existing provider message IDs are deduplicated.`); await load(); }\n  }\n  async function sendDraft(id: string) {\n    if (!auth.allowed || !window.confirm("Send this one email to the registered user with a confirmed email address? This sends a real email if Microsoft Graph is configured.")) return;\n    setMessage("Submitting the approved email to Microsoft Graph…");\n    const { data, error } = await auth.client.functions.invoke("admin-email-send", { body: { outbox_id: id, confirm_send: true } });\n    if (error) setMessage("Email send failed: " + error.message);\n    else if (data?.error) setMessage("Email send failed: " + data.error);\n    else { setMessage(data?.graph_accepted ? "Microsoft Graph accepted the email request. Inbox delivery is not guaranteed." : "Email request completed; check provider status."); await load(); }\n  }\n  async function saveDraft(event: FormEvent) {
+  async function syncMailbox() {
+    if (!auth.allowed) return;
+    setMessage("Syncing Microsoft 365 inbox…");
+    const { data, error } = await auth.client.functions.invoke("admin-mail-sync", { body: {} });
+    if (error) setMessage("Mailbox sync failed: " + error.message);
+    else if (data?.error) setMessage("Mailbox sync failed: " + data.error);
+    else { setMessage(`Mailbox sync complete: ${data.messages_fetched} message(s) fetched. Existing provider message IDs are deduplicated.`); await load(); }
+  }
+  async function sendDraft(id: string) {
+    if (!auth.allowed || !window.confirm("Send this one email to the registered user with a confirmed email address? This sends a real email if Microsoft Graph is configured.")) return;
+    setMessage("Submitting the approved email to Microsoft Graph…");
+    const { data, error } = await auth.client.functions.invoke("admin-email-send", { body: { outbox_id: id, confirm_send: true } });
+    if (error) setMessage("Email send failed: " + error.message);
+    else if (data?.error) setMessage("Email send failed: " + data.error);
+    else { setMessage(data?.graph_accepted ? "Microsoft Graph accepted the email request. Inbox delivery is not guaranteed." : "Email request completed; check provider status."); await load(); }
+  }
+  async function saveDraft(event: FormEvent) {
     event.preventDefault();
     if (!auth.allowed || !auth.userId) return;
     const { error } = await auth.client.from("admin_email_outbox").insert({ recipient_email: recipient.trim(), category, subject: subject.trim(), body_text: body.trim(), status: "draft", created_by: auth.userId });
@@ -191,7 +210,15 @@ function EmailPanel() {
 
 function CompliancePanel() {
   const auth = useCeoSession();
-  const [docs, setDocs] = useState<ComplianceDoc[]>([]);\n  const [auditRows, setAuditRows] = useState<AuditRow[]>([]);\n  const [tickets, setTickets] = useState<SupportRow[]>([]);\n  const [retention, setRetention] = useState<RetentionPolicy[]>([]);\n  const [retentionKey, setRetentionKey] = useState("");\n  const [retentionCategory, setRetentionCategory] = useState("");\n  const [retentionJurisdiction, setRetentionJurisdiction] = useState("");\n  const [retentionDays, setRetentionDays] = useState("365");\n  const [retentionRationale, setRetentionRationale] = useState("");
+  const [docs, setDocs] = useState<ComplianceDoc[]>([]);
+  const [auditRows, setAuditRows] = useState<AuditRow[]>([]);
+  const [tickets, setTickets] = useState<SupportRow[]>([]);
+  const [retention, setRetention] = useState<RetentionPolicy[]>([]);
+  const [retentionKey, setRetentionKey] = useState("");
+  const [retentionCategory, setRetentionCategory] = useState("");
+  const [retentionJurisdiction, setRetentionJurisdiction] = useState("");
+  const [retentionDays, setRetentionDays] = useState("365");
+  const [retentionRationale, setRetentionRationale] = useState("");
   const [message, setMessage] = useState("");
   const [key, setKey] = useState("");
   const [version, setVersion] = useState("1");
