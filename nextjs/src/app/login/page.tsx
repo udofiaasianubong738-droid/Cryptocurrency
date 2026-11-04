@@ -59,7 +59,6 @@ export default function LoginPage(){
    const script=document.getElementById("ci-turnstile-script");
    script?.removeEventListener("load",mount);
    if(captchaWidgetId.current && window.turnstile){window.turnstile.remove?.(captchaWidgetId.current);captchaWidgetId.current=null;}
-   setCaptchaToken("");
   };
  },[mode,captchaSiteKey]);
 
