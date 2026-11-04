@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
   if (!tokenResponse.ok || !tokenData.access_token) return reply({ error: "Microsoft identity token request failed", detail: tokenData.error_description || tokenData.error || `HTTP ${tokenResponse.status}` }, 502);
 
   const mailbox = encodeURIComponent(sender);
-  const graphResponse = await fetch(`https://graph.microsoft.com/v1.0/users/${mailbox}/mailFolders/inbox/messages?$top=50&$orderby=receivedDateTime%20desc&$select=id,internetMessageId,from,toRecipients,subject,bodyPreview,receivedDateTime,isRead`, { headers: { Authorization: `Bearer ${tokenData.access_token}` } });
+  const graphResponse = await fetch(`https://graph.microsoft.com/v1.0/users/${mailbox}/mailFolders/inbox/messages?$top=50&$orderby=receivedDateTime%20desc&$select=id,internetMessageId,from,toRecipients,subject,body,bodyPreview,receivedDateTime,isRead`, { headers: { Authorization: `Bearer ${tokenData.access_token}` } });
   const graphData = await graphResponse.json().catch(() => ({}));
   if (!graphResponse.ok) return reply({ error: "Microsoft Graph inbox read failed", provider_status: graphResponse.status, detail: graphData.error?.message || "No provider detail" }, 502);
 
@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
     sender_email: m.from?.emailAddress?.address || "unknown",
     recipient_email: m.toRecipients?.[0]?.emailAddress?.address || sender,
     subject: String(m.subject || "(no subject)").slice(0,500),
-    body_text: String(m.bodyPreview || "").slice(0,30000),
+    body_text: String(m.body?.content || m.bodyPreview || "").replace(/<[^>]*>/g, " ").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"' ).replace(/&#39;/gi, "'").replace(/\\s+/g, " ").trim().slice(0,30000),
     received_at: m.receivedDateTime || new Date().toISOString(),
     status: "untriaged",
     metadata: { internet_message_id: m.internetMessageId || null, is_read: Boolean(m.isRead) }
