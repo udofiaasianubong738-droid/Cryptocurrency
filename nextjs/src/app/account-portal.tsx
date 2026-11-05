@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../lib/supabase/browser";
 
@@ -10,8 +11,8 @@ type LedgerEntry = { id: string; entry_type: string; amount: number; currency_co
 type EventRow = { id: string; event_type: string; status: string | null; message: string; created_at: string };
 type Notification = { id: string; category: string; title: string; body: string; created_at: string; read_at: string | null };
 
-const panel: React.CSSProperties = { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 18, padding: 20, boxShadow: "0 8px 28px rgba(15,23,42,.04)" };
-const muted: React.CSSProperties = { color: "#64748b", fontSize: 13, lineHeight: 1.6 };
+const panel: CSSProperties = { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 18, padding: 20, boxShadow: "0 8px 28px rgba(15,23,42,.04)" };
+const muted: CSSProperties = { color: "#64748b", fontSize: 13, lineHeight: 1.6 };
 const money = (value: number, currency: string) => new Intl.NumberFormat(undefined, { style: "currency", currency: /^[A-Z]{3}$/.test(currency) ? currency : "USD", maximumFractionDigits: 2 }).format(Number(value || 0));
 
 export default function AccountPortal() {
