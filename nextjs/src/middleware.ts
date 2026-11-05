@@ -3,14 +3,15 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const protectedPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
+  const adminProtected = pathname === "/admin" || pathname.startsWith("/admin/") ||
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  if (!protectedPath) return NextResponse.next();
+  const accountPath = pathname === "/account" || pathname.startsWith("/account/");
+  if (!adminProtected && !accountPath) return NextResponse.next();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
-    return NextResponse.json({ error: "Secure admin access is not configured." }, { status: 503 });
+    return NextResponse.json({ error: "Secure application access is not configured." }, { status: 503 });
   }
 
   let response = NextResponse.next({ request });
@@ -26,6 +27,42 @@ export async function middleware(request: NextRequest) {
   });
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const isAccountLogin = pathname === "/account/login";
+
+  if (accountPath) {
+    if (userError || !user) {
+      if (isAccountLogin) return response;
+      const login = request.nextUrl.clone();
+      login.pathname = "/account/login";
+      return NextResponse.redirect(login);
+    }
+
+    // A CEO identity must never use the customer portal: CEO RLS policies
+    // intentionally grant broader read access than customer-owned policies.
+    const { data: ceo, error: ceoError } = await supabase
+      .from("ceo_admins")
+      .select("user_id,enabled")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (ceoError) {
+      return NextResponse.json({ error: "Customer role could not be verified. Access is blocked." }, { status: 503 });
+    }
+    if (ceo?.enabled) {
+      const admin = request.nextUrl.clone();
+      admin.pathname = "/admin";
+      admin.search = "";
+      return NextResponse.redirect(admin);
+    }
+    if (isAccountLogin) {
+      const account = request.nextUrl.clone();
+      account.pathname = "/account";
+      account.search = "";
+      return NextResponse.redirect(account);
+    }
+    return response;
+  }
+
   if (userError || !user) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
@@ -56,5 +93,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/account/:path*"],
 };
