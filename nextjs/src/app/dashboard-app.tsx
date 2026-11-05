@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import AdminOperationsConsole from "./admin-operations-console";\nimport AdminOverviewLive from "./admin-overview-live";\nimport { useRouter } from "next/navigation";\nimport { createSupabaseBrowserClient } from "../lib/supabase/browser";
+import AdminOperationsConsole from "./admin-operations-console";
+import AdminOverviewLive from "./admin-overview-live";
+import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "../lib/supabase/browser";
 
 const screens = [
   ["overview", "Home Dashboard", "Your platform at a glance", "⌂", "Workspace"],
@@ -92,10 +95,12 @@ function SectionContent({ id, label }: { id: string; label: string }) {
 
 export default function DashboardApp({ activeSection = "overview", basePath = "/admin", previewMode = false }: { activeSection?: string; basePath?: string; previewMode?: boolean }) {
   const current = screens.find(s => s[0] === activeSection) || screens[0];
-  const router = useRouter();\n  const [query, setQuery] = useState("");
+  const router = useRouter();
+  const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const filtered = useMemo(() => screens.filter(s => s[1].toLowerCase().includes(query.toLowerCase())), [query]);
-  const href = (id: ScreenId) => id === "overview" ? basePath : `${basePath}/${id}`;\n  async function signOut() { const client = createSupabaseBrowserClient(); await client.auth.signOut(); router.replace("/login"); router.refresh(); }
+  const href = (id: ScreenId) => id === "overview" ? basePath : `${basePath}/${id}`;
+  async function signOut() { const client = createSupabaseBrowserClient(); await client.auth.signOut(); router.replace("/login"); router.refresh(); }
   return <div className="ci-app-shell">
     <a className="ci-skip-link" href="#ci-main">Skip to main content</a>
     <aside className="ci-sidebar" aria-label="Admin navigation">
@@ -113,7 +118,8 @@ export default function DashboardApp({ activeSection = "overview", basePath = "/
           <label className="ci-search"><span aria-hidden="true">⌕</span><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Search admin screens" placeholder="Search customers, transactions…"/><kbd>/</kbd></label>
           <details className="ci-screen-menu"><summary aria-label="Open admin navigation">☷ <span>Navigate</span></summary><div className="ci-screen-menu-panel"><strong>Admin screens</strong>{filtered.map(s=><Link href={href(s[0])} key={s[0]}>{s[3]} &nbsp;{s[1]}{s[0] === current[0] && <small>Current</small>}</Link>)}{filtered.length === 0 && <p>No screens match “{query}”.</p>}</div></details>
           <div className="ci-user"><span className="ci-user-avatar">CI</span><span><strong>CEO workspace</strong><small>{previewMode ? "Read-only design preview" : "CEO access · AAL2 required"}</small></span></div>
-          <button className="ci-mobile-nav-button" type="button" onClick={() => setMobileOpen(v => !v)} aria-expanded={mobileOpen}>{mobileOpen ? "Close" : "Menu"}</button>\n          {!previewMode && <button type="button" className="ci-home-button" onClick={() => void signOut()}>Sign out</button>}
+          <button className="ci-mobile-nav-button" type="button" onClick={() => setMobileOpen(v => !v)} aria-expanded={mobileOpen}>{mobileOpen ? "Close" : "Menu"}</button>
+          {!previewMode && <button type="button" className="ci-home-button" onClick={() => void signOut()}>Sign out</button>}
         </div>
       </header>
       {mobileOpen && <nav className="ci-mobile-nav" aria-label="Admin screens">{screens.map(s=><Link key={s[0]} href={href(s[0])} onClick={() => setMobileOpen(false)} aria-current={s[0] === current[0] ? "page" : undefined}>{s[3]} {s[1]}</Link>)}</nav>}
