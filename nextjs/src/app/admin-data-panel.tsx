@@ -47,7 +47,7 @@ export default function AdminDataPanel({ section }: { section: string }) {
       if (!config) throw new Error("This admin data section is not configured.");
       const result = await client.from(config.table).select(config.columns.join(",")).order(config.columns.includes("created_at") ? "created_at" : config.columns[0], { ascending: false }).limit(100);
       if (result.error) throw new Error(result.error.message);
-      setRows((result.data || []) as Row[]);
+      setRows((result.data || []) as unknown as Row[]);
       setRefreshed(new Date().toLocaleString());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load verified admin records.");
