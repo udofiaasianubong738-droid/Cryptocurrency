@@ -48,7 +48,10 @@ export async function middleware(request: NextRequest) {
     if (ceoError) {
       return NextResponse.json({ error: "Customer role could not be verified. Access is blocked." }, { status: 503 });
     }
-    if (ceo?.enabled) {
+    if (ceo) {
+      if (!ceo.enabled) {
+        return NextResponse.json({ error: "This CEO identity is disabled and cannot access the customer portal." }, { status: 403 });
+      }
       const admin = request.nextUrl.clone();
       admin.pathname = "/admin";
       admin.search = "";
