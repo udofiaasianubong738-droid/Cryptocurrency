@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { createSupabaseBrowserClient } from "../lib/supabase/browser";
 
 type Row = Record<string, string | number | boolean | null>;
