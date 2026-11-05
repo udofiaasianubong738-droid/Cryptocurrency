@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import AdminOperationsConsole from "./admin-operations-console";
+import AdminDataPanel from "./admin-data-panel";
 import AdminOverviewLive from "./admin-overview-live";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../lib/supabase/browser";
@@ -126,7 +127,7 @@ export default function DashboardApp({ activeSection = "overview", basePath = "/
       <div className="ci-page-content">
         {current[0] !== "overview" && <div className="ci-secondary-heading"><div><span className="ci-kicker">{current[4].toUpperCase()}</span><h1>{current[1]}</h1><p>{current[2]}</p></div><Link href={basePath} className="ci-home-button">⌂ Home dashboard</Link></div>}
         <SafetyNotice/>
-        {current[0] === "overview" ? (previewMode ? <Overview basePath={basePath}/> : <AdminOverviewLive basePath={basePath}/>) : <SectionContent id={current[0]} label={current[1]}/>}
+        {current[0] === "overview" ? (previewMode ? <Overview basePath={basePath}/> : <AdminOverviewLive basePath={basePath}/>) : (!previewMode && ["customers", "deposits", "withdrawals", "plans", "orders", "portfolio", "ledger", "audit"].includes(current[0]) ? <AdminDataPanel section={current[0]} /> : <SectionContent id={current[0]} label={current[1]}/>)}
         <footer className="ci-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>{previewMode ? "Read-only preview · live records not connected" : "CEO access required · financial operations disabled"}</span></footer>
       </div>
     </main>
