@@ -45,7 +45,7 @@ jobs:
               raise SystemExit(f"Missing preview files: {missing}")
           js = (root / "app.js").read_text()
           html = (root / "index.html").read_text()
-          for screen in ["welcome", "mfa", "overview", "customers", "investment-records", "performance", "documents", "notifications", "ai-operations", "security", "audit", "settings", "support"]:
+          for screen in ["welcome", "mfa", "overview", "customers", "investment-records", "performance", "documents", "notifications", "ai-operations", "security", "system-status", "audit", "profile", "settings", "support"]:
               if screen not in js:
                   raise SystemExit(f"Missing screen route: {screen}")
           for asset in ["./styles.css", "./app.js", "./logo.svg"]:

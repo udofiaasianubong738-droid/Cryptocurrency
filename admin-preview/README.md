@@ -9,7 +9,7 @@ This folder is a static, navigable design preview only.
 - Financial operations remain disabled. This preview cannot initiate or approve deposits, withdrawals, payouts, transfers or investment transactions.
 
 ## Preview screens
-Welcome, identity verification, overview, customer directory, customer profile, investment records, performance reports, documents, notifications, AI operations, security centre, audit logs, settings and help/support.
+Welcome, identity verification, overview, customer directory, customer profile, investment records, performance reports, documents, notifications, AI operations, security centre, audit logs, admin profile, system status, settings and help/support.
 
 ## Local preview
 Open `index.html` in a browser, or serve this folder with any static file server. The navigation is hash-based and all preview controls either navigate or explain the unavailable backend action.
