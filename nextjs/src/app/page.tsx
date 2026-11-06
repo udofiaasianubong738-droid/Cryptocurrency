@@ -1,11 +1,12 @@
-import DashboardApp from "./dashboard-app";
+import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "CEO Admin Dashboard",
-  description: "CryptoInvest administration dashboard. Financial operations remain disabled until backend and security checks are complete.",
+  title: "CryptoInvest Administration",
+  description: "Protected CryptoInvest CEO administration workspace.",
   robots: { index: false, follow: false },
 };
 
-export default function AdminLandingPage() {
-  return <DashboardApp activeSection="overview" basePath="/admin" />;
+export default function RootPage() {
+  // Route all entry through /admin, which is protected by middleware.
+  redirect("/admin");
 }
