@@ -138,5 +138,5 @@
   .footer { align-items: flex-start; flex-direction: column; gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behavior: auto !important; }
+  .page *, .page *::before, .page *::after { scroll-behavior: auto !important; }
 }
