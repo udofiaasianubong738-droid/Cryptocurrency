@@ -1,10 +1,16 @@
-name: Build and deploy CryptoInvest to GitHub Pages
+name: Build and deploy CryptoInvest Admin preview to GitHub Pages
 
 on:
   push:
     branches: [main]
+    paths:
+      - "admin-preview/**"
+      - ".github/workflows/deploy-github-pages.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "admin-preview/**"
+      - ".github/workflows/deploy-github-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -13,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: cryptoinvest-admin-preview-pages
   cancel-in-progress: true
 
 jobs:
@@ -26,21 +32,38 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Run tests
-        run: npm test
-      - name: Build static site
-        run: npm run build
-        env:
-          GITHUB_ACTIONS: true
-          VITE_SUPABASE_URL: https://yniphceoofuwzpelpksd.supabase.co
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      - name: Upload GitHub Pages artifact
+      - name: Validate JavaScript syntax
+        run: node --check admin-preview/app.js
+      - name: Validate preview structure and safety boundaries
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("admin-preview")
+          required = ["index.html", "styles.css", "app.js", "logo.svg", "README.md"]
+          missing = [name for name in required if not (root / name).is_file()]
+          if missing:
+              raise SystemExit(f"Missing preview files: {missing}")
+          js = (root / "app.js").read_text()
+          html = (root / "index.html").read_text()
+          for screen in ["welcome", "mfa", "overview", "customers", "investment-records", "performance", "documents", "notifications", "ai-operations", "security", "audit", "settings", "support"]:
+              if f"{screen}:" not in js:
+                  raise SystemExit(f"Missing screen route: {screen}")
+          for asset in ["./styles.css", "./app.js", "./logo.svg"]:
+              if asset not in html:
+                  raise SystemExit(f"Missing linked asset: {asset}")
+          forbidden = ["service_role", "SUPABASE_SERVICE_ROLE_KEY", "password="]
+          combined = js + html
+          if any(value.lower() in combined.lower() for value in forbidden):
+              raise SystemExit("A forbidden credential marker was found in the public preview.")
+          print("Preview structure, navigation screens, linked assets and public-safety checks passed.")
+          PY
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload preview artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: ./admin-preview
 
   deploy:
     if: github.event_name != 'pull_request'
@@ -50,6 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy CryptoInvest Admin preview
         id: deployment
         uses: actions/deploy-pages@v4
