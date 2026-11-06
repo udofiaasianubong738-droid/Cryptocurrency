@@ -71,7 +71,6 @@
   document.getElementById("nav-search").addEventListener("keydown",e=>{
     if(e.key==="Enter"){const first=[...document.querySelectorAll(".nav-link")].find(b=>!b.hidden);if(first)navigate(first.dataset.screen);}
   });
-  window.addEventListener("popstate",()=>navigate(location.hash.slice(1)||"welcome",false));
   window.addEventListener("hashchange",()=>{const s=location.hash.slice(1);if(s&&s!==current)navigate(s,false)});
   navigate(location.hash.slice(1)||"welcome",false);
 })();
