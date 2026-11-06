@@ -1,10 +1,26 @@
-name: Build and deploy CryptoInvest to GitHub Pages
+name: Build and deploy CryptoInvest root Vite app
 
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.*"
+      - "tsconfig*.json"
   pull_request:
     branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.*"
+      - "tsconfig*.json"
   workflow_dispatch:
 
 permissions:
@@ -13,7 +29,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: github-pages-root-app
   cancel-in-progress: true
 
 jobs:
@@ -27,15 +43,11 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Run tests
         run: npm test
       - name: Build static site
         run: npm run build
-        env:
-          GITHUB_ACTIONS: true
-          VITE_SUPABASE_URL: https://yniphceoofuwzpelpksd.supabase.co
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - name: Upload GitHub Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
