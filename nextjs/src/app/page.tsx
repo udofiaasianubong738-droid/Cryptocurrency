@@ -1,4 +1,5 @@
 import DashboardApp from "./dashboard-app";
+import { requireCeoAdmin } from "../lib/supabase/require-ceo";
 
 export const metadata = {
   title: "CEO Admin Dashboard",
@@ -6,6 +7,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLandingPage() {
+export default async function AdminLandingPage() {
+  await requireCeoAdmin();
   return <DashboardApp activeSection="overview" basePath="/admin" />;
 }
