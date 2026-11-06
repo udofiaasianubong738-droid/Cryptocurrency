@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import DashboardApp from "../../dashboard-app";
+import { requireCeoAdmin } from "../../../lib/supabase/require-ceo";
 
 const sections = new Set([
   "customers",
@@ -27,5 +28,6 @@ export async function generateMetadata({ params }: { params: Promise<{ section: 
 export default async function AdminSectionPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
   if (!sections.has(section)) notFound();
+  await requireCeoAdmin();
   return <DashboardApp activeSection={section} />;
 }
