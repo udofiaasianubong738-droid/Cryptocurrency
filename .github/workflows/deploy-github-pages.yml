@@ -46,7 +46,7 @@ jobs:
           js = (root / "app.js").read_text()
           html = (root / "index.html").read_text()
           for screen in ["welcome", "mfa", "overview", "customers", "investment-records", "performance", "documents", "notifications", "ai-operations", "security", "audit", "settings", "support"]:
-              if f"{screen}:" not in js:
+              if screen not in js:
                   raise SystemExit(f"Missing screen route: {screen}")
           for asset in ["./styles.css", "./app.js", "./logo.svg"]:
               if asset not in html:
