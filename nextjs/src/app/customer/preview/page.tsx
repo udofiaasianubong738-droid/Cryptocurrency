@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 type Tab = "Home" | "Investment" | "Wallet" | "Profile";
 type Sub = "Deposit" | "Withdraw" | "Wallet transactions" | "Investment details" | "Security" | "Close account";
 const tabs: {name:Tab;icon:string}[]=[{name:"Home",icon:"⌂"},{name:"Investment",icon:"↗"},{name:"Wallet",icon:"◈"},{name:"Profile",icon:"♙"}];
@@ -11,7 +11,7 @@ export default function CustomerPreviewPage(){
  const open=(s:Sub)=>{setSub(s);setNotice("");};
  return <div className="ci-v2">
   {tab==="Home"&&!sub&&<aside className="ci-v2-sidebar"><a className="ci-v2-brand" aria-label="CryptoInvest"><img src="/cryptoinvest-mark.svg" alt="CryptoInvest shield logo"/><span>Crypto<strong>Invest</strong><small>MORE THAN INVESTING. BUILT ON TRUST.</small></span></a><p>CUSTOMER MENU</p>{tabs.map(t=><button key={t.name} className={tab===t.name?"selected":""} onClick={()=>go(t.name)}><i>{t.icon}</i>{t.name}</button>)}<p className="ci-v2-sidegroup">SECONDARY SCREENS</p><button onClick={()=>{go("Investment");open("Investment details")}}><i>↗</i>Investment history</button><button onClick={()=>{go("Wallet");open("Deposit")}}><i>↓</i>Deposit</button><button onClick={()=>{go("Wallet");open("Withdraw")}}><i>↑</i>Withdraw</button><button onClick={()=>{go("Wallet");open("Wallet transactions")}}><i>⇄</i>Wallet transactions</button><button onClick={()=>{go("Profile");open("Security")}}><i>◇</i>Security settings</button><div className="ci-v2-sidefoot">◇ Demo workspace<br/><small>Sample data only</small></div></aside>}
-  <div className="ci-v2-main"><header className="ci-v2-header"><b className="ci-v2-mobilebrand"><img src="/cryptoinvest-mark.svg" alt=""/>Crypto<strong>Invest</strong></b><span>Customer portal / {sub||tab}</span><div><em>● DEMO MODE</em><b className="ci-v2-avatar">JD</b><small>John Doe</small></div></header>
+  <div className="ci-v2-main"><header className="ci-v2-header"><b className="ci-v2-mobilebrand"><img src="/cryptoinvest-mark.svg" alt=""/>Crypto<strong>Invest</strong></b><span>Customer portal / {sub||tab}</span><div><InstallAppButton/><em>● DEMO MODE</em><b className="ci-v2-avatar">JD</b><small>John Doe</small></div></header>
   <main className="ci-v2-content"><div className="ci-v2-demo"><b>DEMO PREVIEW — FICTIONAL SAMPLE CONTENT</b><span>Balances, coin values and activity are illustrative. No live market feed or financial service is connected.</span></div>{notice&&<div className="ci-v2-notice">{notice}</div>}
   {sub?<section className="ci-v2-section"><button className="ci-v2-back" onClick={()=>setSub(null)}>← Back to {tab}</button><p className="ci-v2-kicker">CUSTOMER WORKSPACE · SECONDARY SCREEN</p><h1>{sub}</h1>
    {sub==="Deposit"&&<><p>Review deposit methods and submitted deposit records.</p><Warning title="Deposits are disabled in this preview." body="No funds can be sent or accepted here. A future approved release can display verified deposit methods and request status."/><Card title="Deposit records"><Rows rows={wallet.slice(0,1)}/></Card></>}
@@ -55,3 +55,22 @@ function Coin({name,ticker,amount,value}:{name:string;ticker:string;amount:strin
 function Quick({title,detail,onClick}:{title:string;detail:string;onClick:()=>void}){return <button className="ci-v2-quick" onClick={onClick}><span><b>{title}</b><small>{detail}</small></span>→</button>}
 function Setting({title,detail,action,onClick}:{title:string;detail:string;action?:string;onClick?:()=>void}){return <div className="ci-v2-setting"><span><b>{title}</b><small>{detail}</small></span>{action&&<button onClick={onClick}>{action}</button>}</div>}
 function Warning({title,body}:{title:string;body:string}){return <div className="ci-v2-warning"><b>{title}</b><span>{body}</span></div>}
+
+function InstallAppButton(){
+ const [installPrompt,setInstallPrompt]=useState<any>(null);
+ const [installed,setInstalled]=useState(false);
+ useEffect(()=>{
+  const installedNow=window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone===true;
+  setInstalled(installedNow);
+  const capture=(event:Event)=>{event.preventDefault();setInstallPrompt(event as any);};
+  const done=()=>{setInstalled(true);setInstallPrompt(null);};
+  window.addEventListener("beforeinstallprompt",capture);
+  window.addEventListener("appinstalled",done);
+  return ()=>{window.removeEventListener("beforeinstallprompt",capture);window.removeEventListener("appinstalled",done);};
+ },[]);
+ if(installed)return <span className="ci-v2-installed" aria-label="App installed">✓ Installed</span>;
+ return <button className="ci-v2-install" onClick={async()=>{
+  if(installPrompt){await installPrompt.prompt();const choice=await installPrompt.userChoice;if(choice?.outcome==="accepted")setInstalled(true);setInstallPrompt(null);}
+  else setInstallPrompt(null);
+ }} title={installPrompt?"Install CryptoInvest on this device":"On Android Chrome, open the browser menu and choose Install app or Add to Home screen"}>↓ Install app</button>;
+}
