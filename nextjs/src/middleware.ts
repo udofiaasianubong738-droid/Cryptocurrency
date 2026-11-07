@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
-    return NextResponse.json({ error: "Secure admin access is not configured." }, { status: 503 });
+    return NextResponse.json({ error: "Secure access is not configured." }, { status: 503 });
   }
 
   let response = NextResponse.next({ request });
@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
     const login = request.nextUrl.clone();
-    login.pathname = "/login";
+    login.pathname = isCustomerPath ? "/customer/login" : "/login";
     login.searchParams.set("next", pathname);
     return NextResponse.redirect(login);
   }
