@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
   short_name: "CryptoInvest",
   description: "More than investing. Built on trust.",
   start_url: "/customer/preview",
-  scope: "/",
+  scope: "/customer/",
   display: "standalone",
   display_override: ["standalone", "minimal-ui"],
   orientation: "portrait-primary",
@@ -14,8 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
   theme_color: "#080808",
   categories: ["finance", "business"],
   icons: [
-   {src:"/cryptoinvest-mark.svg",sizes:"any",type:"image/svg+xml",purpose:"any"},
-   {src:"/cryptoinvest-mark.svg",sizes:"any",type:"image/svg+xml",purpose:"maskable"}
+   {src:"/cryptoinvest-icon.svg",sizes:"any",type:"image/svg+xml",purpose:"any"},
+   {src:"/cryptoinvest-icon.svg",sizes:"any",type:"image/svg+xml",purpose:"maskable"}
   ]
  };
 }
