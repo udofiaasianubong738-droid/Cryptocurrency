@@ -69,8 +69,12 @@ function InstallAppButton(){
   return ()=>{window.removeEventListener("beforeinstallprompt",capture);window.removeEventListener("appinstalled",done);};
  },[]);
  if(installed)return <span className="ci-v2-installed" aria-label="App installed">✓ Installed</span>;
- return <><button className="ci-v2-install" onClick={async()=>{
-  if(installPrompt){await installPrompt.prompt();const choice=await installPrompt.userChoice;if(choice?.outcome==="accepted")setInstalled(true);setInstallPrompt(null);}
-  else setInstallPrompt(null);
- }} title={installPrompt?"Install CryptoInvest on this device":"On Android Chrome, open the browser menu and choose Install app or Add to Home screen"}>↓ Install app</button>;
+ return <span className="ci-v2-install-wrap"><button className="ci-v2-install" onClick={async()=>{
+  if(installPrompt){
+   await installPrompt.prompt();
+   const choice=await installPrompt.userChoice;
+   if(choice?.outcome==="accepted")setInstalled(true);
+   setInstallPrompt(null);
+  }else setShowHelp(true);
+ }} title="Install CryptoInvest on this device">↓ Install app</button>{showHelp&&!installPrompt&&<small className="ci-v2-install-help">Android: Chrome ⋮ → Install app or Add to Home screen</small>}</span>;
 }
