@@ -3,8 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const protectedPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
+  const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
+  const isCustomerLogin = pathname === "/customer/login";
+  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const protectedPath = isAdminPath || (isCustomerPath && !isCustomerLogin);
   if (!protectedPath) return NextResponse.next();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -40,21 +43,28 @@ export async function middleware(request: NextRequest) {
     .eq("enabled", true)
     .maybeSingle();
 
-  if (ceoError || !ceo) {
-    return NextResponse.json({ error: "This account is not authorized for CEO administration." }, { status: 403 });
-  }
+  if (isCustomerPath) {
+    // Customer routes explicitly reject CEO identities. Customer data access is
+    // still enforced by Supabase RLS; middleware is an additional route boundary.
+    if (ceoError) return NextResponse.json({ error: "Customer access could not be verified." }, { status: 503 });
+    if (ceo) return NextResponse.json({ error: "CEO accounts must use the separate administration portal." }, { status: 403 });
+  } else {
+    if (ceoError || !ceo) {
+      return NextResponse.json({ error: "This account is not authorized for CEO administration." }, { status: 403 });
+    }
 
-  const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (assuranceError || assurance?.currentLevel !== "aal2") {
-    const login = request.nextUrl.clone();
-    login.pathname = "/login";
-    login.searchParams.set("mfa", "required");
-    return NextResponse.redirect(login);
+    const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assuranceError || assurance?.currentLevel !== "aal2") {
+      const login = request.nextUrl.clone();
+      login.pathname = "/login";
+      login.searchParams.set("mfa", "required");
+      return NextResponse.redirect(login);
+    }
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
 };
