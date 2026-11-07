@@ -58,7 +58,7 @@ function displayValue(row: Row, keys: string[]) {
   return "—";
 }
 
-function RecordList({ rows, empty }: { rows: Row[]; empty: string }) {
+function RecordList({ rows, empty, valueKeys }: { rows: Row[]; empty: string; valueKeys?: string[] }) {
   if (!rows.length) {
     return <div className="customer-empty"><strong>Nothing to show yet</strong><p>{empty}</p></div>;
   }
@@ -70,7 +70,7 @@ function RecordList({ rows, empty }: { rows: Row[]; empty: string }) {
           <small>{displayValue(row, ["description", "message", "created_at", "updated_at", "reference"])}</small>
         </div>
         <div className="customer-record-side">
-          <strong>{displayValue(row, ["amount", "principal_amount", "realized_profit_loss", "total", "value", "status", "profit_loss"])}</strong>
+          <strong>{displayValue(row, valueKeys ?? ["amount", "principal_amount", "realized_profit_loss", "total", "value", "status", "profit_loss"])}</strong>
           <small>{displayValue(row, ["status", "currency_code", "asset_code"])}</small>
         </div>
       </article>
@@ -104,6 +104,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
       if (!supabase) return;
       setLoading(true);
       setError("");
+      setRows([]);
       const { data: { user: current }, error: authError } = await supabase.auth.getUser();
       if (!alive) return;
       if (authError || !current) {
@@ -237,7 +238,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         {section === "performance" && <section className="customer-panel">
           <h2>Recorded profit and loss</h2>
           <div className="customer-safety-banner"><strong>Verified figures only</strong><p>Only recorded investment results are displayed. No estimated or guaranteed returns are shown.</p></div>
-          {loading ? <p>Loading…</p> : <RecordList rows={rows} empty="No verified performance records are available yet." />}
+          {loading ? <p>Loading…</p> : <RecordList rows={rows} empty="No verified performance records are available yet." valueKeys={["realized_profit_loss", "status"]} />}
         </section>}
         {section === "transactions" && <section className="customer-panel"><h2>My transaction history</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="No personal ledger entries are available yet." />}</section>}
         {section === "notifications" && <section className="customer-panel"><h2>Account notifications</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="You have no notifications yet." />}</section>}
