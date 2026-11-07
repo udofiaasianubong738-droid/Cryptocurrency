@@ -1,15 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cryptocurrency",
+  "account_id": "72b10490e65a914465cc281cb3cb7ed1",
   "compatibility_date": "2026-10-25",
   "workers_dev": true,
   "routes": [
     {
       "pattern": "cryptoinvest.com",
-      "custom_domain": true
-    },
-    {
-      "pattern": "admin.cryptoinvest.com",
       "custom_domain": true
     }
   ],
