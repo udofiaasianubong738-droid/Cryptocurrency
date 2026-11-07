@@ -33,3 +33,19 @@ Open http://localhost:3000.
 5. Keep deposits, withdrawals, trading, approvals and payouts disabled until independent verification is complete.
 
 Never commit `.env.local`, service-role keys, database passwords or provider secrets. Do not use this UI as evidence that a financial operation succeeded.
+
+
+## Customer portal foundation
+
+A separate customer-facing workspace is available under `/customer`:
+
+- `/customer/welcome` is the public customer entry screen; `/customer/register` opens registration and `/customer/login` provides customer password sign-in through Supabase Auth.
+- `/customer` is the personal customer overview.
+- `/customer/profile`, `/customer/plans`, `/customer/investments`, `/customer/deposit`, `/customer/withdrawals`, `/customer/performance`, `/customer/transactions`, `/customer/notifications`, `/customer/documents`, `/customer/support` and `/customer/security` are separate customer screens.
+- Customer pages use the public Supabase client only, request explicit customer-safe columns, and add the signed-in user ID as an ownership filter where applicable. Database RLS remains authoritative; no service-role key is used.
+- The customer route group is authenticated separately from the CEO routes. CEO routes continue to require the enabled CEO registry record and AAL2; customer routes do not inherit CEO privileges.
+- Registration metadata is descriptive only and must never be treated as authorization. Database policies remain authoritative.
+- Deposit and withdrawal submission, document retrieval, support-ticket creation and password/MFA management are intentionally not activated until their exact backend contracts and policies are verified. No live financial operation is enabled.
+- The customer portal does not expose the admin dashboard, admin AI or administrative approval workflows.
+
+Before production use, verify that RLS policies restrict every customer-readable table to `auth.uid()`, test cross-customer denial with two separate test accounts, and complete the customer browser E2E suite. Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in the appropriate environment; never put a service-role key in the browser.
