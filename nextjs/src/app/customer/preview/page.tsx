@@ -46,7 +46,7 @@ export default function CustomerPreviewPage(){
    <div className="ci-v2-logout"><button onClick={()=>setNotice("Logout is a demo control. No authenticated session is connected, so no sign-out action was performed.")}>↪ Log out</button><small>Secure sign-out will be connected when authentication is approved.</small></div>
   </>}
   <footer className="ci-v2-footer">© 2026 CryptoInvest <span>Customer experience · Demo preview only</span></footer></main></div>
-  
+
  </div>
 }
 function Heading({title,kicker,desc}:{title:string;kicker:string;desc:string}){return <div className="ci-v2-heading"><p className="ci-v2-kicker">{kicker}</p><h1>{title}</h1><p>{desc}</p></div>}
