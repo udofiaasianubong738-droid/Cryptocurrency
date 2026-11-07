@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
-  const isCustomerPublicPath = pathname === "/customer/login" || pathname === "/customer/register" || pathname === "/customer/welcome" || pathname === "/customer/preview";
+  const isCustomerPublicPath = pathname === "/customer/login" || pathname === "/customer/register" || pathname === "/customer/welcome" || pathname === "/customer/preview" || pathname === "/customer/preview/manifest.webmanifest";
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const protectedPath = isAdminPath || (isCustomerPath && !isCustomerPublicPath);
