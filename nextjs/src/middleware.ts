@@ -36,19 +36,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(login);
   }
 
-  const { data: ceo, error: ceoError } = await supabase
-    .from("ceo_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .eq("enabled", true)
-    .maybeSingle();
+  if (isAdminPath) {
+    const { data: ceo, error: ceoError } = await supabase
+      .from("ceo_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .eq("enabled", true)
+      .maybeSingle();
 
-  if (isCustomerPath) {
-    // Customer routes explicitly reject CEO identities. Customer data access is
-    // still enforced by Supabase RLS; middleware is an additional route boundary.
-    if (ceoError) return NextResponse.json({ error: "Customer access could not be verified." }, { status: 503 });
-    if (ceo) return NextResponse.json({ error: "CEO accounts must use the separate administration portal." }, { status: 403 });
-  } else {
     if (ceoError || !ceo) {
       return NextResponse.json({ error: "This account is not authorized for CEO administration." }, { status: 403 });
     }
