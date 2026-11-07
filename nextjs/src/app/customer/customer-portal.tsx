@@ -21,7 +21,7 @@ const titles: Record<Section, string> = {
   transactions:"Transactions", notifications:"Notifications", documents:"My documents", support:"Customer support", security:"Account security",
 };
 const sources: Partial<Record<Section, string>> = {
-  plans:"investment_plans", investments:"investments", deposit:"deposit_requests",
+  home:"investments", plans:"investment_plans", investments:"investments", deposit:"deposit_requests",
   withdrawals:"withdrawal_requests", transactions:"ledger_entries", notifications:"user_notifications",
   support:"support_tickets",
 };
@@ -46,12 +46,13 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
   const [error,setError] = useState("");
   const [mobileOpen,setMobileOpen] = useState(false);
   const [signingOut,setSigningOut] = useState(false);
-  const supabase = useMemo(()=>createSupabaseBrowserClient(),[]);
+  const supabase = useMemo(()=>{ try { return createSupabaseBrowserClient(); } catch { return null; } },[]);
 
   useEffect(()=>{
     let alive=true;
     async function load(){
       setLoading(true); setError("");
+      if (!supabase) { setError("Customer sign-in is not configured yet. The portal is available after the Supabase public URL and publishable key are configured."); setLoading(false); return; }
       const {data:{user:current},error:authError}=await supabase.auth.getUser();
       if(!alive)return;
       if(authError || !current){router.replace("/customer/login");return;}
@@ -71,6 +72,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
 
   async function signOut(){
     setSigningOut(true);
+    if (!supabase) { router.replace("/customer/login"); return; }
     const {error:signOutError}=await supabase.auth.signOut();
     if(signOutError){setError("Sign out could not be completed. Please try again.");setSigningOut(false);return;}
     router.replace("/customer/login");router.refresh();
