@@ -15,6 +15,10 @@ export default function CustomerLoginPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("mode") === "register") setMode("register");
+  }, []);
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true); setError(""); setMessage("");
