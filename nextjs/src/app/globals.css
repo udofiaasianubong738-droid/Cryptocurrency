@@ -176,3 +176,29 @@ html,body{background:var(--ci-canvas);color:var(--ci-ink);font-family:Arial,Helv
  .ci-v2-sidebar .ci-v2-sidefoot{display:none!important}
  .ci-v2-main,.ci-v2-main.has-sidebar{margin-left:0!important}
 }
+
+/* Customer notification centre and visual polish */
+.ci-v2-header-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+.ci-v2-notification-toggle{position:relative;display:grid;place-items:center;width:36px;height:36px;border:1px solid #e7e1d3;border-radius:11px;background:#fff;color:#805d17;font-size:19px}
+.ci-v2-notification-toggle i{position:absolute;top:-5px;right:-5px;display:grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border:2px solid #fff;border-radius:12px;background:#b83b35;color:#fff;font-size:8px;font-style:normal;font-weight:900}
+.ci-v2-notification-bar{display:flex;align-items:center;gap:11px;padding:12px 15px;margin-bottom:14px;border:1px solid #dce8f6;border-radius:12px;background:linear-gradient(100deg,#f7fbff,#fff);box-shadow:0 5px 18px #1c47700a}
+.ci-v2-notification-dot{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:#eaf3ff;color:#3571bb;font-size:11px}
+.ci-v2-notification-bar>span:nth-child(2){display:grid;gap:3px;flex:1}
+.ci-v2-notification-bar b{font-size:10px;color:#30455f}
+.ci-v2-notification-bar small{font-size:9px;color:#8190a3}
+.ci-v2-notification-bar button{padding:7px 10px;border:1px solid #dce6f1;border-radius:8px;background:#fff;color:#476a99;font-size:9px;font-weight:800}
+.ci-v2-notification-panel{position:relative;z-index:12;padding:14px 16px;margin:0 0 14px auto;max-width:440px;border:1px solid #e7e0d0;border-radius:14px;background:#fff;box-shadow:0 16px 45px #1b2d4c1a}
+.ci-v2-notification-heading{display:flex;align-items:center;justify-content:space-between;padding-bottom:11px;border-bottom:1px solid #edf0f4}
+.ci-v2-notification-heading>span,.ci-v2-notification-panel article>span{display:grid;gap:4px}
+.ci-v2-notification-heading b{font-size:12px}
+.ci-v2-notification-heading small,.ci-v2-notification-panel article small,.ci-v2-notification-panel article time,.ci-v2-notification-panel>p{font-size:9px;color:#8995a4}
+.ci-v2-notification-heading button{width:27px;height:27px;border:0;border-radius:7px;background:#f4f6f9;color:#66758a;font-size:17px}
+.ci-v2-notification-panel article{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid #f0f2f5}
+.ci-v2-notification-panel article>i{display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;border-radius:9px;background:#fff5dc;color:#a67b20;font-style:normal}
+.ci-v2-notification-panel article b{font-size:10px}
+.ci-v2-notification-panel article time{margin-top:2px}
+.ci-v2-notification-panel>p{margin:10px 0 0;line-height:1.5}
+.ci-v2-header-actions .ci-v2-install-wrap{display:inline-flex}
+.ci-v2-hero{background:radial-gradient(ellipse at 84% 25%,#6f5420 0%,#342710 34%,#17181d 78%)}
+.ci-v2-card,.ci-v2-metric,.ci-v2-profile{box-shadow:0 8px 25px #1b2d4c0b}
+@media(max-width:520px){.ci-v2-notification-bar{align-items:flex-start;flex-wrap:wrap}.ci-v2-notification-bar button{margin-left:40px}.ci-v2-notification-panel{max-width:none}.ci-v2-header-actions{gap:6px}.ci-v2-header em{display:none}.ci-v2-header small{display:none}.ci-v2-notification-toggle{width:32px;height:32px}}
