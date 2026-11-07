@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: { default: "CryptoInvest", template: "%s | CryptoInvest" },
   description: "CryptoInvest customer portal. More than investing. Built on trust.",
   applicationName: "CryptoInvest",
-  manifest: "/customer/preview/manifest.webmanifest",
+  manifest: "/customer-manifest.webmanifest",
   icons: {
     icon: [{ url: "/cryptoinvest-mark.svg", type: "image/svg+xml" }],
     shortcut: [{ url: "/cryptoinvest-mark.svg", type: "image/svg+xml" }],
