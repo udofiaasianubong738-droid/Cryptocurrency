@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
@@ -41,7 +41,7 @@ export default function CustomerLoginPage() {
 
   return <main className="customer-auth-shell">
     <section className="customer-auth-card">
-      <Link href="/" className="customer-brand"><span className="customer-brand-mark">C</span><span>CryptoInvest</span></Link>
+      <Link href="/customer/welcome" className="customer-brand"><span className="customer-brand-mark">C</span><span>CryptoInvest</span></Link>
       <p className="customer-eyebrow">CUSTOMER ACCOUNT</p>
       <h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
       <p className="customer-muted">Sign in to view your own account and investment records.</p>
