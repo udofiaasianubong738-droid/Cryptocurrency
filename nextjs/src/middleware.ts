@@ -4,10 +4,10 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
-  const isCustomerLogin = pathname === "/customer/login";
+  const isCustomerPublicPath = pathname === "/customer/login" || pathname === "/customer/register" || pathname === "/customer/welcome";
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
-  const protectedPath = isAdminPath || (isCustomerPath && !isCustomerLogin);
+  const protectedPath = isAdminPath || (isCustomerPath && !isCustomerPublicPath);
   if (!protectedPath) return NextResponse.next();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
