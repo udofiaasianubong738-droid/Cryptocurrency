@@ -14,8 +14,9 @@ export default function manifest(): MetadataRoute.Manifest {
   theme_color: "#080808",
   categories: ["finance", "business"],
   icons: [
-   {src:"/cryptoinvest-icon.svg",sizes:"any",type:"image/svg+xml",purpose:"any"},
-   {src:"/cryptoinvest-icon.svg",sizes:"any",type:"image/svg+xml",purpose:"maskable"}
+   {src:"/cryptoinvest-icon-192.svg",sizes:"192x192",type:"image/svg+xml",purpose:"any"},
+   {src:"/cryptoinvest-icon-512.svg",sizes:"512x512",type:"image/svg+xml",purpose:"any"},
+   {src:"/cryptoinvest-icon-512.svg",sizes:"512x512",type:"image/svg+xml",purpose:"maskable"}
   ]
  };
 }
