@@ -46,13 +46,18 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
   const [error,setError] = useState("");
   const [mobileOpen,setMobileOpen] = useState(false);
   const [signingOut,setSigningOut] = useState(false);
-  const supabase = useMemo(()=>{ try { return createSupabaseBrowserClient(); } catch { return null; } },[]);
+  const [supabase, setSupabase] = useState<ReturnType<typeof createSupabaseBrowserClient> | null>(null);
+
+  useEffect(() => {
+    try { setSupabase(createSupabaseBrowserClient()); }
+    catch { setError("Customer sign-in is not configured yet. The portal is available after the Supabase public URL and publishable key are configured."); setLoading(false); }
+  }, []);
 
   useEffect(()=>{
     let alive=true;
     async function load(){
       setLoading(true); setError("");
-      if (!supabase) { setError("Customer sign-in is not configured yet. The portal is available after the Supabase public URL and publishable key are configured."); setLoading(false); return; }
+      if (!supabase) return;
       const {data:{user:current},error:authError}=await supabase.auth.getUser();
       if(!alive)return;
       if(authError || !current){router.replace("/customer/login");return;}
