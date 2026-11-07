@@ -128,7 +128,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         const { data, error: queryError } = await request.limit(50);
         if (!alive) return;
         if (queryError) setError("This information is not available right now. Your account has not been changed.");
-        else setRows((data ?? []) as Row[]);
+        else setRows((data ?? []) as unknown as Row[]);
       } else {
         setRows([]);
       }
