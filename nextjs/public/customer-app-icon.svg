@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">CryptoInvest</title>
+  <desc id="desc">A gold shield containing a rising white arrow on a deep navy background.</desc>
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d2b4b"/><stop offset="1" stop-color="#06172d"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8d77e"/><stop offset="1" stop-color="#dca532"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#navy)"/>
+  <path d="M256 72 402 126 389 278 341 370 256 447 171 370 123 278 110 126Z" fill="none" stroke="url(#gold)" stroke-width="19" stroke-linejoin="round"/>
+  <path d="m177 310 56-56 44 29 71-93" fill="none" stroke="#fff" stroke-width="27" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m335 184 36-20-10 43Z" fill="#fff" stroke="#fff" stroke-linejoin="round"/>
+  <path d="M176 345h80" fill="none" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/>
+</svg>
