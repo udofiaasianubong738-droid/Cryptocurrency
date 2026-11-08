@@ -31,3 +31,22 @@ body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sa
 button,input,select{font:inherit}button{touch-action:manipulation}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e9b94f99;outline-offset:2px}
 @media(max-width:760px){.ci-main{padding:24px 15px 35px}.ci-header{height:64px;padding:0 15px}.ci-home-hero{padding:23px 20px;border-radius:17px}.ci-home-balance{flex-basis:auto}.ci-wallet-total{padding:23px 21px}.ci-wallet-total strong{font-size:30px}.ci-investment-overview{grid-template-columns:1fr}.ci-investment-overview article{min-height:112px}.ci-market-card,.ci-card{padding:18px;border-radius:15px}.ci-wallet-actions-premium{gap:9px}.ci-wallet-actions-premium button{padding:12px;grid-template-columns:34px 1fr;column-gap:9px}.ci-wallet-actions-premium button>span{width:33px;height:33px}.ci-section-head{align-items:flex-start}.ci-section-head>span{white-space:nowrap}.ci-home-welcome{gap:8px}.ci-home-welcome h1{font-size:25px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* Four primary customer destinations; secondary navigation chrome stays off primary screens. */
+.ci-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))}
+.ci-profile-card,.ci-profile-options{margin-bottom:17px}
+.ci-profile-heading{display:flex;align-items:center;gap:15px;padding-bottom:20px;border-bottom:1px solid #edf1f5}
+.ci-profile-symbol{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:15px;background:linear-gradient(145deg,#fff5dc,#f3e4bf);color:#8e671d;font-size:23px}
+.ci-profile-heading small,.ci-profile-fields small{color:#a47720;font-size:9px;font-weight:800;letter-spacing:1.2px}
+.ci-profile-heading h2{margin:6px 0;font-size:18px;color:#10233d}
+.ci-profile-heading p{margin:0;color:#718198;font-size:11px;line-height:1.6}
+.ci-profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-top:18px}
+.ci-profile-fields article{display:grid;gap:8px;min-height:78px;padding:14px;border:1px solid #e8edf3;border-radius:12px;background:#f9fbfd}
+.ci-profile-fields b{color:#243b59;font-size:12px;font-weight:650}
+.ci-profile-options .ci-section-head{margin-bottom:9px}
+.ci-profile-option{display:flex;align-items:center;gap:13px;padding:16px 3px;border-top:1px solid #edf1f5}
+.ci-profile-option>span{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:11px;background:#fff4dc;color:#91691e;font-size:17px}
+.ci-profile-option>div{display:grid;gap:4px;flex:1;min-width:0}
+.ci-profile-option b{color:#203650;font-size:12px}
+.ci-profile-option small{color:#7b899c;font-size:10px;line-height:1.5}
+.ci-profile-option em{color:#9a741f;font-size:9px;font-style:normal;text-align:right}
+@media(max-width:600px){.ci-profile-fields{grid-template-columns:1fr}.ci-profile-option{align-items:flex-start}.ci-profile-option em{max-width:105px}}
