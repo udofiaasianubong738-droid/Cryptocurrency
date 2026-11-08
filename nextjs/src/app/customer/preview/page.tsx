@@ -79,7 +79,8 @@ function SecondaryPage({screen}:{screen:"Security"|"Support"|"Settings"|"Legal"}
     </>
    ) : null}
   </main>
- }
+ );
+}
 
 function MarketDetail({quote,back}:{quote:MarketQuote|null;back:()=>void}){if(!quote)return <main className="ci-main"><PageTitle eyebrow="MARKET" title="Market details" sub="Select an asset from the Home market feed."/></main>;const c=Number(quote.change_24h_pct??0);return <main className="ci-main"><button className="ci-home-back" onClick={back}>← Back to markets</button><PageTitle eyebrow="MARKET DETAILS" title={`${quote.market_assets?.name??"Market"} (${quote.market_assets?.symbol??"—"})`} sub="Latest stored market quote."/><section className="ci-card ci-detail"><small>Latest quoted price</small><strong>{cash(Number(quote.price))}</strong><b className={c>=0?"positive":"negative"}>{c>=0?"+":""}{c.toFixed(2)}% · 24h</b><div className="ci-detail-grid"><span>24h volume<b>{quote.volume_24h==null?"Not reported":cash(Number(quote.volume_24h))}</b></span><span>Market cap<b>{quote.market_cap==null?"Not reported":cash(Number(quote.market_cap))}</b></span><span>Quote received<b>{new Date(quote.received_at).toLocaleString()}</b></span><span>Feed status<b>{quote.is_delayed?"Delayed":"Latest stored quote"}</b></span></div></section></main>}
 export default function CustomerPreviewPage(){
