@@ -19,6 +19,7 @@ export type PaperAsset = {
 export type PaperPortfolioInput = {
   mode: "paper";
   currency: "USD";
+  availableBalanceMinor: number;
   assets: PaperAsset[];
 };
 
@@ -27,6 +28,7 @@ export type PaperPortfolioSummary = {
   currency: "USD";
   investedPrincipalMinor: number;
   currentValueMinor: number;
+  totalAccountBalanceMinor: number;
   profitLossMinor: number;
   profitLossPercent: number | null;
 };
@@ -49,6 +51,7 @@ export function calculatePaperPortfolio(
     throw new Error("Only paper-mode portfolios are supported here");
   }
 
+  nonNegative(input.availableBalanceMinor, "availableBalanceMinor");
   let investedPrincipalMinor = 0;
   let currentValueMinor = 0;
 
@@ -72,6 +75,8 @@ export function calculatePaperPortfolio(
     nonNegative(currentValueMinor, "currentValueMinor");
   }
 
+  const totalAccountBalanceMinor = input.availableBalanceMinor + currentValueMinor;
+  nonNegative(totalAccountBalanceMinor, "totalAccountBalanceMinor");
   const profitLossMinor = currentValueMinor - investedPrincipalMinor;
   const profitLossPercent =
     investedPrincipalMinor === 0
@@ -83,6 +88,7 @@ export function calculatePaperPortfolio(
     currency: input.currency,
     investedPrincipalMinor,
     currentValueMinor,
+    totalAccountBalanceMinor,
     profitLossMinor,
     profitLossPercent,
   };
