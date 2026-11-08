@@ -3,10 +3,21 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const customerApp = process.env.NEXT_PUBLIC_APP_ROLE === "customer";
   const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
   const isCustomerPublicPath = pathname === "/customer/login" || pathname === "/customer/register" || pathname === "/customer/welcome" || pathname === "/customer/preview";
-  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
+  const isAdminPath = (!customerApp && pathname === "/") ||
+    pathname === "/admin" || pathname.startsWith("/admin/") ||
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+
+  // The customer Worker has its own root landing page and never serves CEO routes.
+  if (customerApp && pathname === "/") {
+    return NextResponse.rewrite(new URL("/customer/welcome", request.url));
+  }
+  if (customerApp && (isAdminPath || pathname === "/login" || pathname.startsWith("/login/"))) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
   const protectedPath = isAdminPath || (isCustomerPath && !isCustomerPublicPath);
   if (!protectedPath) return NextResponse.next();
 
@@ -61,5 +72,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
+  matcher: ["/", "/login/:path*", "/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
 };
