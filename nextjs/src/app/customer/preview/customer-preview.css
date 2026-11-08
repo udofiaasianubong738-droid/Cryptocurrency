@@ -54,3 +54,37 @@ button,input,select{font:inherit}button{touch-action:manipulation}button:focus-v
 /* Shared CryptoInvest shield-and-growth-arrow identity across the customer portal. */
 .ci-logo{display:block;object-fit:cover;padding:0;background:transparent;box-shadow:0 4px 14px #e9b94f35}
 .ci-side-brandmark{display:block;object-fit:cover;padding:0;background:transparent;color:transparent;font-size:0;box-shadow:0 5px 18px #e9b94f24}
+
+/* Live Supabase market directory and historical quote chart. */
+.ci-market-row-static{pointer-events:auto;cursor:pointer;width:100%;border:0;background:transparent;text-align:left;color:inherit;font:inherit}
+.ci-market-row-static:hover{background:#f8fafc}
+.ci-market-open{margin-left:10px;color:#a87912;font-size:22px;font-weight:700}
+.ci-live-quote-card{margin-bottom:17px}
+.ci-live-quote-top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid #edf1f5}
+.ci-live-quote-top>div{display:grid;gap:8px}
+.ci-live-quote-top small{color:#a47720;font-size:9px;font-weight:800;letter-spacing:1.2px}
+.ci-live-quote-top strong{color:#10233d;font-size:clamp(26px,4vw,38px);letter-spacing:-1px}
+.ci-live-quote-top .positive,.ci-live-quote-top .negative,.ci-live-quote-top .market-neutral{font-size:12px;font-weight:750}
+.ci-feed-live,.ci-feed-delayed{padding:7px 10px;border-radius:20px;font-size:9px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
+.ci-feed-live{background:#eaf7f0;color:#08784d;border:1px solid #d5efdf}
+.ci-feed-delayed{background:#fff5e6;color:#95621a;border:1px solid #f1dfc0}
+.ci-market-chart-card,.ci-market-directory{margin-top:17px}
+.ci-chart-ranges{display:flex;gap:5px;padding:4px;border:1px solid #e7ebf1;border-radius:10px;background:#f7f9fc}
+.ci-chart-ranges button{min-width:48px;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:#6e7e93;font-size:10px;font-weight:750;cursor:pointer}
+.ci-chart-ranges button.active{background:#102f50;color:#fff;box-shadow:0 2px 7px #102f5020}
+.ci-market-chart{position:relative;padding:15px 4px 0}
+.ci-chart-scale{display:flex;justify-content:space-between;color:#74849a;font-size:10px;font-weight:650}
+.ci-market-chart svg{display:block;width:100%;height:190px;margin-top:8px;overflow:visible}
+.ci-chart-gridline{stroke:#e8edf3;stroke-width:1;stroke-dasharray:4 5}
+.ci-chart-line{fill:none;stroke:#c4932e;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ci-chart-dates{display:flex;justify-content:space-between;gap:12px;color:#8290a2;font-size:9px}
+.ci-chart-dates span:last-child{text-align:right}
+.ci-market-directory-list{max-height:480px;overflow:auto;border-top:1px solid #edf1f5}
+.ci-market-directory-row{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;padding:13px 8px;border:0;border-bottom:1px solid #edf1f5;background:#fff;color:#203650;text-align:left;cursor:pointer}
+.ci-market-directory-row:hover,.ci-market-directory-row.selected{background:#fbf7ed}
+.ci-market-directory-row>span{display:grid;gap:5px;min-width:0}
+.ci-market-directory-row>span:last-child{text-align:right}
+.ci-market-directory-row b{font-size:11px;font-weight:750}
+.ci-market-directory-row small{font-size:9px;color:#8290a2}
+.ci-market-directory-row small.positive{color:#08784d}.ci-market-directory-row small.negative{color:#b23e3e}.ci-market-directory-row small.market-neutral{color:#68788e}
+@media(max-width:600px){.ci-live-quote-top{align-items:flex-start;flex-direction:column}.ci-market-chart-card .ci-section-head{flex-direction:column}.ci-chart-ranges{align-self:flex-end}.ci-market-chart svg{height:155px}.ci-market-directory-row{gap:9px;padding:12px 4px}}
