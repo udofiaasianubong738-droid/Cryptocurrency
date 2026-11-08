@@ -8,10 +8,6 @@
     {
       "pattern": "cryptoinvest.com",
       "custom_domain": true
-    },
-    {
-      "pattern": "admin.cryptoinvest.com",
-      "custom_domain": true
     }
   ],
   "assets": {
