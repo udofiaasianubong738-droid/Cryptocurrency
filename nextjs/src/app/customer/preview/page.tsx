@@ -4,18 +4,20 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import "./customer-preview.css";
 
-type Screen = "Home" | "Investment" | "Wallet" | "Activity" | "Profit" | "Market" | "Security" | "Support" | "Settings" | "Legal" | "Deposit" | "Withdraw";
+type Screen = "Home" | "Investment" | "Wallet" | "Profile" | "Activity" | "Profit" | "Market" | "Security" | "Support" | "Settings" | "Legal" | "Deposit" | "Withdraw";
 type MarketQuote = { id:string; asset_id:string; price:number|string; change_24h_pct:number|string|null; volume_24h:number|string|null; market_cap:number|string|null; received_at:string; is_delayed:boolean; market_assets?:{symbol?:string;name?:string}|null };
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase=url&&key?createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}}):null;
 const cash=(v:number)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:v<1?6:2}).format(v);
 const age=(v:string)=>{const n=Date.now()-new Date(v).getTime();return !Number.isFinite(n)?"Time unavailable":n<60000?"Just now":n<3600000?Math.floor(n/60000)+"m ago":n<86400000?Math.floor(n/3600000)+"h ago":Math.floor(n/86400000)+"d ago"};
 
-function Header({home,onMenu,onActivity,onHome}:{home:boolean;onMenu:()=>void;onActivity:()=>void;onHome:()=>void}){
+function Header({home,secondary,onMenu,onActivity,onHome}:{home:boolean;secondary:boolean;onMenu:()=>void;onActivity:()=>void;onHome:()=>void}){
+ if(!home&&!secondary)return null;
  return <header className="ci-header"><div className="ci-head-left">{home?<button className="ci-icon-btn" aria-label="Open sidebar" onClick={onMenu}>☰</button>:<button className="ci-home-back" onClick={onHome}>← Home</button>}<div className="ci-brand"><span className="ci-logo">↗</span><span>Crypto<span>Invest</span></span></div></div>{home&&<div className="ci-head-actions"><button className="ci-icon-btn" aria-label="Open activity and notifications" onClick={onActivity}>♧</button></div>}</header>
 }
 function BottomNav({screen,go}:{screen:Screen;go:(s:Screen)=>void}){
- return <nav className="ci-bottom-nav" aria-label="Primary navigation">{(["Home","Investment","Wallet"] as const).map((s,i)=><button key={s} className={screen===s?"active":""} onClick={()=>go(s)}><span>{["⌂","↗","▣"][i]}</span>{s}</button>)}</nav>
+ const items:[Screen,string,string][]=[["Home","⌂","Home"],["Investment","↗","Investment"],["Wallet","▣","Wallet"],["Profile","♙","Profile"]];
+ return <nav className="ci-bottom-nav" aria-label="Primary navigation">{items.map(([s,icon,label])=><button key={s} className={screen===s?"active":""} aria-current={screen===s?"page":undefined} onClick={()=>go(s)}><span>{icon}</span>{label}</button>)}</nav>
 }
 function Sidebar({open,close,go,screen}:{open:boolean;close:()=>void;go:(s:Screen)=>void;screen:Screen}){
  if(!open)return null;
@@ -78,6 +80,13 @@ function Wallet({quotes,loading,error,go}:{quotes:MarketQuote[];loading:boolean;
    <p className="ci-disclaimer">Market direction is informational only. Readings may be delayed and are not a recommendation to trade.</p>
   </section>
   <section className="ci-card ci-wallet-activity"><div className="ci-section-head"><div><small>RECENT RECORDS</small><h2>Wallet activity</h2><p>Your deposit and withdrawal records will appear here.</p></div></div><div className="ci-performance-empty"><span className="ci-empty-icon">▤</span><b>No wallet activity to show yet</b><p>Verified account activity will be listed here in date order.</p></div></section>
+ </main>
+}
+function Profile(){
+ return <main className="ci-main ci-page-profile">
+  <PageTitle eyebrow="YOUR ACCOUNT" title="Profile" sub="Review your customer profile and account preferences. Personal details will appear after secure sign-in."/>
+  <section className="ci-card ci-profile-card"><div className="ci-profile-heading"><span className="ci-profile-symbol">♙</span><div><small>CUSTOMER PROFILE</small><h2>Personal information</h2><p>Your verified profile details will be displayed here.</p></div></div><div className="ci-profile-fields"><article><small>FULL NAME</small><b>Not available yet</b></article><article><small>EMAIL ADDRESS</small><b>Not available yet</b></article><article><small>PHONE NUMBER</small><b>Not available yet</b></article><article><small>ACCOUNT STATUS</small><b>Awaiting secure sign-in</b></article></div></section>
+  <section className="ci-card ci-profile-options"><div className="ci-section-head"><div><small>ACCOUNT PREFERENCES</small><h2>Profile & preferences</h2><p>These settings will be available when your customer account is connected.</p></div></div><div className="ci-profile-option"><span>♢</span><div><b>Personal details</b><small>View and update verified contact information</small></div><em>Coming soon</em></div><div className="ci-profile-option"><span>⚙</span><div><b>Preferences</b><small>Manage language and notification preferences</small></div><em>Coming soon</em></div><div className="ci-profile-option"><span>⌑</span><div><b>Account security</b><small>Review sign-in protection and account security</small></div><em>Available in secondary screens</em></div></section>
  </main>
 }
 function DepositPage({go}:{go:(s:Screen)=>void}){
@@ -143,8 +152,8 @@ function MarketDetail({quote,back}:{quote:MarketQuote|null;back:()=>void}){if(!q
 export default function CustomerPreviewPage(){
  const [screen,setScreen]=useState<Screen>("Home"),[menu,setMenu]=useState(false),[quotes,setQuotes]=useState<MarketQuote[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[selected,setSelected]=useState<MarketQuote|null>(null);
  useEffect(()=>{let active=true;const load=async()=>{if(!supabase){if(active){setError("Market feed connection is not configured.");setLoading(false)}return}try{const {data,error}=await supabase.from("market_quotes").select("id,asset_id,price,change_24h_pct,volume_24h,market_cap,received_at,is_delayed,market_assets(symbol,name)").order("received_at",{ascending:false}).limit(700);if(error)throw error;const latest=new Map<string,MarketQuote>();for(const q of (data??[]) as unknown as MarketQuote[])if(!latest.has(q.asset_id))latest.set(q.asset_id,q);if(active){setQuotes([...latest.values()]);setError(null)}}catch(e){if(active)setError(e instanceof Error?e.message:"Unable to read market quotes.")}finally{if(active)setLoading(false)}};void load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer)}},[]);
- useEffect(()=>{const read=():Screen=>{const s=new URLSearchParams(location.search).get("screen");return (["Investment","Wallet","Activity","Profit","Market","Security","Support","Settings","Legal","Deposit","Withdraw"].includes(s??"")?s:"Home") as Screen};setScreen(read());const pop=()=>setScreen(read());addEventListener("popstate",pop);return()=>removeEventListener("popstate",pop)},[]);
+ useEffect(()=>{const read=():Screen=>{const s=new URLSearchParams(location.search).get("screen");return (["Investment","Wallet","Profile","Activity","Profit","Market","Security","Support","Settings","Legal","Deposit","Withdraw"].includes(s??"")?s:"Home") as Screen};setScreen(read());const pop=()=>setScreen(read());addEventListener("popstate",pop);return()=>removeEventListener("popstate",pop)},[]);
  const go=(s:Screen)=>{setMenu(false);const u=new URL(location.href);if(s==="Home")u.searchParams.delete("screen");else u.searchParams.set("screen",s);history.pushState({screen:s},"",u.pathname+u.search+u.hash);setScreen(s);scrollTo({top:0,behavior:"smooth"})};
- const home=screen==="Home";
- return <div className="ci-app"><Header home={home} onMenu={()=>setMenu(true)}  onActivity={()=>go("Activity")} onHome={()=>go("Home")}/><Sidebar open={menu} close={()=>setMenu(false)} go={go} screen={screen}/>{screen==="Home"?<Home quotes={quotes} loading={loading} error={error}/>:screen==="Investment"?<Investment/>:screen==="Wallet"?<Wallet quotes={quotes} loading={loading} error={error} go={go}/>:screen==="Deposit"?<DepositPage go={go}/>:screen==="Withdraw"?<WithdrawPage go={go}/>:screen==="Activity"?<Activity/>:screen==="Profit"?<Profit/>:screen==="Market"?<MarketDetail quote={selected} back={()=>go("Home")}/>:<SecondaryPage screen={screen}/>}{(["Home","Investment","Wallet"] as Screen[]).includes(screen)?<BottomNav screen={screen} go={go}/>:null}</div>
+ const home=screen==="Home",secondary=!["Home","Investment","Wallet","Profile"].includes(screen);
+ return <div className="ci-app"><Header home={home} secondary={secondary} onMenu={()=>setMenu(true)} onActivity={()=>go("Activity")} onHome={()=>go("Home")}/><Sidebar open={menu} close={()=>setMenu(false)} go={go} screen={screen}/>{screen==="Home"?<Home quotes={quotes} loading={loading} error={error}/>:screen==="Investment"?<Investment/>:screen==="Wallet"?<Wallet quotes={quotes} loading={loading} error={error} go={go}/>:screen==="Profile"?<Profile/>:screen==="Deposit"?<DepositPage go={go}/>:screen==="Withdraw"?<WithdrawPage go={go}/>:screen==="Activity"?<Activity/>:screen==="Profit"?<Profit/>:screen==="Market"?<MarketDetail quote={selected} back={()=>go("Home")}/>:<SecondaryPage screen={screen}/>{(["Home","Investment","Wallet","Profile"] as Screen[]).includes(screen)?<BottomNav screen={screen} go={go}/>:null}</div>
 }
