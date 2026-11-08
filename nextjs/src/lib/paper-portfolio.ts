@@ -11,9 +11,9 @@
 
 export type PaperAsset = {
   assetCode: string;
-  quantityMicrounits: bigint;
-  averageCostMinor: bigint;
-  latestPriceMinor: bigint;
+  quantityMicrounits: number;
+  averageCostMinor: number;
+  latestPriceMinor: number;
 };
 
 export type PaperPortfolioInput = {
@@ -25,14 +25,16 @@ export type PaperPortfolioInput = {
 export type PaperPortfolioSummary = {
   mode: "paper";
   currency: "USD";
-  investedPrincipalMinor: bigint;
-  currentValueMinor: bigint;
-  profitLossMinor: bigint;
+  investedPrincipalMinor: number;
+  currentValueMinor: number;
+  profitLossMinor: number;
   profitLossPercent: number | null;
 };
 
-function nonNegative(value: bigint, field: string): void {
-  if (value < 0n) throw new Error(field + " must be non-negative");
+function nonNegative(value: number, field: string): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(field + " must be a non-negative safe integer");
+  }
 }
 
 /**
@@ -47,8 +49,8 @@ export function calculatePaperPortfolio(
     throw new Error("Only paper-mode portfolios are supported here");
   }
 
-  let investedPrincipalMinor = 0n;
-  let currentValueMinor = 0n;
+  let investedPrincipalMinor = 0;
+  let currentValueMinor = 0;
 
   for (const asset of input.assets) {
     if (!/^[A-Z0-9]{2,12}$/.test(asset.assetCode)) {
@@ -60,16 +62,16 @@ export function calculatePaperPortfolio(
 
     // Quantity is represented in millionths to avoid floating-point quantity math.
     investedPrincipalMinor +=
-      (asset.quantityMicrounits * asset.averageCostMinor) / 1_000_000n;
+      (asset.quantityMicrounits * asset.averageCostMinor) / 1_000_000;
     currentValueMinor +=
-      (asset.quantityMicrounits * asset.latestPriceMinor) / 1_000_000n;
+      (asset.quantityMicrounits * asset.latestPriceMinor) / 1_000_000;
   }
 
   const profitLossMinor = currentValueMinor - investedPrincipalMinor;
   const profitLossPercent =
-    investedPrincipalMinor === 0n
+    investedPrincipalMinor === 0
       ? null
-      : Number((profitLossMinor * 10_000n) / investedPrincipalMinor) / 100;
+      : Number(((profitLossMinor * 10_000) / investedPrincipalMinor).toFixed(0)) / 100;
 
   return {
     mode: "paper",
@@ -83,7 +85,7 @@ export function calculatePaperPortfolio(
 
 export type PaperValuationPoint = {
   capturedAt: string;
-  portfolioValueMinor: bigint;
+  portfolioValueMinor: number;
 };
 
 /**
@@ -94,7 +96,7 @@ export function getPaperMarketDirection(
   points: PaperValuationPoint[],
 ): Array<{
   capturedAt: string;
-  portfolioValueMinor: bigint;
+  portfolioValueMinor: number;
   direction: "up" | "down" | "unchanged" | "first";
 }> {
   const ordered = [...points].sort(
