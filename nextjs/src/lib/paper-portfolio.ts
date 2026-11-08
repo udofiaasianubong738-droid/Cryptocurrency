@@ -61,10 +61,15 @@ export function calculatePaperPortfolio(
     nonNegative(asset.latestPriceMinor, "latestPriceMinor");
 
     // Quantity is represented in millionths to avoid floating-point quantity math.
-    investedPrincipalMinor +=
-      (asset.quantityMicrounits * asset.averageCostMinor) / 1_000_000;
-    currentValueMinor +=
-      (asset.quantityMicrounits * asset.latestPriceMinor) / 1_000_000;
+    const principalProduct = asset.quantityMicrounits * asset.averageCostMinor;
+    const valueProduct = asset.quantityMicrounits * asset.latestPriceMinor;
+    if (!Number.isSafeInteger(principalProduct) || !Number.isSafeInteger(valueProduct)) {
+      throw new Error("Demo portfolio value exceeds safe calculation limits");
+    }
+    investedPrincipalMinor += Math.round(principalProduct / 1_000_000);
+    currentValueMinor += Math.round(valueProduct / 1_000_000);
+    nonNegative(investedPrincipalMinor, "investedPrincipalMinor");
+    nonNegative(currentValueMinor, "currentValueMinor");
   }
 
   const profitLossMinor = currentValueMinor - investedPrincipalMinor;
@@ -99,6 +104,8 @@ export function getPaperMarketDirection(
   portfolioValueMinor: number;
   direction: "up" | "down" | "unchanged" | "first";
 }> {
+  for (const point of points) {
+  }
   const ordered = [...points].sort(
     (a, b) => Date.parse(a.capturedAt) - Date.parse(b.capturedAt),
   );
