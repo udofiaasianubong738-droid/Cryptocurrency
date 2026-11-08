@@ -88,3 +88,9 @@ button,input,select{font:inherit}button{touch-action:manipulation}button:focus-v
 .ci-market-directory-row small{font-size:9px;color:#8290a2}
 .ci-market-directory-row small.positive{color:#08784d}.ci-market-directory-row small.negative{color:#b23e3e}.ci-market-directory-row small.market-neutral{color:#68788e}
 @media(max-width:600px){.ci-live-quote-top{align-items:flex-start;flex-direction:column}.ci-market-chart-card .ci-section-head{flex-direction:column}.ci-chart-ranges{align-self:flex-end}.ci-market-chart svg{height:155px}.ci-market-directory-row{gap:9px;padding:12px 4px}}
+
+/* Authentic OHLC candlestick rendering. */
+.ci-candle-wick{stroke-width:1.4;vector-effect:non-scaling-stroke}
+.ci-candle-body{stroke-width:1;vector-effect:non-scaling-stroke}
+.ci-candle-up{stroke:#078a5a;fill:#0b9b68}
+.ci-candle-down{stroke:#c34b4b;fill:#d75a5a}
