@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(previewUrl),
   title: "CryptoInvest Customer Portal Preview",
   description:
-    "Preview of the CryptoInvest customer portal interface. Account data is unavailable until secure customer sign-in and verified backend data are connected.",
+    "CryptoInvest customer portal with live market readings and historical price charts. Private customer account information remains unavailable until secure sign-in.",
   applicationName: "CryptoInvest",
   manifest: "/customer-preview-manifest.webmanifest",
   icons: {
