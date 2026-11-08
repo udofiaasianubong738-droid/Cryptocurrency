@@ -50,3 +50,7 @@ button,input,select{font:inherit}button{touch-action:manipulation}button:focus-v
 .ci-profile-option small{color:#7b899c;font-size:10px;line-height:1.5}
 .ci-profile-option em{color:#9a741f;font-size:9px;font-style:normal;text-align:right}
 @media(max-width:600px){.ci-profile-fields{grid-template-columns:1fr}.ci-profile-option{align-items:flex-start}.ci-profile-option em{max-width:105px}}
+
+/* Shared CryptoInvest shield-and-growth-arrow identity across the customer portal. */
+.ci-logo{display:block;object-fit:cover;padding:0;background:transparent;box-shadow:0 4px 14px #e9b94f35}
+.ci-side-brandmark{display:block;object-fit:cover;padding:0;background:transparent;color:transparent;font-size:0;box-shadow:0 5px 18px #e9b94f24}
