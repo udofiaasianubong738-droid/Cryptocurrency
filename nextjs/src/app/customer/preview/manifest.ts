@@ -15,7 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#071a33",
     categories: ["finance", "business"],
     icons: [
-      { src: "/customer-app-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
+      { src: "/customer-app-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/customer-app-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
   };
 }
