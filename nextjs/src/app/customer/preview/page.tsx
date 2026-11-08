@@ -10,7 +10,7 @@ const supabase=url&&key?createClient(url,key,{auth:{persistSession:false,autoRef
 const cash=(v:number)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:v<1?6:2}).format(v);
 const age=(v:string)=>{const n=Date.now()-new Date(v).getTime();return !Number.isFinite(n)?"Time unavailable":n<60000?"Just now":n<3600000?Math.floor(n/60000)+"m ago":n<86400000?Math.floor(n/3600000)+"h ago":Math.floor(n/86400000)+"d ago"};
 
-function Header({home,onMenu,onActivity,onHome}:{home:boolean;onMenu:()=>void;onActivity:()=>void;onHome:()=>void}{
+function Header({home,onMenu,onActivity,onHome}:{home:boolean;onMenu:()=>void;onActivity:()=>void;onHome:()=>void}){
  return <header className="ci-header"><div className="ci-head-left">{home?<button className="ci-icon-btn" aria-label="Open sidebar" onClick={onMenu}>☰</button>:<button className="ci-home-back" onClick={onHome}>← Home</button>}<div className="ci-brand"><span className="ci-logo">↗</span><span>Crypto<span>Invest</span></span></div></div>{home&&<div className="ci-head-actions"><button className="ci-icon-btn" aria-label="Open activity and notifications" onClick={onActivity}>♧</button></div>}</header>
 }
 function BottomNav({screen,go}:{screen:Screen;go:(s:Screen)=>void}){
