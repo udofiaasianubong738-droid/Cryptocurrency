@@ -1,0 +1,21 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    id: "/customer/preview",
+    name: "CryptoInvest",
+    short_name: "CryptoInvest",
+    description: "CryptoInvest customer portal.",
+    start_url: "/customer/preview",
+    scope: "/customer/",
+    display: "standalone",
+    display_override: ["standalone", "minimal-ui"],
+    orientation: "any",
+    background_color: "#071a33",
+    theme_color: "#071a33",
+    categories: ["finance", "business"],
+    icons: [
+      { src: "/customer-app-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
+    ],
+  };
+}
