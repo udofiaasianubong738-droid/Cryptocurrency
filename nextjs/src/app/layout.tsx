@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const permanentAppUrl = "https://admin.cryptoinvest.com";
+const permanentAppUrl = "https://cryptoinvest.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(permanentAppUrl),
-  title: { default: "CryptoInvest Admin", template: "%s | CryptoInvest" },
-  description: "CryptoInvest CEO administration workspace. Financial operations remain disabled until backend, ledger and security verification is complete.",
+  title: { default: "CryptoInvest Customer", template: "%s | CryptoInvest" },
+  description: "CryptoInvest customer portal. Access your own account and investment information securely.",
   applicationName: "CryptoInvest",
   manifest: "/manifest.webmanifest",
-  alternates: { canonical: "/admin" },
+  alternates: { canonical: "/customer" },
   robots: { index: false, follow: false },
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
