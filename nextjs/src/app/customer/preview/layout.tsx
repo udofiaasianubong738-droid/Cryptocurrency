@@ -8,6 +8,16 @@ export const metadata: Metadata = {
   description:
     "Preview of the CryptoInvest customer portal interface. Account data is unavailable until secure customer sign-in and verified backend data are connected.",
   applicationName: "CryptoInvest",
+  manifest: "/customer/preview/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/customer-app-icon.svg", type: "image/svg+xml", sizes: "any" }],
+    shortcut: [{ url: "/customer-app-icon.svg", type: "image/svg+xml" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "CryptoInvest",
+    statusBarStyle: "black-translucent",
+  },
   alternates: {
     canonical: "/customer/preview",
   },
