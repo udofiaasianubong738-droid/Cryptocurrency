@@ -1,0 +1,57 @@
+name: Recover CryptoInvest customer frontend build
+
+on:
+  push:
+    branches:
+      - recovery/customer-frontend-build-20261108
+    paths:
+      - ".github/workflows/recover-customer-frontend.yml"
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - "postcss.config.*"
+      - "tailwind.config.*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: customer-frontend-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build customer Vite frontend (no deployment)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out isolated recovery branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build root Vite application for Cloudflare root path
+        run: env -u GITHUB_ACTIONS npm run build
+
+      - name: Verify build output
+        run: |
+          test -s dist/index.html
+          echo "Built files:"
+          find dist -maxdepth 2 -type f -printf '%p (%s bytes)\n' | sort
+
+      - name: Upload customer frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cryptoinvest-customer-dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
