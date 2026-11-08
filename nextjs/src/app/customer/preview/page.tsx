@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 
 type Screen = "Home" | "Investment" | "Wallet" | "Profile" | "Activity" | "Profit" | "Market" | "Security" | "Support" | "Settings" | "Legal" | "Deposit" | "Withdraw";
 type MarketQuote = { id:string; asset_id:string; price:number|string; change_24h_pct:number|string|null; volume_24h:number|string|null; market_cap:number|string|null; received_at:string; is_delayed:boolean; market_assets?:{symbol?:string;name?:string}|null };
-const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase=url&&key?createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}}):null;
 const cash=(v:number)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:v<1?6:2}).format(v);
 const age=(v:string)=>{const n=Date.now()-new Date(v).getTime();return !Number.isFinite(n)?"Time unavailable":n<60000?"Just now":n<3600000?Math.floor(n/60000)+"m ago":n<86400000?Math.floor(n/3600000)+"h ago":Math.floor(n/86400000)+"d ago"};
