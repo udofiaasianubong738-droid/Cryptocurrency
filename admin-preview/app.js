@@ -86,6 +86,8 @@
     document.body.classList.toggle("secondary-screen",secondary);
     // The sidebar exists only on Home. Hide it at the DOM level on every other route.
     sidebar.hidden=!home;
+    document.getElementById("mobile-overlay").classList.remove("show");
+    document.getElementById("menu-toggle").setAttribute("aria-expanded","false");
     sidebar.toggleAttribute("inert",!home);
     sidebar.setAttribute("aria-hidden",String(!home));
     sidebar.classList.remove("open");
@@ -107,7 +109,8 @@
   document.addEventListener("click",e=>{
     const target=e.target.closest("[data-screen]");
     if(target){e.preventDefault();navigate(target.dataset.screen);return;}
-    if(e.target.closest("#menu-toggle"))sidebar.classList.toggle("open");
+    if(e.target.closest("#menu-toggle")){const opened=sidebar.classList.toggle("open");document.getElementById("mobile-overlay").classList.toggle("show",opened);document.getElementById("menu-toggle").setAttribute("aria-expanded",String(opened));}
+    if(e.target.closest("#mobile-overlay")){sidebar.classList.remove("open");document.getElementById("mobile-overlay").classList.remove("show");document.getElementById("menu-toggle").setAttribute("aria-expanded","false");}
   });
   document.addEventListener("input",e=>{
     if(!e.target.matches("[data-table-filter]"))return;
@@ -126,6 +129,6 @@
   });
   document.getElementById("nav-search").addEventListener("keydown",e=>{if(e.key==="Enter"){const first=[...document.querySelectorAll(".nav-link")].find(b=>!b.hidden);if(first)navigate(first.dataset.screen);}});
   window.addEventListener("popstate",()=>navigate(location.hash.slice(1)||"overview",false));
-  document.addEventListener("keydown",e=>{if(e.key==="/"&&!e.ctrlKey&&!e.metaKey&&!["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){const search=document.getElementById("nav-search");if(!search.closest("[hidden]")&&!search.disabled){e.preventDefault();search.focus();}}if(e.key==="Escape")sidebar.classList.remove("open");});
+  document.addEventListener("keydown",e=>{if(e.key==="/"&&!e.ctrlKey&&!e.metaKey&&!["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){const search=document.getElementById("nav-search");if(!search.closest("[hidden]")&&!search.disabled){e.preventDefault();search.focus();}}if(e.key==="Escape"){sidebar.classList.remove("open");document.getElementById("mobile-overlay").classList.remove("show");document.getElementById("menu-toggle").setAttribute("aria-expanded","false");}});
   navigate(location.hash.slice(1)||"overview",false);
 })();
