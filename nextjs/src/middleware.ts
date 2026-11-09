@@ -3,6 +3,18 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  // The shared preview Worker serves two separate surfaces:
+  // customer-preview hosts open the customer welcome page; admin hosts go
+  // through the protected CEO route. Never expose the admin dashboard at "/".
+  if (pathname === "/") {
+    const destination = request.nextUrl.clone();
+    destination.pathname = request.nextUrl.hostname.toLowerCase().startsWith("cryptocurrency-customer-preview.")
+      ? "/customer/welcome"
+      : "/admin";
+    return NextResponse.redirect(destination);
+  }
+
   const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
   const isCustomerPublicPath = pathname === "/customer/login" || pathname === "/customer/register" || pathname === "/customer/welcome" || pathname === "/customer/preview";
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
@@ -61,5 +73,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
+  matcher: ["/", "/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
 };
