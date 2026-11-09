@@ -186,7 +186,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
       </div>
     </aside>
 
-    <div className="customer-main">
+    <div className={section === "home" ? "customer-main customer-main-home" : "customer-main"}>
       <header className="customer-topbar">
         <button className="customer-menu-button" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle navigation">☰</button>
         <span>Customer portal <span className="customer-crumb">/ {sectionLabel}</span></span>
