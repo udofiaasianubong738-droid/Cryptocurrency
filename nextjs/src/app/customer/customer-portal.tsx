@@ -215,7 +215,9 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
           <section className="customer-panel"><h2>My investment activity</h2>{loading ? <p className="customer-muted">Loading your account…</p> : <RecordList rows={rows} empty="Your verified investment activity will appear here." />}</section>
         </>}
 
-        {section === "wallet" && <><section className="customer-wallet-hero"><div><small>WALLET OVERVIEW</small><strong>— — —</strong><p>Verified account balance will appear when available.</p></div><span>◈</span></section><section className="customer-panel"><h2>Recent wallet records</h2>{loading ? <p className="customer-muted">Loading your records…</p> : <RecordList rows={rows} empty="Your verified wallet records will appear here." valueKeys={["amount", "currency_code", "entry_type"]} />}</section><div className="customer-wallet-links"><Link href="/customer/transactions">View transaction history <b>→</b></Link><Link href="/customer/notifications">Account updates <b>→</b></Link></div></>}\n\n        {section === "profile" && <section className="customer-panel">
+        {section === "wallet" && <><section className="customer-wallet-hero"><div><small>WALLET OVERVIEW</small><strong>— — —</strong><p>Verified account balance will appear when available.</p></div><span>◈</span></section><section className="customer-panel"><h2>Recent wallet records</h2>{loading ? <p className="customer-muted">Loading your records…</p> : <RecordList rows={rows} empty="Your verified wallet records will appear here." valueKeys={["amount", "currency_code", "entry_type"]} />}</section><div className="customer-wallet-links"><Link href="/customer/transactions">View transaction history <b>→</b></Link><Link href="/customer/notifications">Account updates <b>→</b></Link></div></>}
+
+        {section === "profile" && <section className="customer-panel">
           <h2>Account information</h2>
           <div className="customer-detail-grid">
             <div><small>Full name</small><strong>{user?.name || "Not provided"}</strong></div>
