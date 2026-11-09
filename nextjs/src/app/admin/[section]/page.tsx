@@ -9,6 +9,7 @@ const sections = new Set([
   "portfolio",
   "orders",
   "reports",
+  "education",
   "ledger",
   "reconciliation",
   "audit",
