@@ -5,7 +5,7 @@ export const metadata = { title: "Welcome | CryptoInvest Customer", robots: { in
 export default function CustomerWelcomePage() {
   return <main className="customer-auth-shell">
     <section className="customer-auth-card">
-      <Link href="/customer/welcome" className="customer-brand"><span className="customer-brand-mark">C</span><span>CryptoInvest</span></Link>
+      <Link href="/customer/welcome" className="customer-brand"><img className="customer-brand-mark" src="/logo.svg" alt=""/><span className="customer-brand-copy"><b>CryptoInvest</b><small>MORE THAN INVESTING. BUILT ON TRUST.</small></span></Link>
       <p className="customer-eyebrow">CUSTOMER PORTAL</p>
       <h1>Your investments, in one place.</h1>
       <p className="customer-muted">Sign in to access your personal account, published investment plans, account activity and support.</p>
