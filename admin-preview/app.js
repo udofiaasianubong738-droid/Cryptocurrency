@@ -55,6 +55,7 @@
     "system-info":()=>`${head("Support","System information","Application identity and environment information.")}${notice}${panel("Environment","Preview build",'<div class="settings-row"><span><b>Application</b><small>CryptoInvest Admin Console</small></span><span class="tag">Preview</span></div><div class="settings-row"><span><b>Data access</b><small>Read-only preview</small></span><span class="status offline">Backend pending</span></div><div class="settings-row"><span><b>Financial operations</b><small>Platform safety gate</small></span><span class="status">Disabled</span></div>')}`
   };
   const primaryNavItems = [["overview","Home","⌂"],["customers","Customers","♙"],["investment-records","Investments","▤"],["performance","Reports","⌁"],["ai-operations","AI assistant","✧"]];
+  const primaryScreenIds = new Set(primaryNavItems.map(([id])=>id));
   function renderPrimaryBottomNav(active){
     const nav=document.getElementById("primary-bottom-nav");
     nav.innerHTML=primaryNavItems.map(([id,label,icon])=>'<button type="button" class="primary-bottom-link'+(active===id?' active':'')+'" data-screen="'+id+'" aria-current="'+(active===id?'page':'false')+'"><span class="primary-bottom-icon">'+icon+'</span><span>'+label+'</span></button>').join("");
@@ -66,17 +67,22 @@
   function navigate(id,writeHash=true){
     if(!pages[id])id="overview";
     const home=id==="overview";
+    const primary=primaryScreenIds.has(id);
+    const secondary=!primary;
     document.body.classList.toggle("home-screen",home);
-    document.body.classList.toggle("secondary-screen",!home);
+    document.body.classList.toggle("primary-screen",primary);
+    document.body.classList.toggle("secondary-screen",secondary);
     // The sidebar exists only on Home. Hide it at the DOM level on every other route.
     sidebar.hidden=!home;
     sidebar.toggleAttribute("inert",!home);
     sidebar.setAttribute("aria-hidden",String(!home));
     sidebar.classList.remove("open");
     document.getElementById("menu-toggle").hidden=!home;
-    document.getElementById("back-home").hidden=home;
+    document.getElementById("back-home").hidden=!secondary;
     document.getElementById("nav-search-wrap").hidden=!home;
     document.getElementById("top-notifications").hidden=!home;
+    document.querySelector(".profile-chip").hidden=!home;
+    document.querySelector(".breadcrumbs").hidden=home;
     crumb.textContent=labels[id]||"Home dashboard";
     view.innerHTML=pages[id]();
     renderPrimaryBottomNav(id);
