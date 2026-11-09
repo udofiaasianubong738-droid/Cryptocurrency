@@ -118,7 +118,7 @@ html,body{background:var(--ci-canvas);color:var(--ci-ink);font-family:Arial,Helv
 .customer-shell{min-height:100vh;background:#f4f7fb;color:#1d2b40;font-family:"DM Sans",Arial,sans-serif}
 .customer-sidebar{position:fixed;inset:0 auto 0 0;z-index:20;display:flex;flex-direction:column;width:250px;padding:25px 17px;background:#fff;border-right:1px solid #e2e8f0;overflow:auto}
 .customer-brand{display:flex;align-items:center;gap:10px;padding:3px 8px;font-family:Manrope,sans-serif;font-size:19px;font-weight:800;letter-spacing:-.7px}
-.customer-brand-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:#3269c8;color:#fff;font-weight:800}
+.customer-brand-mark{display:block;width:43px;height:43px;flex:0 0 auto;object-fit:contain}.customer-brand-copy{display:grid;gap:3px}.customer-brand-copy b{font-family:Manrope,sans-serif;font-size:18px;font-weight:800;letter-spacing:-.7px;color:var(--ink)}.customer-brand-copy small{font-size:7px;letter-spacing:.7px;color:#a7831d;font-weight:800}.brand-mark-image{width:43px;height:43px;object-fit:contain;flex:0 0 auto}.brand-tagline{display:block;margin-top:4px;color:#a7831d;font-size:7px;font-weight:800;letter-spacing:.65px}
 .customer-account-chip{display:flex;align-items:center;gap:10px;margin:30px 0 24px;padding:12px;border:1px solid #e2e8f0;border-radius:13px}
 .customer-avatar{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;background:#eaf1fc;color:#2456ad;font-weight:800}
 .customer-account-chip strong,.customer-account-chip small{display:block}.customer-account-chip strong{font-size:12px}.customer-account-chip small{margin-top:4px;color:#8190a4;font-size:10px}
