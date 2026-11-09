@@ -9,9 +9,11 @@ export async function middleware(request: NextRequest) {
   // through the protected CEO route. Never expose the admin dashboard at "/".
   if (pathname === "/") {
     const destination = request.nextUrl.clone();
-    destination.pathname = request.nextUrl.hostname.toLowerCase().startsWith("cryptocurrency-customer-preview.")
-      ? "/customer/welcome"
-      : "/admin";
+    const hostname = request.nextUrl.hostname.toLowerCase();
+    const isCustomerHost = hostname === "cryptoinvest.com" ||
+      hostname === "www.cryptoinvest.com" ||
+      hostname.startsWith("cryptocurrency-customer-preview.");
+    destination.pathname = isCustomerHost ? "/customer/welcome" : "/admin";
     return NextResponse.redirect(destination);
   }
 
