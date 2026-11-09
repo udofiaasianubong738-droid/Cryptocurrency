@@ -168,9 +168,9 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         <span className="customer-avatar">{(greeting[0] || "C").toUpperCase()}</span>
         <span><strong>Customer account</strong><small>Personal workspace</small></span>
       </div>
-      <nav className="customer-nav" aria-label="Customer navigation">
-        <p>MY ACCOUNT</p>
-        {nav.map((item) => (
+      <nav className="customer-nav" aria-label="More customer pages">
+        <p>MORE SERVICES</p>
+        {nav.filter((item) => !["home", "investments", "wallet", "profile"].includes(item.id)).map((item) => (
           <Link key={item.id} href={item.id === "home" ? "/customer" : "/customer/" + item.id}
             onClick={() => setMobileOpen(false)}
             className={section === item.id ? "customer-nav-item customer-nav-active" : "customer-nav-item"}>
