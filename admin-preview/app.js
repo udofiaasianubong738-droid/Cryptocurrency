@@ -55,6 +55,11 @@
     documentation:()=>`${head("Support","Documentation","Administrator guides and system operating notes.")}${notice}${panel("Documentation library","Guides will be published here",empty("Documentation is being prepared","No unsupported procedures are shown in this preview."))}`,
     "system-info":()=>`${head("Support","System information","Application identity and environment information.")}${notice}${panel("Environment","Preview build",'<div class="settings-row"><span><b>Application</b><small>CryptoInvest Admin Console</small></span><span class="tag">Preview</span></div><div class="settings-row"><span><b>Data access</b><small>Read-only preview</small></span><span class="status offline">Backend pending</span></div><div class="settings-row"><span><b>Financial operations</b><small>Platform safety gate</small></span><span class="status">Disabled</span></div>')}`
   };
+  const primaryNavItems = [["overview","Home","⌂"],["customers","Customers","♙"],["investment-records","Investments","▤"],["performance","Reports","⌁"],["ai-operations","AI assistant","✧"]];
+  function renderPrimaryBottomNav(active){
+    const nav=document.getElementById("primary-bottom-nav");
+    nav.innerHTML=primaryNavItems.map(([id,label,icon])=>'<button type="button" class="primary-bottom-link'+(active===id?' active':'')+'" data-screen="'+id+'" aria-current="'+(active===id?'page':'false')+'"><span class="primary-bottom-icon">'+icon+'</span><span>'+label+'</span></button>').join("");
+  }
   function renderNav(){
     const nav=document.getElementById("main-nav");
     nav.innerHTML='<button class="nav-link home-nav active" data-screen="overview"><span class="nav-symbol">⌂</span>Home dashboard</button>'+navGroups.map(([title,items])=>'<div class="nav-caption nav-caption-spaced">'+title+'</div>'+items.map(([id,name,icon])=>'<button class="nav-link" data-screen="'+id+'"><span class="nav-symbol">'+icon+'</span>'+name+'</button>').join("")).join("");
@@ -72,6 +77,7 @@
     document.getElementById("top-notifications").hidden=!home;
     crumb.textContent=labels[id]||"Home dashboard";
     view.innerHTML=pages[id]();
+    renderPrimaryBottomNav(id);
     document.querySelectorAll(".nav-link").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));
     if(writeHash)history.pushState({screen:id},"","#"+id);
     window.scrollTo({top:0,behavior:"instant"});
