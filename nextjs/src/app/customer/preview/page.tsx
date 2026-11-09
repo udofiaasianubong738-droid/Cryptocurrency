@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import "./customer-preview.css";
 
 type Screen = "Home" | "Investment" | "Wallet" | "Profile" | "Activity" | "Profit" | "Market" | "Security" | "Support" | "Settings" | "Legal" | "Deposit" | "Withdraw";
-type MarketQuote = { id:string; asset_id:string; price:number|string; change_24h_pct:number|string|null; high_24h:number|string|null; low_24h:number|string|null; volume_24h:number|string|null; market_cap:number|string|null; quote_currency:string; received_at:string; is_delayed:boolean; market_assets?:{symbol?:string;name?:string}|null };
+type MarketQuote = { id:string; asset_id:string; price:number|string; change_24h_pct:number|string|null; high_24h:number|string|null; low_24h:number|string|null; volume_24h:number|string|null; market_cap:number|string|null; quote_currency:string; received_at:string; is_delayed:boolean; market_assets?:{symbol?:string;name?:string;provider_symbol?:string}|null };
 type MarketCandle = { interval_code:string; open_time:string; close_time:string; open_price:number|string; high_price:number|string; low_price:number|string; close_price:number|string; volume:number|string; quote_volume:number|string|null };
 const priceText=(value:number,currency:string)=>`${new Intl.NumberFormat("en-US",{maximumFractionDigits:value<1?8:2}).format(value)} ${currency}`;
 const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY??process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -27,7 +27,7 @@ function Sidebar({open,close,go,screen}:{open:boolean;close:()=>void;go:(s:Scree
  const link=([label,s,ico]:[string,Screen,string])=><button className="ci-side-item" key={s} aria-current={screen===s?"page":undefined} onClick={()=>go(s)}><i aria-hidden="true">{ico}</i><span>{label}</span>{secondary.some(x=>x[1]===s)&&<b className="ci-side-chevron">›</b>}</button>;
  return <><button className="ci-backdrop" aria-label="Close navigation menu" onClick={close}/><aside className="ci-sidebar" aria-label="Customer navigation"><div className="ci-side-brand"><img className="ci-side-brandmark" src="/customer-app-icon.svg" alt="CryptoInvest logo" /><div className="ci-side-brandcopy"><strong>Crypto<span>Invest</span></strong><small>MORE THAN INVESTING. BUILT ON TRUST.</small></div><button className="ci-side-close" onClick={close} aria-label="Close menu">×</button></div><div className="ci-side-rule"/><p className="ci-side-label">MORE SERVICES</p><nav aria-label="More services">{secondary.map(link)}</nav><div className="ci-side-spacer"/><div className="ci-side-note"><span>♙</span><div><b>Secure customer portal</b><small>Private access · Customer portal</small></div><i>✓</i></div></aside></>
 }
-function Home({quotes,loading,error,onSelect}:{quotes:MarketQuote[];loading:boolean;error:string|null;onSelect:(quote:MarketQuote)=>void}){
+function Home({quotes,loading,error,liveStatus,lastTickAt,onSelect}:{quotes:MarketQuote[];loading:boolean;error:string|null;liveStatus:"connecting"|"live"|"reconnecting";lastTickAt:string|null;onSelect:(quote:MarketQuote)=>void}){
   const [search,setSearch]=useState("");
   const sorted=[...quotes]
     .filter(q=>`${q.market_assets?.name??""} ${q.market_assets?.symbol??""}`.toLowerCase().includes(search.trim().toLowerCase()))
@@ -43,7 +43,7 @@ function Home({quotes,loading,error,onSelect}:{quotes:MarketQuote[];loading:bool
       </article>
     </section>
     <section className="ci-market-card ci-home-market">
-      <div className="ci-section-head"><div><small>MARKET OVERVIEW</small><h2>Market position</h2><p>Live market direction from the connected data feed. Select a market to view its latest reading and price history.</p></div><span>{quotes.length} assets</span></div>
+      <div className="ci-section-head"><div><small>MARKET OVERVIEW</small><h2>Market position</h2><p>Live market direction from the connected data feed. Select a market to view its latest reading and price history.</p></div><div className="ci-market-live-summary"><span className={liveStatus==="live"?"ci-live-dot active":"ci-live-dot"}></span><b>{liveStatus==="live"?"LIVE TICKS":liveStatus==="connecting"?"CONNECTING":"RECONNECTING"}</b><small>{lastTickAt?`Last tick ${age(lastTickAt)}`:"Waiting for first tick"}</small></div></div>
       <label className="ci-home-search"><span aria-hidden="true">⌕</span><input aria-label="Search markets" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search market or asset"/></label>
       {error?<div className="ci-empty"><b>Market readings unavailable</b><p>{error}</p></div>:loading&&!quotes.length?<div className="ci-empty">Loading market readings…</div>:!sorted.length?<div className="ci-empty">{search?"No markets match your search.":"No market readings are currently available."}</div>:<div>{sorted.map(q=>{const c=Number(q.change_24h_pct??0);const state=q.change_24h_pct==null?"UNAVAILABLE":c>0?"HIGH":c<0?"LOW":"UNCHANGED";const tone=c>0?"positive":c<0?"negative":"market-neutral";return <button type="button" className="ci-market-row ci-market-row-static" key={q.asset_id} onClick={()=>onSelect(q)}><span className="ci-coin">{(q.market_assets?.symbol??"?").slice(0,1)}</span><span className="ci-asset"><b>{q.market_assets?.name??"Market asset"}</b><small>{q.market_assets?.symbol??"—"} · Updated {age(q.received_at)}{q.is_delayed?" · Delayed reading":""}</small></span><span className="ci-quote"><b className={`ci-market-state ${tone}`}>{state}</b><small className={tone}>{q.change_24h_pct==null?"No movement data":`${c>0?"+":""}${c.toFixed(2)}% · 24h`}</small></span><span className="ci-market-open" aria-hidden="true">›</span></button>})}</div>}
       <p className="ci-disclaimer">Readings show the latest data received by CryptoInvest and refresh periodically. Delayed readings are labelled. Market status is informational only.</p>
@@ -150,7 +150,7 @@ function SecondaryPage({screen}:{screen:"Security"|"Support"|"Settings"|"Legal"}
  );
 }
 
-function MarketDetail({quote,quotes,history,loading,historyError,range,onRangeChange,onSelect,back}:{quote:MarketQuote|null;quotes:MarketQuote[];history:MarketCandle[];loading:boolean;historyError:string|null;range:"24H"|"7D";onRangeChange:(value:"24H"|"7D")=>void;onSelect:(quote:MarketQuote)=>void;back:()=>void}){
+function MarketDetail({quote,quotes,history,loading,historyError,range,liveStatus,lastTickAt,onRangeChange,onSelect,back}:{quote:MarketQuote|null;quotes:MarketQuote[];history:MarketCandle[];loading:boolean;historyError:string|null;range:"24H"|"7D";liveStatus:"connecting"|"live"|"reconnecting";lastTickAt:string|null;onRangeChange:(value:"24H"|"7D")=>void;onSelect:(quote:MarketQuote)=>void;back:()=>void}){
  const [search,setSearch]=useState("");
  const visibleHistory=range==="24H"?history.filter(p=>Date.now()-new Date(p.open_time).getTime()<=24*60*60*1000):history;
  const values=visibleHistory.flatMap(p=>[Number(p.high_price),Number(p.low_price)]).filter(Number.isFinite);
@@ -165,8 +165,8 @@ function MarketDetail({quote,quotes,history,loading,historyError,range,onRangeCh
   <button className="ci-home-back" onClick={back}>← Back to markets</button>
   <PageTitle eyebrow="LIVE MARKET DETAILS" title={`${quote.market_assets?.name??"Market"} (${quote.market_assets?.symbol??"—"})`} sub="Current market quote and exchange-provided OHLCV candlesticks read directly from CryptoInvest Supabase."/>
   <section className="ci-card ci-detail ci-live-quote-card">
-   <div className="ci-live-quote-top"><div><small>LATEST MARKET RATE</small><strong>{priceText(Number(quote.price),quote.quote_currency)}</strong><b className={tone}>{change==null?"24h movement unavailable":`${change>0?"+":""}${change.toFixed(2)}% · 24h`}</b></div><span className={quote.is_delayed?"ci-feed-delayed":"ci-feed-live"}>{quote.is_delayed?"DELAYED READING":"LATEST STORED READING"}</span></div>
-   <div className="ci-detail-grid"><span>24h high<b>{quote.high_24h==null?"Not reported":priceText(Number(quote.high_24h),quote.quote_currency)}</b></span><span>24h low<b>{quote.low_24h==null?"Not reported":priceText(Number(quote.low_24h),quote.quote_currency)}</b></span><span>24h volume<b>{quote.volume_24h==null?"Not reported":new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(quote.volume_24h))+" "+(quote.market_assets?.symbol??"")}</b></span><span>Market cap<b>{quote.market_cap==null?"Not reported":priceText(Number(quote.market_cap),quote.quote_currency)}</b></span><span>Quote received<b>{new Date(quote.received_at).toLocaleString()}</b></span><span>Feed status<b>{quote.is_delayed?"Delayed by provider":"Stored from provider"}</b></span></div>
+   <div className="ci-live-quote-top"><div><small>LATEST MARKET RATE</small><strong>{priceText(Number(quote.price),quote.quote_currency)}</strong><b className={tone}>{change==null?"24h movement unavailable":`${change>0?"+":""}${change.toFixed(2)}% · 24h`}</b></div><span className={liveStatus==="live"?"ci-feed-live":"ci-feed-delayed"}>{liveStatus==="live"?"LIVE EXCHANGE TICK":liveStatus==="connecting"?"CONNECTING TO LIVE FEED":"LIVE FEED RECONNECTING"}</span></div>
+   <div className="ci-detail-grid"><span>24h high<b>{quote.high_24h==null?"Not reported":priceText(Number(quote.high_24h),quote.quote_currency)}</b></span><span>24h low<b>{quote.low_24h==null?"Not reported":priceText(Number(quote.low_24h),quote.quote_currency)}</b></span><span>24h volume<b>{quote.volume_24h==null?"Not reported":new Intl.NumberFormat("en-US",{maximumFractionDigits:2}).format(Number(quote.volume_24h))+" "+(quote.market_assets?.symbol??"")}</b></span><span>Market cap<b>{quote.market_cap==null?"Not reported":priceText(Number(quote.market_cap),quote.quote_currency)}</b></span><span>Last exchange tick<b>{new Date(quote.received_at).toLocaleString()}</b></span><span>Feed status<b>{liveStatus==="live"?"Streaming live ticks":quote.is_delayed?"Delayed stored quote":"Connecting to exchange stream"}</b></span></div>
   </section>
   <section className="ci-card ci-market-chart-card">
    <div className="ci-section-head"><div><small>OHLCV HISTORY</small><h2>Market candlestick chart</h2><p>Exchange-provided 1-hour open, high, low and close values. Each candle is stored in Supabase with its own timestamp and volume.</p></div><div className="ci-chart-ranges"><button className={range==="24H"?"active":""} onClick={()=>onRangeChange("24H")}>24H</button><button className={range==="7D"?"active":""} onClick={()=>onRangeChange("7D")}>7D</button></div></div>
@@ -178,11 +178,55 @@ function MarketDetail({quote,quotes,history,loading,historyError,range,onRangeCh
  </main>
 }
 export default function CustomerPreviewPage(){
- const [screen,setScreen]=useState<Screen>("Home"),[menu,setMenu]=useState(false),[quotes,setQuotes]=useState<MarketQuote[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[selected,setSelected]=useState<MarketQuote|null>(null),[priceHistory,setHistory]=useState<MarketCandle[]>([]),[historyLoading,setHistoryLoading]=useState(false),[historyError,setHistoryError]=useState<string|null>(null),[chartRange,setChartRange]=useState<"24H"|"7D">("24H");
- useEffect(()=>{let active=true;const load=async()=>{if(!supabase){if(active){setError("Market feed connection is not configured.");setLoading(false)}return}try{const {data,error}=await supabase.from("market_quotes").select("id,asset_id,price,change_24h_pct,high_24h,low_24h,volume_24h,market_cap,quote_currency,received_at,is_delayed,market_assets(symbol,name)").order("received_at",{ascending:false}).limit(1000);if(error)throw error;const latest=new Map<string,MarketQuote>();for(const q of (data??[]) as unknown as MarketQuote[])if(!latest.has(q.asset_id))latest.set(q.asset_id,q);const next=[...latest.values()];if(active){setQuotes(next);setSelected(current=>current?next.find(q=>q.asset_id===current.asset_id)??next[0]??null:next[0]??null);setError(null)}}catch(e){if(active)setError(e instanceof Error?e.message:"Unable to read market quotes.")}finally{if(active)setLoading(false)}};void load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer)}},[]);
+ const [screen,setScreen]=useState<Screen>("Home"),[menu,setMenu]=useState(false),[quotes,setQuotes]=useState<MarketQuote[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState<string|null>(null),[selected,setSelected]=useState<MarketQuote|null>(null),[priceHistory,setHistory]=useState<MarketCandle[]>([]),[historyLoading,setHistoryLoading]=useState(false),[historyError,setHistoryError]=useState<string|null>(null),[chartRange,setChartRange]=useState<"24H"|"7D">("24H"),[liveStatus,setLiveStatus]=useState<"connecting"|"live"|"reconnecting">("connecting"),[lastTickAt,setLastTickAt]=useState<string|null>(null);
+ useEffect(()=>{let active=true;const load=async()=>{if(!supabase){if(active){setError("Market feed connection is not configured.");setLoading(false)}return}try{const {data,error}=await supabase.from("market_quotes").select("id,asset_id,price,change_24h_pct,high_24h,low_24h,volume_24h,market_cap,quote_currency,received_at,is_delayed,market_assets(symbol,name,provider_symbol)").order("received_at",{ascending:false}).limit(1000);if(error)throw error;const latest=new Map<string,MarketQuote>();for(const q of (data??[]) as unknown as MarketQuote[])if(!latest.has(q.asset_id))latest.set(q.asset_id,q);const next=[...latest.values()];if(active){setQuotes(next);setSelected(current=>current?next.find(q=>q.asset_id===current.asset_id)??next[0]??null:next[0]??null);setError(null)}}catch(e){if(active)setError(e instanceof Error?e.message:"Unable to read market quotes.")}finally{if(active)setLoading(false)}};void load();const timer=window.setInterval(load,60000);return()=>{active=false;window.clearInterval(timer)}},[]);
+ useEffect(()=>{
+  const symbols=[...new Set(quotes.map(q=>q.market_assets?.provider_symbol?.toLowerCase()).filter((s):s is string=>Boolean(s)))];
+  if(!symbols.length){setLiveStatus("connecting");return}
+  let stopped=false;
+  const sockets:WebSocket[]=[];
+  const timers:number[]=[];
+  const opened=new Set<number>();
+  const reconnectAttempts=new Map<number,number>();
+  const chunks=Array.from({length:Math.ceil(symbols.length/100)},(_,i)=>symbols.slice(i*100,(i+1)*100));
+  const connect=(index:number)=>{
+   if(stopped)return;
+   const streams=chunks[index].map(symbol=>symbol+"@ticker").join("/");
+   const ws=new WebSocket("wss://stream.binance.com:9443/stream?streams="+streams);
+   sockets[index]=ws;
+   ws.onopen=()=>{if(stopped){ws.close();return}opened.add(index);setLiveStatus(opened.size===chunks.length?"live":"connecting")};
+   ws.onmessage=(event)=>{
+    if(stopped)return;
+    try{
+     const packet=JSON.parse(String(event.data));
+     const tick=packet.data??packet;
+     const symbol=String(tick.s??"").toLowerCase();
+     const price=Number(tick.c),change=Number(tick.P),high=Number(tick.h),low=Number(tick.l),volume=Number(tick.v),eventTime=Number(tick.E);
+     if(!symbol||![price,change,high,low,volume,eventTime].every(Number.isFinite)||price<=0)return;
+     const receivedAt=new Date(eventTime).toISOString();
+     const apply=(list:MarketQuote[])=>list.map(q=>q.market_assets?.provider_symbol?.toLowerCase()===symbol?{...q,price,change_24h_pct:change,high_24h:high,low_24h:low,volume_24h:volume,received_at:receivedAt,is_delayed:false}:q);
+     setQuotes(previous=>apply(previous));
+     setSelected(previous=>previous?.market_assets?.provider_symbol?.toLowerCase()===symbol?{...previous,price,change_24h_pct:change,high_24h:high,low_24h:low,volume_24h:volume,received_at:receivedAt,is_delayed:false}:previous);
+     setLastTickAt(receivedAt);
+    }catch{/* Ignore malformed provider frames; the connection remains active. */}
+   };
+   ws.onerror=()=>{if(!stopped)setLiveStatus("reconnecting")};
+   ws.onclose=()=>{
+    opened.delete(index);
+    if(stopped)return;
+    setLiveStatus("reconnecting");
+    const attempt=reconnectAttempts.get(index)??0;
+    const delay=Math.min(30000,1000*Math.pow(2,Math.min(attempt,5)));
+    reconnectAttempts.set(index,attempt+1);
+    timers[index]=window.setTimeout(()=>connect(index),delay);
+   };
+  };
+  chunks.forEach((_,index)=>connect(index));
+  return()=>{stopped=true;timers.forEach(id=>window.clearTimeout(id));sockets.forEach(ws=>{ws.onclose=null;ws.close()})};
+ },[quotes.length,quotes.map(q=>q.market_assets?.provider_symbol??"").join("|")]);
  useEffect(()=>{if(!supabase||!selected?.asset_id){setHistory([]);setHistoryError(null);return}let active=true;const loadHistory=async()=>{setHistoryLoading(true);try{const since=new Date(Date.now()-7*24*60*60*1000).toISOString();const {data,error}=await supabase.from("market_candles").select("interval_code,open_time,close_time,open_price,high_price,low_price,close_price,volume,quote_volume").eq("asset_id",selected.asset_id).eq("provider","binance").eq("interval_code","1h").gte("open_time",since).order("open_time",{ascending:true}).limit(500);if(error)throw error;if(active){setHistory((data??[]) as unknown as MarketCandle[]);setHistoryError(null)}}catch(e){if(active)setHistoryError(e instanceof Error?e.message:"Unable to load market price history.")}finally{if(active)setHistoryLoading(false)}};void loadHistory();const timer=window.setInterval(loadHistory,60000);return()=>{active=false;window.clearInterval(timer)}},[selected?.asset_id]);
  useEffect(()=>{const read=():Screen=>{const s=new URLSearchParams(location.search).get("screen");return (["Investment","Wallet","Profile","Activity","Profit","Market","Security","Support","Settings","Legal","Deposit","Withdraw"].includes(s??"")?s:"Home") as Screen};setScreen(read());const pop=()=>setScreen(read());addEventListener("popstate",pop);return()=>removeEventListener("popstate",pop)},[]);
  const go=(s:Screen)=>{setMenu(false);const u=new URL(location.href);if(s==="Home")u.searchParams.delete("screen");else u.searchParams.set("screen",s);history.pushState({screen:s},"",u.pathname+u.search+u.hash);setScreen(s);scrollTo({top:0,behavior:"smooth"})};
  const home=screen==="Home",secondary=!["Home","Investment","Wallet","Profile"].includes(screen);const openMarket=(q:MarketQuote)=>{setSelected(q);go("Market")};
- return <div className="ci-app"><Header home={home} secondary={secondary} onMenu={()=>setMenu(true)} onActivity={()=>go("Activity")} onHome={()=>go("Home")}/><Sidebar open={menu} close={()=>setMenu(false)} go={go} screen={screen}/>{screen==="Home"?<Home quotes={quotes} loading={loading} error={error} onSelect={openMarket}/>:screen==="Investment"?<Investment/>:screen==="Wallet"?<Wallet quotes={quotes} loading={loading} error={error} go={go}/>:screen==="Profile"?<Profile/>:screen==="Deposit"?<DepositPage go={go}/>:screen==="Withdraw"?<WithdrawPage go={go}/>:screen==="Activity"?<Activity/>:screen==="Profit"?<Profit/>:screen==="Market"?<MarketDetail quote={selected} quotes={quotes} history={priceHistory} loading={historyLoading} historyError={historyError} range={chartRange} onRangeChange={setChartRange} onSelect={setSelected} back={()=>go("Home")}/>:<SecondaryPage screen={screen}/>}{(["Home","Investment","Wallet","Profile"] as Screen[]).includes(screen)?<BottomNav screen={screen} go={go}/>:null}</div>
+ return <div className="ci-app"><Header home={home} secondary={secondary} onMenu={()=>setMenu(true)} onActivity={()=>go("Activity")} onHome={()=>go("Home")}/><Sidebar open={menu} close={()=>setMenu(false)} go={go} screen={screen}/>{screen==="Home"?<Home quotes={quotes} loading={loading} error={error} liveStatus={liveStatus} lastTickAt={lastTickAt} onSelect={openMarket}/>:screen==="Investment"?<Investment/>:screen==="Wallet"?<Wallet quotes={quotes} loading={loading} error={error} go={go}/>:screen==="Profile"?<Profile/>:screen==="Deposit"?<DepositPage go={go}/>:screen==="Withdraw"?<WithdrawPage go={go}/>:screen==="Activity"?<Activity/>:screen==="Profit"?<Profit/>:screen==="Market"?<MarketDetail quote={selected} quotes={quotes} history={priceHistory} loading={historyLoading} historyError={historyError} range={chartRange} liveStatus={liveStatus} lastTickAt={lastTickAt} onRangeChange={setChartRange} onSelect={setSelected} back={()=>go("Home")}/>:<SecondaryPage screen={screen}/>}{(["Home","Investment","Wallet","Profile"] as Screen[]).includes(screen)?<BottomNav screen={screen} go={go}/>:null}</div>
 }
