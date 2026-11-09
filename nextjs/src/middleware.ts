@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
     const hostname = request.nextUrl.hostname.toLowerCase();
     const isCustomerHost = hostname === "cryptoinvest.com" ||
       hostname === "www.cryptoinvest.com" ||
+      hostname === "cryptocurrency.udofiaasianubong738.workers.dev" ||
       hostname.startsWith("cryptocurrency-customer-preview.");
     destination.pathname = isCustomerHost ? "/customer/welcome" : "/admin";
     return NextResponse.redirect(destination);
