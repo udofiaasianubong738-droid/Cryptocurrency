@@ -186,3 +186,6 @@ body.secondary-screen #back-home{margin-left:0}
  .page-head h1{font-size:26px}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+.mobile-overlay{display:none}
+@media(max-width:760px){.mobile-overlay.show{display:block;position:fixed;inset:30px 0 0;border:0;border-radius:0;background:#02060dcc;z-index:7;backdrop-filter:blur(2px)}.sidebar{z-index:8}.mobile-menu[aria-expanded="true"]{background:#2a2417;border-color:#80683a;color:#f2dfa0}}
