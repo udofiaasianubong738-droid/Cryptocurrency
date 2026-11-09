@@ -68,6 +68,9 @@
     const home=id==="overview";
     document.body.classList.toggle("home-screen",home);
     document.body.classList.toggle("secondary-screen",!home);
+    // The sidebar exists only on Home. Hide it at the DOM level on every other route.
+    sidebar.hidden=!home;
+    sidebar.toggleAttribute("inert",!home);
     sidebar.setAttribute("aria-hidden",String(!home));
     sidebar.classList.remove("open");
     document.getElementById("menu-toggle").hidden=!home;
