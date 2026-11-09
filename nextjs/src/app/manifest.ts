@@ -1,21 +1,37 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
-export default function manifest(): MetadataRoute.Manifest {
+export const dynamic = "force-dynamic";
+
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const requestHeaders = await headers();
+  const hostname = (requestHeaders.get("host") ?? "").toLowerCase();
+  const isCustomerApp =
+    hostname.startsWith("cryptocurrency.") ||
+    hostname.startsWith("cryptocurrency-customer-preview.") ||
+    hostname.includes("customer");
+
+  const startUrl = isCustomerApp ? "/customer/welcome" : "/admin";
+  const appName = isCustomerApp ? "CryptoInvest Customer" : "CryptoInvest CEO Admin";
+
   return {
-    id: "/admin",
-    name: "CryptoInvest CEO Admin",
+    id: isCustomerApp ? "/customer" : "/admin",
+    name: appName,
     short_name: "CryptoInvest",
-    description: "CryptoInvest CEO administration workspace.",
-    start_url: "/admin",
+    description: isCustomerApp
+      ? "Your secure CryptoInvest customer portal."
+      : "CryptoInvest CEO administration workspace.",
+    start_url: startUrl,
     scope: "/",
     display: "standalone",
+    display_override: ["standalone", "minimal-ui"],
     orientation: "any",
-    background_color: "#f3f6ff",
+    background_color: "#071638",
     theme_color: "#071638",
     categories: ["business", "finance", "productivity"],
     icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" }
+      { src: "/icon.svg", sizes: "192x192 512x512", type: "image/svg+xml", purpose: "any" },
+      { src: "/icon.svg", sizes: "192x192 512x512", type: "image/svg+xml", purpose: "maskable" }
     ]
   };
 }
