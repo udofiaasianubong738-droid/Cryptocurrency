@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
 
-type Section = "home" | "profile" | "plans" | "investments" | "deposit" | "withdrawals" | "performance" | "transactions" | "notifications" | "documents" | "support" | "security";
+type Section = "home" | "profile" | "wallet" | "plans" | "investments" | "deposit" | "withdrawals" | "performance" | "transactions" | "notifications" | "documents" | "support" | "security";
 type Row = Record<string, unknown>;
 
 const nav: { id: Section; label: string; icon: string }[] = [
-  { id: "home", label: "Overview", icon: "⌂" },
-  { id: "profile", label: "My profile", icon: "♙" },
+  { id: "home", label: "Home", icon: "⌂" },
+  { id: "investments", label: "Investment", icon: "↗" },
+  { id: "wallet", label: "Wallet", icon: "▣" },
+  { id: "profile", label: "Profile", icon: "♙" },
   { id: "plans", label: "Investment plans", icon: "◇" },
   { id: "investments", label: "My investments", icon: "▥" },
   { id: "deposit", label: "Deposit request", icon: "↓" },
@@ -25,6 +27,8 @@ const nav: { id: Section; label: string; icon: string }[] = [
 
 const titles: Record<Section, string> = {
   home: "Your overview",
+  investments: "Investment",
+  wallet: "Wallet",
   profile: "My profile",
   plans: "Investment plans",
   investments: "My investments",
@@ -42,6 +46,7 @@ const sources: Partial<Record<Section, { table: string; columns: string; ownerCo
   home: { table: "investments", columns: "id, asset_code, principal_amount, currency_code, status, created_at", ownerColumn: "customer_id" },
   plans: { table: "investment_plans", columns: "id, name, asset_code, network, description, risk_level, minimum_amount, maximum_amount, currency_code, risk_disclosure", activeOnly: true },
   investments: { table: "investments", columns: "id, plan_id, asset_code, principal_amount, currency_code, status, approved_return, realized_profit_loss, opened_at, closed_at, created_at", ownerColumn: "customer_id" },
+  wallet: { table: "ledger_entries", columns: "id, entry_type, amount, currency_code, created_at", ownerColumn: "customer_id" },
   deposit: { table: "deposit_requests", columns: "id, amount, currency_code, asset_code, network, status, created_at, updated_at", ownerColumn: "customer_id" },
   withdrawals: { table: "withdrawal_requests", columns: "id, amount, currency_code, asset_code, network, status, created_at, updated_at", ownerColumn: "customer_id" },
   performance: { table: "investments", columns: "id, asset_code, principal_amount, currency_code, status, realized_profit_loss, closed_at, created_at", ownerColumn: "customer_id" },
@@ -159,7 +164,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
 
   return <div className="customer-shell">
     <a className="customer-skip" href="#customer-main">Skip to content</a>
-    <aside className={mobileOpen ? "customer-sidebar customer-sidebar-open" : "customer-sidebar"}>
+    {section === "home" && <><button className={mobileOpen ? "customer-drawer-backdrop is-open" : "customer-drawer-backdrop"} aria-label="Close navigation" onClick={() => setMobileOpen(false)} /><aside className={mobileOpen ? "customer-sidebar customer-sidebar-open" : "customer-sidebar"}>
       <Link href="/customer" className="customer-brand"><img className="customer-brand-mark" src="/logo.svg" alt=""/><span className="customer-brand-copy"><b>CryptoInvest</b><small>MORE THAN INVESTING. BUILT ON TRUST.</small></span></Link>
       <div className="customer-account-chip">
         <span className="customer-avatar">{(greeting[0] || "C").toUpperCase()}</span>
@@ -211,7 +216,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
           <section className="customer-panel"><h2>My investment activity</h2>{loading ? <p className="customer-muted">Loading your account…</p> : <RecordList rows={rows} empty="Your verified investment activity will appear here." />}</section>
         </>}
 
-        {section === "profile" && <section className="customer-panel">
+        {section === "wallet" && <><section className="customer-wallet-hero"><div><small>WALLET OVERVIEW</small><strong>— — —</strong><p>Verified account balance will appear when available.</p></div><span>◈</span></section><section className="customer-panel"><h2>Recent wallet records</h2>{loading ? <p className="customer-muted">Loading your records…</p> : <RecordList rows={rows} empty="Your verified wallet records will appear here." valueKeys={["amount", "currency_code", "entry_type"]} />}</section><div className="customer-wallet-links"><Link href="/customer/transactions">View transaction history <b>→</b></Link><Link href="/customer/notifications">Account updates <b>→</b></Link></div></>}\n\n        {section === "profile" && <section className="customer-panel">
           <h2>Account information</h2>
           <div className="customer-detail-grid">
             <div><small>Full name</small><strong>{user?.name || "Not provided"}</strong></div>
