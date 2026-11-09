@@ -55,3 +55,7 @@ body.home-screen .breadcrumbs,body.home-screen #nav-search-wrap,body.home-screen
 
 /* Hard guarantee: the sidebar is not rendered or focusable on secondary screens. */
 .sidebar[hidden]{display:none!important}
+
+
+/* Respect the hidden state on navigation controls at every breakpoint. */
+#menu-toggle[hidden],#back-home[hidden],#top-notifications[hidden],#nav-search-wrap[hidden],#sidebar[hidden]{display:none!important}
