@@ -3,141 +3,92 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-const screens = [
-  ["overview", "Home Dashboard", "Your platform at a glance", "⌂", "Workspace"],
-  ["customers", "Customers", "Customer accounts and access", "♙", "Workspace"],
-  ["deposits", "Deposits", "Incoming deposit requests", "↓", "Operations"],
-  ["withdrawals", "Withdrawals", "Withdrawal requests and checks", "↑", "Operations"],
-  ["plans", "Investment Plans", "Plan terms and publication status", "◇", "Operations"],
-  ["orders", "Orders", "Order lifecycle and provider status", "⇄", "Operations"],
-  ["portfolio", "Portfolio", "Verified account and investment summaries", "▥", "Operations"],
-  ["reports", "Reports", "Reports from verified records", "▤", "Insights"],
-  ["education", "Education Centre", "Guides for secure administration and platform governance", "✧", "Guidance"],
-  ["ledger", "Ledger", "Accounting entries and balances", "≋", "Controls"],
-  ["reconciliation", "Reconciliation", "Provider and ledger comparison", "⟳", "Controls"],
-  ["audit", "Audit Logs", "Administrative events and audit history", "◷", "Controls"],
-  ["integrations", "Integrations", "Backend and provider connectivity", "⌘", "Controls"],
-  ["security", "Security", "Identity, access and safety gates", "⬡", "Controls"],
-  ["settings", "Settings", "Workspace preferences and configuration", "⚙", "Controls"],
-  ["system-status", "System Status", "Readiness and service checks", "✦", "Controls"],
-] as const;
-
-type ScreenId = typeof screens[number][0];
-const descriptions: Record<string, string> = {
-  customers: "Review customer access and profile information after authenticated, verified records are available.",
-  deposits: "Incoming deposit requests will appear here when real provider evidence and transaction records are connected.",
-  withdrawals: "Review requests only after balance checks, server-side approval rules and audit logging are verified.",
-  plans: "Create and review plan definitions from the authoritative backend. No fabricated returns or performance claims are shown.",
-  orders: "Order history and provider states will be populated from verified integrations.",
-  portfolio: "Account balances and investment summaries must be sourced from the authoritative ledger.",
-  reports: "Generate reports from verified platform data; this preview does not invent customer or financial figures.",
-  education: "Learn the CryptoInvest admin workflow, access safeguards, data handling and read-only governance responsibilities.",
-  ledger: "Accounting entries and balances must be read from the authoritative backend and reconciled before being treated as financial truth.",
-  reconciliation: "Compare provider activity against internal ledger entries after integration and idempotency checks are complete.",
-  audit: "Review administrative events, timestamps and actors after the verified audit source is connected.",
-  integrations: "Connection health must be established from real server-side checks; no provider is currently claimed as verified here.",
-  settings: "Workspace preferences can be configured here. Identity and financial safety controls remain protected.",
-  "system-status": "A readiness view for authentication, database connectivity, build health and financial safety gates.",
+type Screen = { id:string; label:string; description:string; icon:string; group:string };
+const primary:Screen[] = [
+  {id:"overview",label:"Home",description:"Your platform at a glance",icon:"⌂",group:"Primary"},
+  {id:"customers",label:"Customers",description:"Customer accounts and access",icon:"♙",group:"Primary"},
+  {id:"investment-records",label:"Investments",description:"Published plans and investment records",icon:"◇",group:"Primary"},
+  {id:"performance",label:"Reports",description:"Verified platform reporting and history",icon:"▤",group:"Primary"},
+  {id:"ai-operations",label:"AI Assistant",description:"Human-reviewed operational assistance",icon:"✧",group:"Primary"},
+];
+const secondary:Screen[] = [
+  {id:"customer-details",label:"Customer Details",description:"Review a customer profile from verified records",icon:"♧",group:"Customers"},
+  {id:"customer-verification",label:"Customer Verification",description:"Review account verification status",icon:"✓",group:"Customers"},
+  {id:"plan-details",label:"Investment Plans",description:"Plan definitions and publication status",icon:"◇",group:"Investments"},
+  {id:"investment-history",label:"Investment History",description:"Historical investment records",icon:"◷",group:"Investments"},
+  {id:"report-history",label:"Report History",description:"Previously generated platform reports",icon:"▧",group:"Reports"},
+  {id:"data-quality",label:"Data Quality",description:"Source checks and data-quality findings",icon:"⌁",group:"Operations"},
+  {id:"review-queue",label:"Review Queue",description:"Items awaiting human review",icon:"☷",group:"Operations"},
+  {id:"platform-activity",label:"Platform Activity",description:"Platform events and activity history",icon:"↗",group:"Operations"},
+  {id:"security",label:"Security",description:"Identity, permissions and safety controls",icon:"⬡",group:"Security"},
+  {id:"mfa",label:"MFA & Authentication",description:"Authenticator and assurance status",icon:"▣",group:"Security"},
+  {id:"sessions",label:"Sessions",description:"Active session and device review",icon:"▤",group:"Security"},
+  {id:"audit",label:"Audit Logs",description:"Administrative events and audit history",icon:"◷",group:"Security"},
+  {id:"system-status",label:"System Status",description:"Readiness and service checks",icon:"✦",group:"System"},
+  {id:"backend-config",label:"Backend Configuration",description:"Backend connectivity and configuration status",icon:"⌘",group:"System"},
+  {id:"settings",label:"Settings",description:"Workspace preferences and configuration",icon:"⚙",group:"System"},
+  {id:"notifications",label:"Notifications",description:"Administrative notices and alerts",icon:"♢",group:"System"},
+  {id:"help",label:"Help & Documentation",description:"Guides for secure platform administration",icon:"?",group:"Support"},
+  {id:"system-info",label:"System Information",description:"Application version and deployment details",icon:"ⓘ",group:"Support"},
+];
+const allScreens=[...primary,...secondary];
+const knownIds=new Set(allScreens.map(s=>s.id));
+const info:Record<string,string>={
+  customers:"Review customer account records and access status. Customer-facing actions are not available from this workspace.",
+  "investment-records":"Review published plan information and historical investment records. No investment execution or allocation is available.",
+  performance:"Reporting is based on verified records only. Figures remain unavailable until the authoritative data source is connected and reconciled.",
+  "ai-operations":"The AI Assistant is reserved for explanations, data-quality summaries and draft recommendations. It remains locked until the secure backend and approved AI service are connected.",
+  "customer-details":"A customer detail view will show only the authenticated customer's verified profile fields when the read-only data source is available.",
+  "customer-verification":"Verification review is read-only. No identity documents or personal data are fabricated in this screen.",
+  "plan-details":"Review plan terms and publication status from the authoritative backend. No return projections are invented.",
+  "investment-history":"Historical investment records must come from verified backend records. This screen does not execute trades or change balances.",
+  "report-history":"Previously generated reports will appear here when a verified reporting source is connected.",
+  "data-quality":"Review source freshness, missing fields, duplicates and reconciliation findings before accepting a dataset.",
+  "review-queue":"Human review is required for all AI-generated explanations and operational recommendations.",
+  "platform-activity":"Platform activity will be populated from verified event records with timestamps and source references.",
+  security:"CEO-only access, MFA/AAL2 and session safeguards must be enforced by the server as well as the interface.",
+  mfa:"Authenticator enrollment and MFA assurance are managed by Supabase Auth. AAL2 is required for CEO administration.",
+  sessions:"Review session metadata only after a secure session-management source is connected.",
+  audit:"Administrative events must be recorded by a trusted server-side audit source. This screen does not fabricate activity.",
+  "system-status":"This readiness view reports only checks that have actually run. Unverified services are clearly marked.",
+  "backend-config":"Backend settings are protected. Public configuration status may be displayed; secret values must never be exposed in the browser.",
+  settings:"Workspace display preferences are separate from security-critical settings, which remain server-controlled.",
+  notifications:"Administrative notifications will appear here after the trusted notification source is connected.",
+  help:"Guidance for navigation, customer data handling, source verification and read-only administration.",
+  "system-info":"Application identity and deployment information. Environment secrets and sensitive infrastructure details are not displayed.",
 };
-
-function Brand() {
-  return <span className="ci-brand"><span className="ci-brand-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 35V27M18 35V20M28 35V15M38 35V8" stroke="currentColor" strokeWidth="4" strokeLinecap="round"/><path d="M7 18 18 13 26 17 40 5" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M32 5h8v8" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/></svg></span><span><strong>CryptoInvest</strong><small>Invest · Grow · Prosper</small></span></span>;
+function Brand(){return <span className="ci2-brand"><span className="ci2-mark">C</span><span><b>CryptoInvest</b><small>ADMIN WORKSPACE</small></span></span>}
+function SafeNotice(){return <div className="ci2-safety"><span>✓</span><div><b>Financial operations are disabled</b><p>Deposits, withdrawals, transfers, payouts and investment execution are unavailable. Only verified, read-only administration is permitted.</p></div><strong>LOCKED</strong></div>}
+function Empty({title="Awaiting verified data",detail="This section will display records when its authorised backend source is connected and verified."}:{title?:string;detail?:string}){return <div className="ci2-empty"><span>◇</span><b>{title}</b><p>{detail}</p><small>No sample financial or customer records are shown.</small></div>}
+function HomeContent(){return <>
+  <section className="ci2-hero"><div><span className="ci2-eyebrow">CEO ADMINISTRATION · OVERVIEW</span><h1>Welcome to CryptoInvest</h1><p>Your central workspace for customer oversight, investment records, reporting and platform governance.</p><div className="ci2-hero-meta"><span>● CEO workspace</span><span>Verified data only</span><span>Read-only mode</span></div></div><div className="ci2-hero-art" aria-hidden="true"><div className="ci2-orbit ci2-orbit-a"/><div className="ci2-orbit ci2-orbit-b"/><div className="ci2-hero-symbol">C</div><i/><i/><i/><i/></div></section>
+  <div className="ci2-metrics">{[["Total Customers","—","Awaiting verified records","♙"],["Active Investments","—","No verified totals available","◇"],["Platform Reports","—","No report totals available","▤"],["Review Queue","—","Awaiting connected review source","✧"]].map(x=><article className="ci2-metric" key={x[0]}><div><span>{x[0]}</span><b>{x[3]}</b></div><strong>{x[1]}</strong><small>{x[2]}</small></article>)}</div>
+  <div className="ci2-home-grid"><section className="ci2-panel ci2-wide"><div className="ci2-panel-head"><div><span className="ci2-eyebrow">PLATFORM OVERVIEW</span><h2>Performance & activity</h2></div><span className="ci2-tag">Verified source required</span></div><Empty title="Platform analytics will appear here" detail="Charts and activity summaries will be shown after verified records are connected and reconciled." /></section>
+  <section className="ci2-panel"><div className="ci2-panel-head"><div><span className="ci2-eyebrow">SECURITY POSTURE</span><h2>Access safeguards</h2></div><span className="ci2-shield">✓</span></div><ul className="ci2-checks"><li><b>✓</b> Single authorised CEO account</li><li><b>✓</b> MFA / AAL2 required</li><li><b>✓</b> Customer access separated</li><li><b>✓</b> Financial operations disabled</li></ul><Link className="ci2-text-link" href="/admin/security">Review security settings →</Link></section>
+  <section className="ci2-panel"><div className="ci2-panel-head"><div><span className="ci2-eyebrow">INVESTMENT OVERSIGHT</span><h2>Plans & records</h2></div><span className="ci2-tag">Read only</span></div><Empty title="No verified plan records" detail="Plan definitions and investment history will appear when the authorised data source is available."/><Link className="ci2-text-link" href="/admin/investment-records">Open investments →</Link></section>
+  <section className="ci2-panel"><div className="ci2-panel-head"><div><span className="ci2-eyebrow">AI OPERATIONS</span><h2>Assistant status</h2></div><span className="ci2-tag ci2-tag-warn">Locked</span></div><p className="ci2-copy">AI support is not active until the secure backend and approved AI service are connected. All future suggestions require human review.</p><Link className="ci2-text-link" href="/admin/ai-operations">View AI Assistant status →</Link></section></div>
+  </>}
+function SectionContent({screen}:{screen:Screen}){if(screen.id==="ai-operations")return <section className="ci2-panel ci2-section-panel"><div className="ci2-lock">✧</div><span className="ci2-eyebrow">CONTROLLED AI WORKSPACE</span><h2>AI Assistant is not yet activated</h2><p className="ci2-copy">{info[screen.id]}</p><div className="ci2-disabled-box"><b>Activation requirements</b><ul><li>Secure backend connection and server-side authorization</li><li>Approved AI service and protected credentials</li><li>Human approval for every operational recommendation</li><li>Audit logging for prompts, outputs and approved actions</li></ul></div><span className="ci2-tag ci2-tag-warn">Not connected · inactive</span></section>;
+  if(screen.id==="security")return <div className="ci2-panels"><section className="ci2-panel"><span className="ci2-eyebrow">IDENTITY & ACCESS</span><h2>Administrator safeguards</h2><ul className="ci2-checks"><li><b>✓</b> One enabled CEO administrator</li><li><b>✓</b> Server-side CEO authorization</li><li><b>✓</b> Authenticator MFA / AAL2</li><li><b>✓</b> Customer and admin role separation</li></ul></section><section className="ci2-panel"><span className="ci2-eyebrow">FINANCIAL SAFETY</span><h2>Restricted operations</h2><div className="ci2-disabled-box"><b>Financial operations: disabled</b><p>Do not enable money movement, balance updates or investment execution from this workspace.</p></div></section></div>;
+  if(screen.id==="help")return <div className="ci2-panels"><section className="ci2-panel"><span className="ci2-eyebrow">QUICK GUIDE</span><h2>Using the admin workspace</h2><ol className="ci2-guide"><li><b>Home</b><span>Open the sidebar to reach secondary tools and system areas.</span></li><li><b>Primary screens</b><span>Use the fixed bottom navigation for Home, Customers, Investments, Reports and AI Assistant.</span></li><li><b>Secondary screens</b><span>Use Back to Home in the page header to return to the main dashboard.</span></li><li><b>Verified information</b><span>Only trust data that is sourced and reconciled against the authorised backend.</span></li></ol></section><section className="ci2-panel"><span className="ci2-eyebrow">GOVERNANCE</span><h2>Read-only operation</h2><p className="ci2-copy">Customer records, reports and investment history are view-only. Financial execution remains disabled.</p></section></div>;
+  return <section className="ci2-panel ci2-section-panel"><div className="ci2-section-icon">{screen.icon}</div><span className="ci2-eyebrow">{screen.group.toUpperCase()}</span><h2>{screen.label}</h2><p className="ci2-copy">{info[screen.id]||screen.description}</p>{screen.id==="system-status"||screen.id==="backend-config"||screen.id==="data-quality"?<div className="ci2-status-list">{(screen.id==="system-status"?["Cloudflare deployment","Supabase connection","CEO authentication and MFA","Audit source","Financial safety gate"]:screen.id==="backend-config"?["Supabase public connection","Server-side secret configuration","Protected API routes","Database read policies"]:["Source freshness","Missing or incomplete fields","Duplicate records","Reconciliation status"]).map(x=><div key={x}><span>{x}</span><b>Needs verification</b></div>)}</div>:<Empty title={screen.id==="notifications"?"No connected notifications":"Ready for verified records"} detail={info[screen.id]||screen.description}/>}</section>}
+export default function DashboardApp({activeSection="overview"}:{activeSection?:string;basePath?:string;previewMode?:boolean}){
+ const current=allScreens.find(s=>s.id===activeSection)||primary[0];const isHome=current.id==="overview";const [menuOpen,setMenuOpen]=useState(false);const [search,setSearch]=useState("");
+ const groups=useMemo(()=>Array.from(new Set(secondary.map(s=>s.group))),[]);
+ const filtered=secondary.filter(s=>(s.label+" "+s.group).toLowerCase().includes(search.toLowerCase()));
+ return <div className="ci2-shell">
+  <style jsx global>{`
+  :root{color-scheme:light;--c2-navy:#071638;--c2-navy2:#10264f;--c2-gold:#c9a227;--c2-bg:#f4f6fb;--c2-card:#fff;--c2-line:#e5e9f1;--c2-ink:#17233d;--c2-muted:#71809a}
+  .ci2-shell{min-height:100vh;background:var(--c2-bg);color:var(--c2-ink);font-family:Arial, sans-serif;padding-bottom:88px}.ci2-sidebar{position:fixed;z-index:20;inset:0 auto 0 0;width:258px;background:linear-gradient(180deg,#081735,#10244a);color:#fff;padding:25px 17px;overflow:auto;box-shadow:8px 0 28px #08173512}.ci2-brand{display:flex;align-items:center;gap:11px;padding:3px 8px 26px}.ci2-mark{width:39px;height:39px;border-radius:12px;background:linear-gradient(145deg,#e2c56b,#a98319);color:#091a38;display:grid;place-items:center;font-weight:900;font-size:22px}.ci2-brand b,.ci2-brand small{display:block}.ci2-brand b{font-size:17px;letter-spacing:-.4px}.ci2-brand small{font-size:8px;letter-spacing:1.5px;color:#c7b16a;margin-top:4px}.ci2-side-label{font-size:9px;letter-spacing:1.6px;color:#8fa1c4;font-weight:800;margin:18px 10px 8px}.ci2-side-link{display:flex;gap:11px;align-items:center;padding:10px 11px;border-radius:9px;color:#d5deef;font-size:12px;margin:2px 0}.ci2-side-link:hover{background:#ffffff12;color:#fff}.ci2-side-link span{width:20px;text-align:center;color:#d7b74d;font-size:16px}.ci2-side-link.active{background:#ffffff16;color:#f5d56c}.ci2-side-search{width:100%;padding:10px 11px;border-radius:9px;border:1px solid #ffffff26;background:#ffffff0c;color:white;margin:7px 0 8px;font-size:11px;outline:none}.ci2-side-search::placeholder{color:#9aabc9}.ci2-side-bottom{margin-top:28px;padding:14px 11px;border:1px solid #ffffff20;border-radius:12px;background:#ffffff09}.ci2-side-bottom b{font-size:11px}.ci2-side-bottom p{font-size:10px;line-height:1.6;color:#bdc9df;margin:6px 0 0}.ci2-main{min-height:100vh;margin-left:258px}.ci2-topbar{height:72px;position:sticky;top:0;z-index:10;background:#ffffffed;backdrop-filter:blur(12px);border-bottom:1px solid var(--c2-line);display:flex;align-items:center;justify-content:space-between;padding:0 34px}.ci2-crumb{font-size:12px;color:#53617a;font-weight:700}.ci2-top-actions{display:flex;align-items:center;gap:10px}.ci2-icon-btn{border:1px solid var(--c2-line);background:white;border-radius:10px;width:38px;height:38px;display:grid;place-items:center;color:#53617a;font-size:17px}.ci2-profile{display:flex;align-items:center;gap:9px;padding-left:8px}.ci2-avatar{width:34px;height:34px;border-radius:50%;background:#f2e8c7;color:#735b16;display:grid;place-items:center;font-size:11px;font-weight:800}.ci2-profile b,.ci2-profile small{display:block}.ci2-profile b{font-size:11px}.ci2-profile small{font-size:9px;color:var(--c2-muted);margin-top:3px}.ci2-content{max-width:1500px;margin:auto;padding:30px 34px 24px}.ci2-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px}.ci2-head h1{font-size:29px;margin:0 0 7px;color:#10244a;letter-spacing:-.8px}.ci2-head p{font-size:12px;color:var(--c2-muted);margin:0}.ci2-back{border:1px solid #dfe5ef;border-radius:9px;background:white;padding:10px 13px;color:#24395e;font-size:11px;font-weight:700;white-space:nowrap}.ci2-eyebrow{display:block;color:#a7831d;font-size:9px;font-weight:800;letter-spacing:1.45px;margin-bottom:9px}.ci2-safety{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1px solid #e8d9aa;background:#fffaf0;border-radius:12px;margin-bottom:21px}.ci2-safety>span{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:#f3e7c4;color:#80661b}.ci2-safety div{flex:1}.ci2-safety b{font-size:11px;color:#634e17}.ci2-safety p{margin:4px 0 0;color:#776638;font-size:10px;line-height:1.5}.ci2-safety strong{font-size:9px;color:#80661b;letter-spacing:1px}.ci2-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;min-height:195px;padding:28px 34px;border-radius:17px;background:linear-gradient(112deg,#081735,#173769 68%,#274b7b);color:white;margin-bottom:18px}.ci2-hero h1{font-size:29px;letter-spacing:-.8px;margin:0 0 9px}.ci2-hero p{font-size:12px;color:#d5dfef;max-width:520px;line-height:1.6;margin:0 0 17px}.ci2-hero-meta{display:flex;gap:15px;flex-wrap:wrap;color:#e4d08a;font-size:9px}.ci2-hero-art{width:190px;height:145px;position:relative;flex-shrink:0}.ci2-hero-symbol{position:absolute;inset:35px auto auto 65px;width:65px;height:65px;border:1px solid #d8bd5d88;border-radius:20px;display:grid;place-items:center;color:#f2d36d;font-size:38px;font-weight:800;transform:rotate(12deg);background:#ffffff0b}.ci2-orbit{position:absolute;border:1px solid #ffffff26;border-radius:50%;transform:rotate(-24deg)}.ci2-orbit-a{width:175px;height:90px;top:28px;left:0}.ci2-orbit-b{width:150px;height:125px;top:10px;left:12px;transform:rotate(55deg)}.ci2-hero-art i{position:absolute;width:6px;height:6px;border-radius:50%;background:#e4c55d}.ci2-hero-art i:nth-last-child(4){top:19px;left:32px}.ci2-hero-art i:nth-last-child(3){top:113px;left:15px}.ci2-hero-art i:nth-last-child(2){top:9px;right:20px}.ci2-hero-art i:nth-last-child(1){bottom:9px;right:28px}.ci2-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:18px}.ci2-metric,.ci2-panel{background:var(--c2-card);border:1px solid var(--c2-line);border-radius:14px;box-shadow:0 6px 22px #15294c08}.ci2-metric{padding:16px}.ci2-metric>div{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#63718b;font-size:10px;font-weight:700}.ci2-metric>div b{color:#ae8a24;font-size:17px}.ci2-metric>strong{display:block;font-size:26px;color:#172b50;margin:13px 0 5px}.ci2-metric>small{font-size:9px;color:#8a96aa}.ci2-home-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:15px}.ci2-panel{padding:19px;min-width:0}.ci2-wide{grid-column:span 2}.ci2-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:13px}.ci2-panel h2{font-size:16px;color:#172b50;margin:0 0 9px}.ci2-tag{display:inline-flex;padding:6px 8px;border-radius:7px;background:#edf2fa;color:#61718b;font-size:9px;font-weight:700}.ci2-tag-warn{background:#fff4d8;color:#8b6b1c}.ci2-empty{min-height:155px;border:1px dashed #dce3ee;border-radius:11px;background:#fafbfd;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}.ci2-empty>span{color:#b18d2e;font-size:24px;margin-bottom:7px}.ci2-empty b{font-size:11px;color:#344461}.ci2-empty p{max-width:410px;font-size:10px;line-height:1.6;color:#7a879c;margin:6px 0}.ci2-empty small{font-size:9px;color:#a1aaba}.ci2-checks{list-style:none;padding:0;margin:12px 0 15px}.ci2-checks li{padding:10px 0;border-bottom:1px solid #edf0f5;font-size:10px;color:#596780}.ci2-checks li b{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:6px;background:#edf4e9;color:#4d8052;margin-right:8px}.ci2-text-link{display:inline-block;color:#9b7818;font-size:10px;font-weight:800;margin-top:9px}.ci2-shield{color:#47825b;background:#edf4e9;padding:7px 9px;border-radius:8px}.ci2-copy{font-size:11px;line-height:1.75;color:#687791;max-width:800px}.ci2-section-panel{max-width:1000px;padding:26px}.ci2-section-panel h2{font-size:21px;margin:4px 0 10px}.ci2-section-icon,.ci2-lock{display:grid;place-items:center;width:43px;height:43px;border-radius:12px;background:#f5eed7;color:#99771e;font-size:21px;margin-bottom:15px}.ci2-lock{font-size:23px}.ci2-disabled-box{padding:16px;border:1px solid #eadfbf;background:#fffaf0;border-radius:11px;margin:17px 0}.ci2-disabled-box b{font-size:11px;color:#6e571c}.ci2-disabled-box p,.ci2-disabled-box li{font-size:10px;color:#786b4d;line-height:1.7}.ci2-disabled-box ul{margin-bottom:0;padding-left:18px}.ci2-status-list{margin-top:18px}.ci2-status-list>div{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid #edf0f5;font-size:11px}.ci2-status-list b{font-size:9px;color:#927324;background:#fff4d8;padding:6px 8px;border-radius:7px}.ci2-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.ci2-guide{padding-left:20px}.ci2-guide li{padding:9px 0;color:#a17f20;font-size:11px}.ci2-guide b,.ci2-guide span{display:block}.ci2-guide b{color:#293b5a}.ci2-guide span{font-size:10px;color:#728098;margin-top:4px;line-height:1.6}.ci2-footer{display:flex;justify-content:space-between;gap:10px;margin-top:27px;padding-top:15px;border-top:1px solid var(--c2-line);font-size:9px;color:#8a96a8}.ci2-bottom-nav{position:fixed;z-index:30;bottom:0;left:258px;right:0;min-height:73px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#ffffffed;backdrop-filter:blur(14px);border-top:1px solid #dfe5ef;padding:7px max(16px,calc((100vw - 1400px)/2)) calc(7px + env(safe-area-inset-bottom))}.ci2-bottom-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8290a5;font-size:9px;font-weight:700}.ci2-bottom-item span{font-size:19px}.ci2-bottom-item.active{color:#9a781b}.ci2-bottom-item.locked{opacity:.62}.ci2-bottom-item.locked small{font-size:7px;color:#9a781b}.ci2-mobile-toggle{display:none}.ci2-mobile-back{display:none}
+  @media(max-width:1050px){.ci2-sidebar{width:225px}.ci2-main{margin-left:225px}.ci2-bottom-nav{left:225px}.ci2-content{padding:25px 22px}.ci2-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.ci2-home-grid{grid-template-columns:1fr}.ci2-wide{grid-column:auto}}
+  @media(max-width:760px){.ci2-shell{padding-bottom:78px}.ci2-sidebar{display:none}.ci2-main{margin-left:0}.ci2-topbar{height:62px;padding:0 15px}.ci2-content{padding:20px 14px}.ci2-bottom-nav{left:0;min-height:68px;padding-inline:5px}.ci2-profile>span:last-child{display:none}.ci2-hero{padding:23px 20px;min-height:160px}.ci2-hero-art{width:110px;transform:scale(.78);transform-origin:right center;margin-left:-25px}.ci2-hero h1{font-size:24px}.ci2-hero p{font-size:11px}.ci2-head{align-items:flex-start;flex-direction:column}.ci2-back{align-self:flex-end}.ci2-panels{grid-template-columns:1fr}}
+  @media(max-width:440px){.ci2-content{padding:16px 10px}.ci2-metrics{gap:8px}.ci2-metric{padding:12px}.ci2-metric>strong{font-size:22px}.ci2-hero-art{display:none}.ci2-hero h1{font-size:22px}.ci2-safety{align-items:flex-start}.ci2-safety strong{display:none}.ci2-bottom-item{font-size:8px}.ci2-bottom-item span{font-size:17px}.ci2-footer{flex-direction:column}}
+  @media(prefers-reduced-motion:reduce){.ci2-side-link{transition:none}}
+  `}</style>
+  {isHome&&<aside className="ci2-sidebar"><Link href="/admin" aria-label="CryptoInvest Home"><Brand/></Link><div className="ci2-side-label">SECONDARY SCREENS</div><input className="ci2-side-search" placeholder="Find a screen…" aria-label="Find a secondary screen" value={search} onChange={e=>setSearch(e.target.value)}/>{groups.map(group=><div key={group}><div className="ci2-side-label">{group.toUpperCase()}</div>{filtered.filter(s=>s.group===group).map(s=><Link key={s.id} href={"/admin/"+s.id} className="ci2-side-link"><span>{s.icon}</span>{s.label}</Link>)}</div>)}<div className="ci2-side-bottom"><b>Security gate active</b><p>CEO-only · MFA/AAL2 · financial operations disabled.</p></div></aside>}
+  <main className="ci2-main"><header className="ci2-topbar"><span className="ci2-crumb">{isHome?"Home / Overview":<>{screenGroup(current.group)} / {current.label}</>}</span><div className="ci2-top-actions">{isHome&&<><Link className="ci2-icon-btn" href="/admin/notifications" aria-label="Notifications">♢</Link><Link className="ci2-profile" href="/admin/security"><span className="ci2-avatar">CEO</span><span><b>CEO workspace</b><small>Secure administration</small></span></Link></>}{!isHome&&<Link href="/admin" className="ci2-back">← Back to Home</Link>}</div></header>
+  <div className="ci2-content">{!isHome&&<div className="ci2-head"><div><span className="ci2-eyebrow">{current.group.toUpperCase()}</span><h1>{current.label}</h1><p>{current.description}</p></div></div>}<SafeNotice/>{isHome?<HomeContent/>:<SectionContent screen={current}/>}<footer className="ci2-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>CEO-only workspace · read-only mode · financial operations disabled</span></footer></div></main>
+  <nav className="ci2-bottom-nav" aria-label="Primary navigation">{primary.map(s=><Link key={s.id} href={s.id==="overview"?"/admin":"/admin/"+s.id} aria-current={current.id===s.id?"page":undefined} className={"ci2-bottom-item"+(current.id===s.id?" active":"")+(s.id==="ai-operations"?" locked":"")}><span>{s.icon}</span>{s.label}{s.id==="ai-operations"&&<small>LOCKED</small>}</Link>)}</nav>
+ </div>;
 }
-
-function SafetyNotice() {
-  return <section className="ci-safety"><span className="ci-safety-icon">✓</span><div><strong>Financial operations are currently disabled</strong><p>Live deposits, withdrawals, payouts and balance changes are paused until backend, ledger and security checks are verified.</p></div><span className="ci-locked">LOCKED</span></section>;
-}
-
-function EmptyState({ title, detail }: { title: string; detail: string }) {
-  return <div className="ci-empty"><span aria-hidden="true">◇</span><strong>{title}</strong><p>{detail}</p><small>No sample financial records are displayed.</small></div>;
-}
-
-function ChartPlaceholder() {
-  return <div className="ci-chart-placeholder"><div className="ci-chart-legend"><span><i className="blue-dot"/> Deposits</span><span><i className="purple-dot"/> Withdrawals</span><span><i className="green-dot"/> Investments</span></div><div className="ci-chart-area"><div className="ci-chart-lines"><span/><span/><span/><span/></div><div className="ci-chart-message"><span>▥</span><strong>Platform performance</strong><small>Verified transaction history will appear here after reconciliation.</small></div></div><div className="ci-chart-labels"><span>Awaiting verified data</span><span>Live metrics unavailable</span></div></div>;
-}
-
-function Overview({ basePath }: { basePath: string }) {
-  return <>
-    <section className="ci-welcome-banner"><div className="ci-banner-copy"><span className="ci-banner-eyebrow">WELCOME TO YOUR ADMIN WORKSPACE</span><h1>Welcome back, CEO Admin</h1><p>Here’s what’s happening with your CryptoInvest platform today.</p><small>⌑ &nbsp;CEO workspace · verified data only · financial operations disabled</small></div><div className="ci-banner-art" aria-hidden="true"><div className="ci-globe">₿</div><span className="ci-orbit ci-orbit-one"/><span className="ci-orbit ci-orbit-two"/><span className="ci-art-bars"><i/><i/><i/><i/><i/></span></div></section>
-    <div className="ci-metrics">
-      {[["Total Customers","—","Awaiting verified records","♙","blue"],["Total Deposits","—","No verified totals available","↓","green"],["Total Withdrawals","—","No verified totals available","↑","purple"],["Total Investments","—","Awaiting ledger verification","▥","gold"]].map(([label,value,note,icon,tone])=><article className="ci-metric" key={label}><div className="ci-metric-top"><span>{label}</span><span className={`ci-metric-icon ${tone}`}>{icon}</span></div><strong>{value}</strong><small>{note}</small><div className={`ci-sparkline ${tone}`}><i/><i/><i/><i/><i/><i/></div></article>)}
-    </div>
-    <div className="ci-main-grid">
-      <section className="ci-card ci-performance"><div className="ci-card-heading"><div><span className="ci-kicker">PLATFORM ANALYTICS</span><h2>Platform Performance</h2></div><span className="ci-period">Verified period data only</span></div><ChartPlaceholder/></section>
-      <section className="ci-card ci-activity"><div className="ci-card-heading"><div><span className="ci-kicker">PLATFORM FEED</span><h2>Recent Activity</h2></div><span className="ci-unavailable">Awaiting backend data</span></div><EmptyState title="Activity will appear here" detail="Verified deposit, withdrawal and account events will appear after the audit source is connected."/></section>
-    </div>
-    <div className="ci-bottom-grid">
-      <section className="ci-card ci-plans"><div className="ci-card-heading"><div><span className="ci-kicker">PLAN MANAGEMENT</span><h2>Investment Plans</h2></div><Link href={`${basePath}/plans`} className="ci-view-link">View plans →</Link></div><EmptyState title="No verified plans to display" detail="Connect and verify the plan records before publishing plan terms or returns."/></section>
-      <section className="ci-card ci-security"><div className="ci-card-heading"><div><span className="ci-kicker">ACCESS CONTROL</span><h2>Security Overview</h2></div><Link href={`${basePath}/security`} className="ci-view-link">View details →</Link></div><div className="ci-security-body"><div className="ci-shield">✓</div><div><strong>Production safety gate is active</strong><p><span>✓</span> CEO-only access required</p><p><span>✓</span> MFA verification required</p><p><span>✓</span> Financial operations disabled</p></div></div></section>
-      <section className="ci-card ci-controls"><div className="ci-card-heading"><div><span className="ci-kicker">SYSTEM CONTROL</span><h2>System Controls</h2></div></div><div className="ci-control-box"><span className="ci-control-power">⏻</span><div><strong>Financial Operations</strong><b>Currently Disabled</b><small>Live money movement is paused for safety.</small></div></div><Link href={`${basePath}/system-status`} className="ci-primary-link">View system status</Link></section>
-    </div>
-  </>;
-}
-
-function SectionContent({ id, label }: { id: string; label: string }) {
-  if (id === "education") return <div className="ci-section-grid">
-    <section className="ci-card">
-      <span className="ci-kicker">ADMIN LEARNING</span>
-      <h2>CryptoInvest administrator guide</h2>
-      <p className="ci-section-copy">A practical guide to navigating the workspace while protecting customer information and keeping financial operations disabled.</p>
-      <div className="ci-check-list">
-        <p><span>1</span><strong>Start at the Home Dashboard</strong><small>Use the sidebar to open Customers, Reports, Security and System Status. Use the Home Dashboard link on secondary screens to return.</small></p>
-        <p><span>2</span><strong>Review customer records carefully</strong><small>Use only authenticated, authorised records. Do not copy customer information into notes, public previews or unapproved tools.</small></p>
-        <p><span>3</span><strong>Check source and audit history</strong><small>Treat a figure as verified only when it comes from the authorised backend and can be reconciled to its source record.</small></p>
-      </div>
-    </section>
-    <section className="ci-card">
-      <span className="ci-kicker">SECURITY & GOVERNANCE</span>
-      <h2>Essential safeguards</h2>
-      <div className="ci-check-list">
-        <p><span>✓</span><strong>CEO-only access</strong><small>Administrator access must be enforced on the server, not merely hidden in the interface.</small></p>
-        <p><span>✓</span><strong>MFA / AAL2</strong><small>Complete the required multi-factor verification before accessing protected administration features.</small></p>
-        <p><span>✓</span><strong>Read-only operation</strong><small>Customer, portfolio, ledger and reporting views must not trigger financial actions.</small></p>
-        <p><span>✓</span><strong>Financial operations disabled</strong><small>Deposits, withdrawals, transfers, payouts and investment execution remain unavailable.</small></p>
-      </div>
-      <div className="ci-readonly-note">▣ &nbsp; Learning material only · no financial actions or customer data are exposed here</div>
-    </section>
-  </div>;
-  if (id === "security") return <div className="ci-section-grid"><section className="ci-card"><span className="ci-kicker">ACCESS CONTROL</span><h2>Identity and permissions</h2><div className="ci-check-list">{["CEO-only administration","Verified authenticator MFA","Customer and admin role isolation","Session expiry and audit events"].map(x=><p key={x}><span>✓</span>{x}<b>Verify</b></p>)}</div></section><section className="ci-card"><span className="ci-kicker">PRODUCTION GATE</span><h2>Financial controls</h2><div className="ci-gate"><span>✓</span><div><strong>Financial operations disabled</strong><p>Do not enable deposits, withdrawals, payouts or balance changes until independent verification is complete.</p></div></div></section></div>;
-  if (id === "settings") return <section className="ci-card"><span className="ci-kicker">WORKSPACE</span><h2>Settings</h2><p className="ci-section-copy">Branding, installation and navigation are configured for this workspace. Security-critical settings remain server-controlled.</p><div className="ci-settings-list"><div><span>Application name</span><strong>CryptoInvest</strong></div><div><span>Installation support</span><strong>Web app manifest and app icon</strong></div><div><span>Financial operations</span><strong className="ci-red-text">Disabled</strong></div></div></section>;
-  if (id === "system-status") return <section className="ci-card"><span className="ci-kicker">READINESS</span><h2>System Status</h2><p className="ci-section-copy">This screen does not claim service health until it can read real health checks.</p><div className="ci-check-list">{["Cloudflare Worker deployment","Supabase connectivity","CEO login and MFA","Audit trail and reconciliation","Financial operations safety gate"].map(x=><p key={x}><span>•</span>{x}<b>Needs verification</b></p>)}</div></section>;
-  if (id === "integrations") return <section className="ci-card"><span className="ci-kicker">CONNECTIONS</span><h2>Integrations</h2><p className="ci-section-copy">Connected providers must be verified from server-side status checks before they are shown as healthy.</p><EmptyState title="No provider health confirmed" detail="Supabase and external provider connection statuses are not fabricated."/></section>;
-  return <section className="ci-card ci-secondary-content"><div className="ci-secondary-symbol">{screens.find(s => s[0] === id)?.[3] ?? "◇"}</div><span className="ci-kicker">{screens.find(s => s[0] === id)?.[4].toUpperCase() ?? "WORKSPACE"}</span><h2>{label}</h2><p className="ci-section-copy">{descriptions[id] || "This screen is ready to display verified platform information when its authorized backend source is connected."}</p><EmptyState title={id === "plans" ? "No verified plans available" : "Ready for verified data"} detail={descriptions[id] || "Connect this screen to its authorized data source before showing records."}/><div className="ci-readonly-note">▣ &nbsp; Read-only preview · no live financial actions</div></section>;
-}
-
-export default function DashboardApp({ activeSection = "overview", basePath = "/admin", previewMode = false }: { activeSection?: string; basePath?: string; previewMode?: boolean }) {
-  const current = screens.find(s => s[0] === activeSection) || screens[0];
-  const [query, setQuery] = useState("");
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const filtered = useMemo(() => screens.filter(s => s[1].toLowerCase().includes(query.toLowerCase())), [query]);
-  const href = (id: ScreenId) => id === "overview" ? basePath : `${basePath}/${id}`;
-  return <div className="ci-app-shell">
-    <a className="ci-skip-link" href="#ci-main">Skip to main content</a>
-    <aside className="ci-sidebar" aria-label="Admin navigation">
-      <Link href={basePath} className="ci-sidebar-brand" aria-label="CryptoInvest home dashboard"><Brand/></Link>
-      <nav className="ci-side-nav" aria-label="Primary navigation">
-        {screens.map(s => <Link key={s[0]} href={href(s[0])} className={s[0] === current[0] ? "ci-nav-item active" : "ci-nav-item"} aria-current={s[0] === current[0] ? "page" : undefined}><span>{s[3]}</span>{s[1]}</Link>)}
-      </nav>
-      <div className="ci-sidebar-status"><span className="ci-status-shield">✓</span><div><strong>Safety gate active</strong><small>Financial operations disabled</small></div><Link href={`${basePath}/security`} aria-label="Review security">↗</Link></div>
-      <div className="ci-sidebar-version">CryptoInvest · Admin Workspace</div>
-    </aside>
-    <main id="ci-main" className="ci-main with-sidebar">
-      <header className="ci-topbar">
-        <div className="ci-topbar-left">{current[0] === "overview" ? <span className="ci-home-crumb">Home Dashboard</span> : <Link href={basePath} className="ci-back-home">← Home Dashboard</Link>}</div>
-        <div className="ci-topbar-actions">
-          <label className="ci-search"><span aria-hidden="true">⌕</span><input value={query} onChange={e => setQuery(e.target.value)} aria-label="Search admin screens" placeholder="Search customers, transactions…"/><kbd>/</kbd></label>
-          <details className="ci-screen-menu"><summary aria-label="Open admin navigation">☷ <span>Navigate</span></summary><div className="ci-screen-menu-panel"><strong>Admin screens</strong>{filtered.map(s=><Link href={href(s[0])} key={s[0]}>{s[3]} &nbsp;{s[1]}{s[0] === current[0] && <small>Current</small>}</Link>)}{filtered.length === 0 && <p>No screens match “{query}”.</p>}</div></details>
-          <div className="ci-user"><span className="ci-user-avatar">CI</span><span><strong>CEO workspace</strong><small>{previewMode ? "Read-only design preview" : "CEO access · AAL2 required"}</small></span></div>
-          <button className="ci-mobile-nav-button" type="button" onClick={() => setMobileOpen(v => !v)} aria-expanded={mobileOpen}>{mobileOpen ? "Close" : "Menu"}</button>
-        </div>
-      </header>
-      {mobileOpen && <nav className="ci-mobile-nav" aria-label="Admin screens">{screens.map(s=><Link key={s[0]} href={href(s[0])} onClick={() => setMobileOpen(false)} aria-current={s[0] === current[0] ? "page" : undefined}>{s[3]} {s[1]}</Link>)}</nav>}
-      <div className="ci-page-content">
-        {current[0] !== "overview" && <div className="ci-secondary-heading"><div><span className="ci-kicker">{current[4].toUpperCase()}</span><h1>{current[1]}</h1><p>{current[2]}</p></div><Link href={basePath} className="ci-home-button">⌂ Home dashboard</Link></div>}
-        <SafetyNotice/>
-        {current[0] === "overview" ? <Overview basePath={basePath}/> : <SectionContent id={current[0]} label={current[1]}/>}
-        <footer className="ci-footer"><span>© {new Date().getFullYear()} CryptoInvest</span><span>{previewMode ? "Read-only preview · live records not connected" : "CEO access required · financial operations disabled"}</span></footer>
-      </div>
-    </main>
-  </div>;
-}
+function screenGroup(group:string){return group==="Primary"?"Workspace":group}
