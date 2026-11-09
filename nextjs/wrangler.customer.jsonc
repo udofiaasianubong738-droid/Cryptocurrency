@@ -12,8 +12,7 @@
     "binding": "ASSETS"
   },
   "r2_buckets": [
-    { "binding": "CRYPTOINVEST", "bucket_name": "cryptoinvest" },
-    { "binding": "CRYPTOINVEST_STORAGE", "bucket_name": "cryptoinvest-storage" }
-  ],
+    { "binding": "CRYPTOINVEST", "bucket_name": "cryptoinvest" }
+  ]
   "observability": { "enabled": true }
 }
