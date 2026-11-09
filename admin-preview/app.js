@@ -3,7 +3,7 @@
     ["CUSTOMER MANAGEMENT", [["customers","Customer directory","♙"],["customer-detail","Customer profile","◉"],["customer-verification","Customer verification","✓"],["customer-status","Account status","◎"]]],
     ["INVESTMENT RECORDS", [["investment-records","Investment records","▤"],["investment-plans","Investment plans","◇"],["investment-detail","Record details","▣"],["investment-history","Investment history","↺"]]],
     ["REPORTING", [["performance","Performance reports","⌁"],["customer-reports","Customer reports","♧"],["platform-reports","Platform reports","▥"],["report-history","Report history","◷"]]],
-    ["PLATFORM OPERATIONS", [["ai-operations","AI operations centre","✧"],["data-quality","Data quality","⌗"],["review-queue","Review queue","☷"],["platform-activity","Platform activity","≡"]]],
+    ["PLATFORM OPERATIONS", [["market-monitor","Live market monitor","↗"],["ai-operations","AI operations centre","✧"],["data-quality","Data quality","⌗"],["review-queue","Review queue","☷"],["platform-activity","Platform activity","≡"]]],
     ["SECURITY & GOVERNANCE", [["security","Security centre","⬡"],["mfa","CEO identity & MFA","◈"],["profile","Administrator profile","♙"],["session-management","Session management","◷"],["audit","Audit logs","≡"]]],
     ["SYSTEM CONFIGURATION", [["system-status","System status","◉"],["backend-config","Backend configuration","⌘"],["settings","Application settings","⚙"],["notification-settings","Notification settings","♧"]]],
     ["SUPPORT", [["support","Help & support","?"],["documentation","Documentation","▧"],["system-info","System information","ⓘ"]]]
@@ -11,6 +11,78 @@
   const labels = Object.fromEntries(navGroups.flatMap(g=>g[1].map(x=>[x[0],x[1]])));
   labels.overview="Home dashboard"; labels.notifications="Notifications";
   const view=document.getElementById("view"), sidebar=document.getElementById("sidebar"), crumb=document.getElementById("crumb");
+  let activeScreen="overview";
+  let marketOverview=null;
+  let marketLoading=false;
+  let marketCandleLoading=false;
+  const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  const numberText=(value,digits=2)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):"—";
+  const priceText=value=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:Number(value)<1?6:2}):"—";
+  const dateText=value=>value?new Date(value).toLocaleString():"—";
+  const changeClass=value=>Number(value)>0?"market-positive":Number(value)<0?"market-negative":"market-neutral";
+  const changeText=value=>Number.isFinite(Number(value))?(Number(value)>0?"+":"")+Number(value).toFixed(2)+"%":"—";
+  function marketStatsHtml(summary){
+    return '<div class="market-stat"><small>Tracked assets</small><b>'+numberText(summary?.tracked_assets,0)+'</b></div><div class="market-stat"><small>Fresh quotes</small><b>'+numberText(summary?.fresh_quotes,0)+' / '+numberText(summary?.tracked_assets,0)+'</b></div><div class="market-stat"><small>Average 24h move</small><b class="'+changeClass(summary?.average_change_24h_pct)+'">'+changeText(summary?.average_change_24h_pct)+'</b></div>';
+  }
+  function marketRowsHtml(rows,limit){
+    const items=limit?rows.slice(0,limit):rows;
+    if(!items.length)return '<div class="market-loading">No market readings were returned by the backend.</div>';
+    return '<table class="data-table market-data-table"><thead><tr><th>Asset</th><th>Last price</th><th>24h change</th><th>24h high</th><th>24h low</th><th>24h volume</th><th>Source time</th></tr></thead><tbody>'+items.map(q=>'<tr><td><b>'+escapeHtml(q.symbol)+'</b><small class="market-asset-name">'+escapeHtml(q.name||q.asset_class||"")+'</small></td><td>'+priceText(q.price)+' '+escapeHtml(q.quote_currency||"USDT")+'</td><td class="'+changeClass(q.change_24h_pct)+'">'+changeText(q.change_24h_pct)+'</td><td>'+priceText(q.high_24h)+'</td><td>'+priceText(q.low_24h)+'</td><td>'+numberText(q.volume_24h,2)+'</td><td>'+escapeHtml(dateText(q.source_timestamp))+'</td></tr>').join("")+'</tbody></table>';
+  }
+  function renderMarketOverview(){
+    if(!marketOverview)return;
+    const {summary,provider,quotes,candle_freshness:candles}=marketOverview;
+    const state=provider?.status==="healthy"&&summary?.fresh_quotes>0?"connected":"warning";
+    const homeBadge=document.getElementById("market-home-provider");
+    const monitorBadge=document.getElementById("market-monitor-provider");
+    if(homeBadge){homeBadge.className="market-status-pill "+state;homeBadge.textContent=state==="connected"?"Provider healthy":"Feed needs attention";}
+    if(monitorBadge){monitorBadge.className="market-status-pill "+state;monitorBadge.textContent=state==="connected"?"Provider healthy":"Feed needs attention";}
+    const homeSummary=document.getElementById("market-home-summary");if(homeSummary)homeSummary.innerHTML=marketStatsHtml(summary);
+    const monitorSummary=document.getElementById("market-monitor-summary");if(monitorSummary)monitorSummary.innerHTML=marketStatsHtml(summary);
+    const sorted=[...quotes].sort((a,b)=>Math.abs(Number(b.change_24h_pct)||0)-Math.abs(Number(a.change_24h_pct)||0));
+    const homeTable=document.getElementById("market-home-table");if(homeTable)homeTable.innerHTML=marketRowsHtml(sorted,12);
+    const fullTable=document.getElementById("market-monitor-table");if(fullTable)fullTable.innerHTML=marketRowsHtml(quotes);
+    const count=document.getElementById("market-monitor-count");if(count)count.textContent=numberText(quotes.length,0)+" verified asset quotes";
+    const updated=document.getElementById("market-home-updated");if(updated)updated.textContent="Latest source: "+dateText(summary?.latest_source_timestamp)+" · Received: "+dateText(summary?.latest_received_at);
+    const monitorUpdated=document.getElementById("market-monitor-updated");if(monitorUpdated)monitorUpdated.textContent="Latest backend receipt: "+dateText(summary?.latest_received_at);
+    const system=document.getElementById("market-system-status");
+    if(system){
+      const rows=["5m","1h"].map(interval=>{const item=candles?.[interval]||{};return '<div class="settings-row"><span><b>'+interval+' candlesticks</b><small>Latest stored reading: '+escapeHtml(dateText(item.latest_received_at))+'</small></span><span class="market-status-pill '+(item.fresh?"connected":"warning")+'">'+(item.fresh?"Fresh":"Stale / unavailable")+'</span></div>';}).join("");
+      system.innerHTML='<div class="panel-head"><div><h2>Market feed health</h2><p>Provider and candlestick freshness from Supabase</p></div><span class="market-status-pill '+state+'">'+escapeHtml(provider?.status||"unknown")+'</span></div><div class="settings-row"><span><b>Binance quote provider</b><small>Last successful ingestion: '+escapeHtml(dateText(provider?.last_success_at))+'</small></span><span class="market-status-pill '+state+'">'+escapeHtml(provider?.status||"unknown")+'</span></div><div class="settings-row"><span><b>Provider latency</b><small>Recorded backend latency</small></span><b>'+numberText(provider?.latency_ms,0)+' ms</b></div>'+rows;
+    }
+  }
+  async function refreshMarketOverview(){
+    if(marketLoading)return;
+    marketLoading=true;
+    try{
+      const response=await fetch("/api/market/overview",{cache:"no-store"});
+      if(!response.ok)throw new Error("Market API returned HTTP "+response.status);
+      marketOverview=await response.json();
+      renderMarketOverview();
+    }catch(error){
+      const message=escapeHtml(error instanceof Error?error.message:"Market data unavailable");
+      ["market-home-table","market-monitor-table"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<div class="market-loading market-error">Live market feed unavailable: '+message+'</div>';});
+      ["market-home-provider","market-monitor-provider"].forEach(id=>{const el=document.getElementById(id);if(el){el.className="market-status-pill warning";el.textContent="Feed unavailable";}});
+    }finally{marketLoading=false;}
+  }
+  async function refreshMarketCandles(){
+    if(marketCandleLoading||activeScreen!=="market-monitor")return;
+    const symbol=document.getElementById("market-candle-symbol")?.value||"BTC";
+    const interval=document.getElementById("market-candle-interval")?.value||"5m";
+    const target=document.getElementById("market-candle-table");if(!target)return;
+    marketCandleLoading=true;
+    try{
+      const response=await fetch("/api/market/candles?symbol="+encodeURIComponent(symbol)+"&interval="+encodeURIComponent(interval),{cache:"no-store"});
+      if(!response.ok)throw new Error("Candlestick API returned HTTP "+response.status);
+      const payload=await response.json();
+      const rows=payload.candles||[];
+      const badge=document.getElementById("market-candle-status");
+      if(badge){const fresh=payload.fresh===true;badge.className="market-status-pill "+(fresh?"connected":"warning");badge.textContent=fresh?"Latest candle fresh":"Latest candle stale";}
+      target.innerHTML=rows.length?'<table class="data-table market-data-table"><thead><tr><th>Open time</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th><th>Received</th></tr></thead><tbody>'+rows.map(c=>'<tr><td>'+escapeHtml(dateText(c.open_time))+'</td><td>'+priceText(c.open_price)+'</td><td>'+priceText(c.high_price)+'</td><td>'+priceText(c.low_price)+'</td><td>'+priceText(c.close_price)+'</td><td>'+numberText(c.volume,4)+'</td><td>'+escapeHtml(dateText(c.received_at))+'</td></tr>').join("")+'</tbody></table>':'<div class="market-loading">No candlesticks returned for '+escapeHtml(symbol)+' / '+escapeHtml(interval)+'.</div>';
+    }catch(error){target.innerHTML='<div class="market-loading market-error">'+escapeHtml(error instanceof Error?error.message:"Candlestick data unavailable")+'</div>';}
+    finally{marketCandleLoading=false;}
+  }
+
   const empty=(title,msg)=>`<div class="empty-state"><div class="empty-icon">◇</div><b>${title}</b><p>${msg}</p></div>`;
   const head=(eyebrow,title,subtitle,actions="")=>`<div class="page-head"><div><p class="eyebrow">${eyebrow}</p><h1>${title}</h1><p class="subtitle">${subtitle}</p></div><div class="head-actions">${actions}</div></div>`;
   const panel=(title,sub,body)=>`<section class="panel"><div class="panel-head"><div><h2>${title}</h2><p>${sub}</p></div><span class="tag">Backend pending</span></div>${body}</section>`;
@@ -23,6 +95,7 @@
       <section class="dashboard-hero"><div><p class="eyebrow">CRYPTOINVEST · ADMINISTRATION</p><h2>Platform overview</h2><p>One clear starting point for customer accounts, investment records and verified reporting.</p><div class="hero-meta"><span class="hero-status"><i></i> Preview environment</span><span>·</span><span>Read-only workspace</span><span>·</span><span>Backend not connected</span></div></div><div class="hero-mark"><img src="./logo.svg" alt=""></div></section>
       <div class="section-heading"><div><h2>Customer accounts</h2><p>Verified account totals will appear after the protected data service is connected.</p></div><span class="tag">Awaiting verified data</span></div>
       <div class="grid three dashboard-metrics"><article class="metric"><div class="metric-top"><span class="metric-icon">♙</span><span class="metric-label">Total customer accounts</span><span class="metric-trend">Awaiting data</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Verified account count</div></article><article class="metric"><div class="metric-top"><span class="metric-icon">✓</span><span class="metric-label">Verified accounts</span><span class="metric-trend">Awaiting data</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Identity checks completed</div></article><article class="metric"><div class="metric-top"><span class="metric-icon">◎</span><span class="metric-label">Accounts requiring review</span><span class="metric-trend">Awaiting data</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Items awaiting human review</div></article></div>
+      <section class="panel market-live-panel"><div class="panel-head"><div><h2>Live market overview</h2><p>Read-only market quotes from the verified market ingestion feed</p></div><span id="market-home-provider" class="market-status-pill pending">Connecting…</span></div><div id="market-home-summary" class="market-summary-grid"><div class="market-stat"><small>Tracked assets</small><b>—</b></div><div class="market-stat"><small>Fresh quotes</small><b>—</b></div><div class="market-stat"><small>Average 24h move</small><b>—</b></div></div><div id="market-home-table" class="market-table-wrap"><div class="market-loading">Loading verified market readings…</div></div><div class="market-panel-foot"><span id="market-home-updated">Waiting for backend response</span><button class="text-link" data-screen="market-monitor">Open full market monitor ↗</button></div></section>
       <div class="dashboard-grid-main">
         <section class="panel dashboard-panel"><div class="panel-head"><div><h2>Platform activity</h2><p>Verified operational events will appear here</p></div><button class="text-link" data-screen="platform-activity">View activity ↗</button></div><div class="dashboard-empty"><span class="empty-illustration">⌁</span><b>Activity feed is waiting for a data source</b><p>Once connected, this area will show recent account, review and system events with their source and timestamp.</p></div></section>
         <section class="panel dashboard-panel"><div class="panel-head"><div><h2>Operational readiness</h2><p>Current workspace configuration</p></div><span class="tag">Preview</span></div><div class="readiness-list"><div class="readiness-row"><span class="readiness-icon">◈</span><span><b>CEO authentication</b><small>Secure login flow intentionally not included yet</small></span><em class="readiness-pending">Pending</em></div><div class="readiness-row"><span class="readiness-icon">⌘</span><span><b>Backend connection</b><small>Frontend remains isolated from backend</small></span><em class="readiness-pending">Disconnected</em></div><div class="readiness-row"><span class="readiness-icon">▤</span><span><b>Verified platform data</b><small>No live records loaded or simulated</small></span><em class="readiness-pending">Pending</em></div><div class="readiness-row"><span class="readiness-icon">◉</span><span><b>Financial operations</b><small>Safety gate remains disabled</small></span><em class="readiness-safe">Disabled</em></div></div></section>
@@ -42,6 +115,7 @@
     "platform-reports":()=>`${head("Reporting","Platform reports","Aggregated platform reports from approved data sources.")}${notice}${panel("Platform report register","Verified reporting only",table(["Report reference","Report type","Period","Status"]))}`,
     "report-history":()=>`${head("Reporting","Report history","Audit-backed history of generated reports.")}${notice}${panel("Report history","No sample report history",table(["Report reference","Requested by","Report type","Created at"]))}`,
     "ai-operations":()=>`${head("Platform intelligence","AI operations centre","A human-reviewed assistant for operational explanations, data quality and security context.")}<div class="ai-status-card"><div class="ai-orb">✧</div><div><b>AI assistant is not connected yet</b><p>The workspace is prepared. The assistant will activate only after a secure backend connection, CEO authorization and approved AI service are verified.</p><span class="status offline">Waiting for backend connection</span></div></div><div class="grid two" style="margin-top:15px">${panel("Assistant workspace","Future assistant conversations",empty("Assistant is currently inactive","No prompts are sent and no AI responses are simulated in preview mode."))}${panel("Operational guardrails","Human approval remains required",'<div class="settings-row"><span><b>Read-only operational explanations</b><small>Only approved backend context may be used</small></span><span class="status offline">Not active</span></div><div class="settings-row"><span><b>Human review of recommendations</b><small>No autonomous administrative changes</small></span><span class="status">Required</span></div><div class="settings-row"><span><b>Financial actions</b><small>Not available to the assistant</small></span><span class="status">Disabled</span></div>')}</div><section class="panel ai-composer"><label for="ai-prompt">Ask the CryptoInvest assistant</label><textarea id="ai-prompt" rows="3" placeholder="Assistant activates after secure backend connection…" disabled></textarea><div class="ai-composer-foot"><small>Input disabled until backend and access checks are verified.</small><button class="btn" disabled>Send to assistant</button></div></section>`,
+    "market-monitor":()=>`${head("Platform operations","Live market monitor","Live read-only market quotes and stored candlestick readings from the verified market feed.")}<section class="panel market-monitor-panel"><div class="panel-head"><div><h2>All tracked market assets</h2><p>Current stored quotes, 24-hour movement and source timestamps</p></div><span id="market-monitor-provider" class="market-status-pill pending">Connecting…</span></div><div id="market-monitor-summary" class="market-summary-grid"></div><div class="table-tools"><label class="table-search"><span>⌕</span><input type="search" data-table-filter placeholder="Filter assets by symbol or name" aria-label="Filter market assets"></label><span id="market-monitor-count" class="table-count">Waiting for readings</span></div><div id="market-monitor-table" class="market-table-wrap"><div class="market-loading">Loading market readings…</div></div><div class="market-panel-foot"><span id="market-monitor-updated">Market source timestamp pending</span><button class="btn secondary" id="market-refresh">Refresh readings</button></div></section><section class="panel candle-panel"><div class="panel-head"><div><h2>Stored candlestick readings</h2><p>OHLCV records persisted by the backend ingestion service</p></div><span id="market-candle-status" class="market-status-pill pending">Checking candles…</span></div><div class="candle-controls"><label>Asset<select id="market-candle-symbol"><option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option></select></label><label>Interval<select id="market-candle-interval"><option value="5m">5 minutes</option><option value="1h">1 hour</option></select></label></div><div id="market-candle-table" class="market-table-wrap"><div class="market-loading">Loading candlesticks…</div></div></section>`,
     "data-quality":()=>`${head("Platform operations","Data quality monitoring","Review validation status and data integrity signals.")}${notice}${panel("Data quality checks","Checks will be reported by verified backend jobs",table(["Check","Dataset","Result","Checked at"]))}`,
     "review-queue":()=>`${head("Platform operations","Review queue","Human review of flagged records and proposed operational recommendations.")}${notice}${panel("Items awaiting review","No actions are available in preview",table(["Review reference","Category","Priority","Submitted","Status"]))}`,
     "platform-activity":()=>`${head("Platform operations","Platform activity","Recent verified platform events from the protected activity feed.")}${notice}${panel("Platform activity timeline","System and operational events",table(["Event reference","Event category","Summary","Recorded at"]))}`,
@@ -50,7 +124,7 @@
     mfa:()=>`${head("Security & governance","CEO identity and MFA","Future secure identity flow. This preview does not collect credentials or verification codes.")}${notice}${panel("Required authentication checks","Server-enforced controls",'<div class="settings-row"><span><b>Supabase Auth session</b><small>Password sign-in</small></span><span class="status offline">Not connected</span></div><div class="settings-row"><span><b>CEO allowlist</b><small>Single authorised administrator</small></span><span class="status offline">Not verified</span></div><div class="settings-row"><span><b>MFA assurance</b><small>AAL2 required</small></span><span class="status offline">Not verified</span></div>')}`,
     profile:()=>`${head("Security & governance","Administrator profile","Authenticated administrator details and session information.")}${notice}${panel("Administrator identity","Loaded only after CEO authentication",empty("Profile not loaded","A protected profile endpoint is required."))}`,
     "session-management":()=>`${head("Security & governance","Session management","Server-validated administrator sessions.")}${notice}${panel("Active sessions","Private session data",table(["Session reference","Device","Created","Last active","Status"]))}`,
-    "system-status":()=>`${head("System configuration","System status","Service health from verified checks only.")}${notice}<div class="grid three">${metric("Supabase connection","Server-side health check")}${metric("Admin API","Authenticated health check")}${metric("Hosting status","Verified deployment state")}</div>`,
+    "system-status":()=>`${head("System configuration","System status","Service health from verified checks only.")}${notice}<div class="grid three">${metric("Supabase connection","Server-side health check")}${metric("Admin API","Authenticated health check")}${metric("Hosting status","Verified deployment state")}</div><section id="market-system-status" class="panel market-live-panel"><div class="panel-head"><div><h2>Market feed health</h2><p>Provider and candlestick freshness from Supabase</p></div><span class="market-status-pill pending">Loading…</span></div></section>`,
     "backend-config":()=>`${head("System configuration","Backend configuration","Connection requirements and verification state. No credentials are displayed or collected.")}${notice}${panel("Backend connection","Protected server-side configuration",'<div class="settings-row"><span><b>Supabase project</b><small>Configured only in protected environment</small></span><span class="status offline">Not connected</span></div><div class="settings-row"><span><b>CEO authorization & AAL2</b><small>Server-side enforcement</small></span><span class="status offline">Not verified</span></div><div class="settings-row"><span><b>Financial operations</b><small>Safety gate</small></span><span class="status">Disabled</span></div>')}`,
     settings:()=>`${head("System configuration","Application settings","Application preferences and configuration status.")}${notice}${panel("Brand and interface","CryptoInvest identity",'<div class="settings-row"><span><b>Brand identity</b><small>Navy, charcoal and luxury gold design system</small></span><span class="tag">Preview</span></div><div class="settings-row"><span><b>Financial operations</b><small>Safety gate</small></span><span class="status">Disabled</span></div>')}`,
     "notification-settings":()=>`${head("System configuration","Notification settings","Review notification preferences and delivery configuration.")}${notice}${panel("Notification configuration","Delivery is not enabled in this preview",empty("Notification service not connected","No messages are sent from this interface."))}`,
@@ -76,6 +150,7 @@
   }
   function navigate(id,writeHash=true){
     if(!pages[id])id="overview";
+    activeScreen=id;
     const home=id==="overview";
     const primary=primaryScreenIds.has(id);
     const secondary=!primary;
@@ -97,6 +172,8 @@
     document.querySelector(".breadcrumbs").hidden=primary;
     crumb.textContent=labels[id]||"Home dashboard";
     view.innerHTML=pages[id]();
+    if(["overview","market-monitor","system-status"].includes(id))refreshMarketOverview();
+    if(id==="market-monitor")refreshMarketCandles();
     renderPrimaryBottomNav(id);
     document.querySelectorAll(".nav-link").forEach(b=>{const active=b.dataset.screen===id;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
     if(writeHash)history.pushState({screen:id},"","#"+id);
@@ -109,6 +186,12 @@
     if(target){e.preventDefault();navigate(target.dataset.screen);return;}
     if(e.target.closest("#menu-toggle")){const opened=sidebar.classList.toggle("open");document.getElementById("mobile-overlay").classList.toggle("show",opened);document.getElementById("menu-toggle").setAttribute("aria-expanded",String(opened));}
     if(e.target.closest("#mobile-overlay")){sidebar.classList.remove("open");document.getElementById("mobile-overlay").classList.remove("show");document.getElementById("menu-toggle").setAttribute("aria-expanded","false");}
+  });
+  document.addEventListener("change",e=>{
+    if(e.target.matches("#market-candle-symbol,#market-candle-interval"))refreshMarketCandles();
+  });
+  document.addEventListener("click",e=>{
+    if(e.target.closest("#market-refresh")){refreshMarketOverview();refreshMarketCandles();}
   });
   document.addEventListener("input",e=>{
     if(!e.target.matches("[data-table-filter]"))return;
@@ -129,4 +212,5 @@
   window.addEventListener("popstate",()=>navigate(location.hash.slice(1)||"overview",false));
   document.addEventListener("keydown",e=>{if(e.key==="/"&&!e.ctrlKey&&!e.metaKey&&!["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){const search=document.getElementById("nav-search");if(!search.closest("[hidden]")&&!search.disabled){e.preventDefault();search.focus();}}if(e.key==="Escape"){sidebar.classList.remove("open");document.getElementById("mobile-overlay").classList.remove("show");document.getElementById("menu-toggle").setAttribute("aria-expanded","false");}});
   navigate(location.hash.slice(1)||"overview",false);
+  window.setInterval(()=>{if(["overview","market-monitor","system-status"].includes(activeScreen))refreshMarketOverview();if(activeScreen==="market-monitor")refreshMarketCandles();},30000);
 })();
