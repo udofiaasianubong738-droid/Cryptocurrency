@@ -22,7 +22,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       ? "Your secure CryptoInvest customer portal."
       : "CryptoInvest CEO administration workspace.",
     start_url: startUrl,
-    scope: "/",
+    scope: isCustomerApp ? "/customer/" : "/",
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
     orientation: "any",
