@@ -3,25 +3,41 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const configuredSurface = process.env.CRYPTOINVEST_APP_SURFACE;
+  const hostname = request.nextUrl.hostname.toLowerCase();
+  const isCustomerHost = hostname === "cryptoinvest.com" ||
+    hostname === "www.cryptoinvest.com" ||
+    hostname === "cryptocurrency.udofiaasianubong738.workers.dev" ||
+    hostname.startsWith("cryptocurrency-customer-preview.");
+  const surface = configuredSurface === "customer" || configuredSurface === "admin"
+    ? configuredSurface
+    : isCustomerHost ? "customer" : "admin";
 
-  // The shared preview Worker serves two separate surfaces:
-  // customer-preview hosts open the customer welcome page; admin hosts go
-  // through the protected CEO route. Never expose the admin dashboard at "/".
+  const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
+  const isCustomerPublicPath = pathname === "/customer/login" ||
+    pathname === "/customer/register" ||
+    pathname === "/customer/welcome" ||
+    pathname === "/customer/preview";
+  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
+    pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isAdminLoginPath = pathname === "/login";
+
+  // Each Worker serves exactly one application surface. A URL on the other
+  // Worker cannot expose the other app, even if its route exists in the
+  // shared source tree.
+  if (surface === "customer" && (isAdminPath || isAdminLoginPath)) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+  if (surface === "admin" && isCustomerPath) {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+
   if (pathname === "/") {
     const destination = request.nextUrl.clone();
-    const hostname = request.nextUrl.hostname.toLowerCase();
-    const isCustomerHost = hostname === "cryptoinvest.com" ||
-      hostname === "www.cryptoinvest.com" ||
-      hostname === "cryptocurrency.udofiaasianubong738.workers.dev" ||
-      hostname.startsWith("cryptocurrency-customer-preview.");
-    destination.pathname = isCustomerHost ? "/customer/welcome" : "/admin";
+    destination.pathname = surface === "customer" ? "/customer/welcome" : "/admin";
     return NextResponse.redirect(destination);
   }
 
-  const isCustomerPath = pathname === "/customer" || pathname.startsWith("/customer/");
-  const isCustomerPublicPath = pathname === "/customer/login" || pathname === "/customer/register" || pathname === "/customer/welcome" || pathname === "/customer/preview";
-  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/") ||
-    pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const protectedPath = isAdminPath || (isCustomerPath && !isCustomerPublicPath);
   if (!protectedPath) return NextResponse.next();
 
@@ -76,5 +92,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
+  matcher: ["/", "/login", "/admin/:path*", "/dashboard/:path*", "/customer/:path*"],
 };

@@ -5,14 +5,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
 
-type Section = "home" | "profile" | "plans" | "investments" | "deposit" | "withdrawals" | "performance" | "transactions" | "notifications" | "documents" | "support" | "security";
+type Section = "home" | "profile" | "wallet" | "plans" | "investments" | "deposit" | "withdrawals" | "performance" | "transactions" | "notifications" | "documents" | "support" | "security";
 type Row = Record<string, unknown>;
 
 const nav: { id: Section; label: string; icon: string }[] = [
-  { id: "home", label: "Overview", icon: "⌂" },
-  { id: "profile", label: "My profile", icon: "♙" },
+  { id: "home", label: "Home", icon: "⌂" },
+  { id: "investments", label: "Investment", icon: "↗" },
+  { id: "wallet", label: "Wallet", icon: "▣" },
+  { id: "profile", label: "Profile", icon: "♙" },
   { id: "plans", label: "Investment plans", icon: "◇" },
-  { id: "investments", label: "My investments", icon: "▥" },
   { id: "deposit", label: "Deposit request", icon: "↓" },
   { id: "withdrawals", label: "Withdrawals", icon: "↑" },
   { id: "performance", label: "Profit & loss", icon: "↗" },
@@ -25,9 +26,10 @@ const nav: { id: Section; label: string; icon: string }[] = [
 
 const titles: Record<Section, string> = {
   home: "Your overview",
+  investments: "Investment",
+  wallet: "Wallet",
   profile: "My profile",
   plans: "Investment plans",
-  investments: "My investments",
   deposit: "Deposit request",
   withdrawals: "Withdrawal requests",
   performance: "Profit and loss",
@@ -42,6 +44,7 @@ const sources: Partial<Record<Section, { table: string; columns: string; ownerCo
   home: { table: "investments", columns: "id, asset_code, principal_amount, currency_code, status, created_at", ownerColumn: "customer_id" },
   plans: { table: "investment_plans", columns: "id, name, asset_code, network, description, risk_level, minimum_amount, maximum_amount, currency_code, risk_disclosure", activeOnly: true },
   investments: { table: "investments", columns: "id, plan_id, asset_code, principal_amount, currency_code, status, approved_return, realized_profit_loss, opened_at, closed_at, created_at", ownerColumn: "customer_id" },
+  wallet: { table: "ledger_entries", columns: "id, entry_type, amount, currency_code, created_at", ownerColumn: "customer_id" },
   deposit: { table: "deposit_requests", columns: "id, amount, currency_code, asset_code, network, status, created_at, updated_at", ownerColumn: "customer_id" },
   withdrawals: { table: "withdrawal_requests", columns: "id, amount, currency_code, asset_code, network, status, created_at, updated_at", ownerColumn: "customer_id" },
   performance: { table: "investments", columns: "id, asset_code, principal_amount, currency_code, status, realized_profit_loss, closed_at, created_at", ownerColumn: "customer_id" },
@@ -159,15 +162,15 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
 
   return <div className="customer-shell">
     <a className="customer-skip" href="#customer-main">Skip to content</a>
-    <aside className={mobileOpen ? "customer-sidebar customer-sidebar-open" : "customer-sidebar"}>
+    {section === "home" && <><button className={mobileOpen ? "customer-drawer-backdrop is-open" : "customer-drawer-backdrop"} aria-label="Close navigation" onClick={() => setMobileOpen(false)} /><aside className={mobileOpen ? "customer-sidebar customer-sidebar-open" : "customer-sidebar"}>
       <Link href="/customer" className="customer-brand"><img className="customer-brand-mark" src="/logo.svg" alt=""/><span className="customer-brand-copy"><b>CryptoInvest</b><small>MORE THAN INVESTING. BUILT ON TRUST.</small></span></Link>
       <div className="customer-account-chip">
         <span className="customer-avatar">{(greeting[0] || "C").toUpperCase()}</span>
         <span><strong>Customer account</strong><small>Personal workspace</small></span>
       </div>
-      <nav className="customer-nav" aria-label="Customer navigation">
-        <p>MY ACCOUNT</p>
-        {nav.map((item) => (
+      <nav className="customer-nav" aria-label="More customer pages">
+        <p>MORE SERVICES</p>
+        {nav.filter((item) => !["home", "investments", "wallet", "profile"].includes(item.id)).map((item) => (
           <Link key={item.id} href={item.id === "home" ? "/customer" : "/customer/" + item.id}
             onClick={() => setMobileOpen(false)}
             className={section === item.id ? "customer-nav-item customer-nav-active" : "customer-nav-item"}>
@@ -179,28 +182,29 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         <div className="customer-private-note"><strong>Private account</strong><p>You can only access information permitted for your own account.</p></div>
         <button className="customer-signout" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
       </div>
-    </aside>
+    </aside></>}
 
-    <div className="customer-main">
+    <div className={section === "home" ? "customer-main customer-main-home" : "customer-main"}>
       <header className="customer-topbar">
-        <button className="customer-menu-button" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle navigation">☰</button>
-        <span>Customer portal <span className="customer-crumb">/ {sectionLabel}</span></span>
+        {section === "home" ? <button className="customer-menu-button" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Open more services" aria-expanded={mobileOpen}>☰</button> : <Link className="customer-back-home" href="/customer">← <span>Home</span></Link>}
+        <span className="customer-topbar-title">CryptoInvest <span className="customer-crumb">/ {sectionLabel}</span></span>
         <span className="customer-user-email">{user?.email ?? "Secure account"}</span>
       </header>
 
       <main className="customer-content" id="customer-main">
         <div className="customer-heading">
           <div>
-            <p className="customer-eyebrow">CUSTOMER WORKSPACE</p>
+            <p className="customer-eyebrow">{section === "home" ? "YOUR PRIVATE CUSTOMER SPACE" : "CUSTOMER ACCOUNT"}</p>
             <h1>{section === "home" ? "Welcome, " + greeting : sectionLabel}</h1>
-            <p className="customer-muted">{section === "home" ? "Your personal account, investment information and updates." : "Information shown here is limited to your authenticated customer account."}</p>
+            <p className="customer-muted">{section === "home" ? "Your investments, account records and important updates — all in one place." : "Information shown here is limited to your authenticated customer account."}</p>
           </div>
-          <span className="customer-readonly">Personal account</span>
+          <span className="customer-readonly">Secure customer view</span>
         </div>
 
         {error && <div className="customer-alert" role="alert">{error}</div>}
 
         {section === "home" && <>
+          <section className="customer-home-hero"><div className="customer-home-copy"><span>MORE THAN INVESTING · BUILT ON TRUST</span><h2>Your financial picture,<br/><em>made clearer.</em></h2><p>Follow the investment information and account updates shared with you by CryptoInvest.</p><Link href="/customer/investments">Explore investment <b>→</b></Link></div><div className="customer-home-art" aria-hidden="true"><span className="customer-orbit orbit-one"/><span className="customer-orbit orbit-two"/><span className="customer-home-emblem">◈</span></div></section>
           <div className="customer-safety-banner"><strong>Financial activity is currently limited</strong><p>Live deposits, withdrawals and financial processing are disabled while platform verification is completed.</p></div>
           <div className="customer-metrics">
             <article><small>My investments</small><strong>{loading ? "—" : rows.length}</strong><span>Personal investment records</span></article>
@@ -210,6 +214,8 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
           </div>
           <section className="customer-panel"><h2>My investment activity</h2>{loading ? <p className="customer-muted">Loading your account…</p> : <RecordList rows={rows} empty="Your verified investment activity will appear here." />}</section>
         </>}
+
+        {section === "wallet" && <><section className="customer-wallet-hero"><div><small>WALLET OVERVIEW</small><strong>— — —</strong><p>Verified account balance will appear when available.</p></div><span>◈</span></section><section className="customer-panel"><h2>Recent wallet records</h2>{loading ? <p className="customer-muted">Loading your records…</p> : <RecordList rows={rows} empty="Your verified wallet records will appear here." valueKeys={["amount", "currency_code", "entry_type"]} />}</section><div className="customer-wallet-links"><Link href="/customer/transactions">View transaction history <b>→</b></Link><Link href="/customer/notifications">Account updates <b>→</b></Link></div></>}
 
         {section === "profile" && <section className="customer-panel">
           <h2>Account information</h2>
@@ -223,7 +229,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         </section>}
 
         {section === "plans" && <section className="customer-panel"><h2>Published investment plans</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="No published plans are available to this account yet." />}</section>}
-        {section === "investments" && <section className="customer-panel"><h2>My investment records</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="Your investment records will appear here when available." />}</section>}
+        {section === "investments" && <><section className="customer-panel"><h2>My investment records</h2><p className="customer-muted">Review investment information and records shared with your account.</p>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="Your investment records will appear here when available." />}</section><div className="customer-wallet-links"><Link href="/customer/plans">View published investment plans <b>→</b></Link><Link href="/customer/performance">View profit and reports <b>→</b></Link></div></>}
         {section === "deposit" && <section className="customer-panel">
           <h2>Deposit request</h2>
           <div className="customer-safety-banner"><strong>Request submission is not enabled yet</strong><p>This screen is prepared for the deposit workflow. No payment details are collected and no deposit is recorded until the request API and its database contract are verified.</p></div>
@@ -257,6 +263,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
 
         <footer className="customer-footer">CryptoInvest · Customer portal · Your account data is protected by database access policies.</footer>
       </main>
+      {["home", "investments", "wallet", "profile"].includes(section) && <nav className="customer-primary-nav" aria-label="Primary navigation">{[{id:"home",label:"Home",icon:"⌂",href:"/customer"},{id:"investments",label:"Investment",icon:"↗",href:"/customer/investments"},{id:"wallet",label:"Wallet",icon:"▣",href:"/customer/wallet"},{id:"profile",label:"Profile",icon:"♙",href:"/customer/profile"}].map(item => <Link key={item.id} href={item.href} aria-current={section===item.id?"page":undefined} className={section===item.id?"is-active":""}><span>{item.icon}</span>{item.label}</Link>)}</nav>}
     </div>
   </div>;
 }
