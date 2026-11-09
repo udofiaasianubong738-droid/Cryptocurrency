@@ -98,10 +98,8 @@ export function TableSection({ columns, rows }: { columns: string[]; rows: React
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <div className={`logo ${compact ? 'compact' : ''}`}>
-      <div className="logo-mark">
-        <ArrowUpRight size={compact ? 14 : 20} />
-      </div>
-      {!compact ? <span>CryptoInvest</span> : null}
+      <div className="logo-mark"><img src="/logo.svg" alt="CryptoInvest" /></div>
+      {!compact ? <span className="logo-wordmark"><strong>CryptoInvest</strong><small>MORE THAN INVESTING. BUILT ON TRUST.</small></span> : null}
     </div>
   );
 }
