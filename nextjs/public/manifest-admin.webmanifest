@@ -1,0 +1,17 @@
+{
+  "id": "/admin",
+  "name": "CryptoInvest Admin",
+  "short_name": "CryptoInvest",
+  "description": "CryptoInvest secure CEO administration workspace.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#071638",
+  "theme_color": "#071638",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
