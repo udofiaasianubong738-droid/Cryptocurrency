@@ -15,6 +15,135 @@
   let marketOverview=null;
   let marketLoading=false;
   let marketCandleLoading=false;
+
+  let marketTickerSocket=null,marketTickerReconnect=null,marketTickerEnabled=false,marketTickerConnected=false,marketTickerRetry=1000,marketLastTickAt=null;
+  let marketCandleSocket=null,marketCandleReconnect=null,marketCandleEnabled=false,marketCandleLive=false,marketCandleRetry=1000,marketCandleRows=[],marketCandleStreamKey="";
+  function setMarketBadge(id,label,state){const el=document.getElementById(id);if(el){el.className="market-status-pill "+state;el.textContent=label;}}
+  function startMarketTicker(){
+    marketTickerEnabled=true;
+    if(marketTickerSocket&&(marketTickerSocket.readyState===WebSocket.OPEN||marketTickerSocket.readyState===WebSocket.CONNECTING))return;
+    clearTimeout(marketTickerReconnect);
+    try{
+      const socket=new WebSocket("wss://data-stream.binance.vision/ws/!ticker@arr");
+      marketTickerSocket=socket;
+      socket.onopen=()=>{marketTickerConnected=true;marketTickerRetry=1000;setMarketBadge("market-home-provider","Live · Binance stream","connected");setMarketBadge("market-monitor-provider","Live · Binance stream","connected");};
+      socket.onmessage=event=>{
+        let packet;try{packet=JSON.parse(event.data);}catch{return;}
+        const updates=Array.isArray(packet)?packet:(packet?.data?[packet.data]:[packet]);
+        let changed=false;
+        for(const tick of updates){
+          if(!tick||!tick.s||!marketOverview)continue;
+          const quote=marketOverview.quotes.find(q=>(q.provider_symbol||((q.symbol||"")+(q.quote_currency||"USDT"))).toUpperCase()===String(tick.s).toUpperCase());
+          if(!quote)continue;
+          const price=Number(tick.c),change=Number(tick.P),high=Number(tick.h),low=Number(tick.l),volume=Number(tick.v);
+          if(![price,change,high,low,volume].every(Number.isFinite)||price<=0)continue;
+          quote.price=price;quote.change_24h_pct=change;quote.high_24h=high;quote.low_24h=low;quote.volume_24h=volume;
+          quote.source_timestamp=new Date(Number(tick.E||Date.now())).toISOString();quote.received_at=new Date().toISOString();quote.is_delayed=false;quote.fresh=true;
+          changed=true;
+          document.querySelectorAll("tr[data-market-symbol]").forEach(row=>{
+            if(String(row.dataset.marketSymbol).toUpperCase()!==String(tick.s).toUpperCase())return;
+            const cells=row.children;
+            if(cells[1])cells[1].textContent=priceText(price)+" "+(quote.quote_currency||"USDT");
+            if(cells[2]){cells[2].className=changeClass(change);cells[2].textContent=changeText(change);}
+            if(cells[3])cells[3].textContent=priceText(high);
+            if(cells[4])cells[4].textContent=priceText(low);
+            if(cells[5])cells[5].textContent=numberText(volume,2);
+            if(cells[6])cells[6].textContent=dateText(quote.source_timestamp);
+          });
+        }
+        if(changed){
+          marketLastTickAt=new Date();
+          if(marketOverview?.summary){marketOverview.summary.latest_source_timestamp=marketLastTickAt.toISOString();marketOverview.summary.latest_received_at=marketLastTickAt.toISOString();}
+          const stamp="Last live tick: "+dateText(marketLastTickAt);
+          const home=document.getElementById("market-home-updated");if(home)home.textContent=stamp+" · Supabase snapshots remain enabled";
+          const monitor=document.getElementById("market-monitor-updated");if(monitor)monitor.textContent=stamp+" · Live Binance WebSocket";
+          setMarketBadge("market-home-provider","Live · "+dateText(marketLastTickAt),"connected");
+          setMarketBadge("market-monitor-provider","Live · "+dateText(marketLastTickAt),"connected");
+        }
+      };
+      socket.onerror=()=>{try{socket.close();}catch{}};
+      socket.onclose=()=>{
+        if(marketTickerSocket===socket)marketTickerSocket=null;
+        marketTickerConnected=false;
+        if(marketTickerEnabled){
+          setMarketBadge("market-home-provider","Reconnecting live stream…","warning");
+          setMarketBadge("market-monitor-provider","Reconnecting live stream…","warning");
+          marketTickerReconnect=setTimeout(startMarketTicker,marketTickerRetry);
+          marketTickerRetry=Math.min(marketTickerRetry*2,30000);
+        }else{
+          setMarketBadge("market-home-provider","Snapshot feed","pending");
+          setMarketBadge("market-monitor-provider","Snapshot feed","pending");
+        }
+      };
+    }catch{
+      marketTickerConnected=false;
+      if(marketTickerEnabled){marketTickerReconnect=setTimeout(startMarketTicker,marketTickerRetry);marketTickerRetry=Math.min(marketTickerRetry*2,30000);}
+    }
+  }
+  function stopMarketTicker(){
+    marketTickerEnabled=false;clearTimeout(marketTickerReconnect);marketTickerReconnect=null;
+    if(marketTickerSocket){const socket=marketTickerSocket;marketTickerSocket=null;socket.close();}
+    marketTickerConnected=false;
+  }
+  function stopMarketCandleSocket(){
+    marketCandleEnabled=false;clearTimeout(marketCandleReconnect);marketCandleReconnect=null;marketCandleStreamKey="";
+    if(marketCandleSocket){const socket=marketCandleSocket;marketCandleSocket=null;socket.close();}
+    marketCandleLive=false;
+  }
+  function startMarketCandleSocket(providerSymbol,interval){
+    const symbol=String(providerSymbol||"").toLowerCase();
+    if(!symbol||!["5m","1h"].includes(interval))return;
+    const key=symbol+"@kline_"+interval;
+    if(marketCandleStreamKey===key&&marketCandleSocket&&(marketCandleSocket.readyState===WebSocket.OPEN||marketCandleSocket.readyState===WebSocket.CONNECTING))return;
+    stopMarketCandleSocket();marketCandleEnabled=true;marketCandleStreamKey=key;
+    const connect=()=>{
+      if(!marketCandleEnabled||marketCandleStreamKey!==key)return;
+      try{
+        const socket=new WebSocket("wss://data-stream.binance.vision/ws/"+key);
+        marketCandleSocket=socket;
+        socket.onopen=()=>{marketCandleLive=true;marketCandleRetry=1000;setMarketBadge("market-candle-status","Live candle stream","connected");};
+        socket.onmessage=event=>{
+          let packet;try{packet=JSON.parse(event.data);}catch{return;}
+          const k=packet?.k||packet?.data?.k;if(!k)return;
+          const row={open_time:new Date(Number(k.t)).toISOString(),close_time:new Date(Number(k.T)).toISOString(),open_price:Number(k.o),high_price:Number(k.h),low_price:Number(k.l),close_price:Number(k.c),volume:Number(k.v),quote_volume:Number(k.q),received_at:new Date().toISOString(),live:true};
+          if(![row.open_price,row.high_price,row.low_price,row.close_price,row.volume].every(Number.isFinite))return;
+          const index=marketCandleRows.findIndex(c=>c.open_time===row.open_time);
+          if(index>=0)marketCandleRows[index]=row;else marketCandleRows.push(row);
+          marketCandleRows.sort((a,b)=>Date.parse(a.open_time)-Date.parse(b.open_time));marketCandleRows=marketCandleRows.slice(-60);
+          marketCandleLive=true;renderMarketCandles();
+        };
+        socket.onerror=()=>{try{socket.close();}catch{}};
+        socket.onclose=()=>{
+          if(marketCandleSocket===socket)marketCandleSocket=null;
+          marketCandleLive=false;
+          if(marketCandleEnabled&&marketCandleStreamKey===key){
+            setMarketBadge("market-candle-status","Reconnecting candle stream…","warning");
+            marketCandleReconnect=setTimeout(connect,marketCandleRetry);marketCandleRetry=Math.min(marketCandleRetry*2,30000);
+          }
+        };
+      }catch{
+        if(marketCandleEnabled){marketCandleReconnect=setTimeout(connect,marketCandleRetry);marketCandleRetry=Math.min(marketCandleRetry*2,30000);}
+      }
+    };
+    connect();
+  }
+  function renderMarketCandles(){
+    const target=document.getElementById("market-candle-table");if(!target)return;
+    const rows=marketCandleRows;
+    const chart=document.getElementById("market-candle-chart");
+    if(chart){
+      if(!rows.length)chart.innerHTML='<div class="market-loading">No candle history is available.</div>';
+      else{
+        const width=1000,height=250,pad=18,high=Math.max(...rows.map(r=>Number(r.high_price))),low=Math.min(...rows.map(r=>Number(r.low_price))),range=Math.max(high-low,Math.abs(high)*0.00001,0.00000001),y=v=>pad+(high-v)/range*(height-pad*2),step=(width-pad*2)/Math.max(rows.length,1),body=Math.max(3,Math.min(10,step*.62));
+        const candles=rows.map((r,i)=>{const x=pad+i*step+step/2,up=Number(r.close_price)>=Number(r.open_price),top=y(Math.max(r.open_price,r.close_price)),bottom=y(Math.min(r.open_price,r.close_price)),h=Math.max(1,bottom-top);return '<g class="'+(up?"candle-up":"candle-down")+'"><line x1="'+x+'" y1="'+y(r.high_price)+'" x2="'+x+'" y2="'+y(r.low_price)+'"/><rect x="'+(x-body/2)+'" y="'+top+'" width="'+body+'" height="'+h+'" rx="1"/></g>';}).join("");
+        const grid=[0,.25,.5,.75,1].map(p=>{const v=high-range*p;return '<line class="chart-grid" x1="'+pad+'" y1="'+y(v)+'" x2="'+(width-pad)+'" y2="'+y(v)+'"/><text class="chart-label" x="'+(width-pad)+'" y="'+(y(v)-4)+'" text-anchor="end">'+escapeHtml(priceText(v))+'</text>';}).join("");
+        chart.innerHTML='<svg class="market-candles-svg" viewBox="0 0 '+width+' '+height+'" role="img" aria-label="Live candlestick price chart">'+grid+candles+'</svg>';
+      }
+    }
+    target.innerHTML=rows.length?'<table class="data-table market-data-table"><thead><tr><th>Open time</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th><th>Received</th></tr></thead><tbody>'+rows.slice().reverse().map(c=>'<tr><td>'+escapeHtml(dateText(c.open_time))+'</td><td>'+priceText(c.open_price)+'</td><td>'+priceText(c.high_price)+'</td><td>'+priceText(c.low_price)+'</td><td>'+priceText(c.close_price)+'</td><td>'+numberText(c.volume,4)+'</td><td>'+escapeHtml(dateText(c.received_at))+(c.live?' · LIVE':'')+'</td></tr>').join("")+'</tbody></table>':'<div class="market-loading">No candlesticks returned.</div>';
+    if(marketCandleLive)setMarketBadge("market-candle-status","Live candle stream","connected");
+  }
+
   const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
   const numberText=(value,digits=2)=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{maximumFractionDigits:digits}):"—";
   const priceText=value=>Number.isFinite(Number(value))?Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:Number(value)<1?6:2}):"—";
@@ -27,24 +156,24 @@
   function marketRowsHtml(rows,limit){
     const items=limit?rows.slice(0,limit):rows;
     if(!items.length)return '<div class="market-loading">No market readings were returned by the backend.</div>';
-    return '<table class="data-table market-data-table"><thead><tr><th>Asset</th><th>Last price</th><th>24h change</th><th>24h high</th><th>24h low</th><th>24h volume</th><th>Source time</th></tr></thead><tbody>'+items.map(q=>'<tr><td><b>'+escapeHtml(q.symbol)+'</b><small class="market-asset-name">'+escapeHtml(q.name||q.asset_class||"")+'</small></td><td>'+priceText(q.price)+' '+escapeHtml(q.quote_currency||"USDT")+'</td><td class="'+changeClass(q.change_24h_pct)+'">'+changeText(q.change_24h_pct)+'</td><td>'+priceText(q.high_24h)+'</td><td>'+priceText(q.low_24h)+'</td><td>'+numberText(q.volume_24h,2)+'</td><td>'+escapeHtml(dateText(q.source_timestamp))+'</td></tr>').join("")+'</tbody></table>';
+    return '<table class="data-table market-data-table"><thead><tr><th>Asset</th><th>Last price</th><th>24h change</th><th>24h high</th><th>24h low</th><th>24h volume</th><th>Source time</th></tr></thead><tbody>'+items.map(q=>'<tr data-market-symbol="'+escapeHtml(q.provider_symbol||((q.symbol||"")+(q.quote_currency||"USDT")))+'"><td><b>'+escapeHtml(q.symbol)+'</b><small class="market-asset-name">'+escapeHtml(q.name||q.asset_class||"")+'</small></td><td>'+priceText(q.price)+' '+escapeHtml(q.quote_currency||"USDT")+'</td><td class="'+changeClass(q.change_24h_pct)+'">'+changeText(q.change_24h_pct)+'</td><td>'+priceText(q.high_24h)+'</td><td>'+priceText(q.low_24h)+'</td><td>'+numberText(q.volume_24h,2)+'</td><td>'+escapeHtml(dateText(q.source_timestamp))+'</td></tr>').join("")+'</tbody></table>';
   }
   function renderMarketOverview(){
     if(!marketOverview)return;
     const {summary,provider,quotes,candle_freshness:candles}=marketOverview;
-    const state=provider?.status==="healthy"&&summary?.fresh_quotes>0?"connected":"warning";
+    const state=marketTickerConnected?"connected":(provider?.status==="healthy"&&summary?.fresh_quotes>0?"pending":"warning");
     const homeBadge=document.getElementById("market-home-provider");
     const monitorBadge=document.getElementById("market-monitor-provider");
-    if(homeBadge){homeBadge.className="market-status-pill "+state;homeBadge.textContent=state==="connected"?"Provider healthy":"Feed needs attention";}
-    if(monitorBadge){monitorBadge.className="market-status-pill "+state;monitorBadge.textContent=state==="connected"?"Provider healthy":"Feed needs attention";}
+    if(homeBadge){homeBadge.className="market-status-pill "+state;homeBadge.textContent=marketTickerConnected?"Live · Binance stream":(state==="pending"?"Supabase snapshot healthy":"Feed needs attention");}
+    if(monitorBadge){monitorBadge.className="market-status-pill "+state;monitorBadge.textContent=marketTickerConnected?"Live · Binance stream":(state==="pending"?"Supabase snapshot healthy":"Feed needs attention");}
     const homeSummary=document.getElementById("market-home-summary");if(homeSummary)homeSummary.innerHTML=marketStatsHtml(summary);
     const monitorSummary=document.getElementById("market-monitor-summary");if(monitorSummary)monitorSummary.innerHTML=marketStatsHtml(summary);
     const sorted=[...quotes].sort((a,b)=>Math.abs(Number(b.change_24h_pct)||0)-Math.abs(Number(a.change_24h_pct)||0));
     const homeTable=document.getElementById("market-home-table");if(homeTable)homeTable.innerHTML=marketRowsHtml(sorted,12);
     const fullTable=document.getElementById("market-monitor-table");if(fullTable)fullTable.innerHTML=marketRowsHtml(quotes);
     const count=document.getElementById("market-monitor-count");if(count)count.textContent=numberText(quotes.length,0)+" verified asset quotes";
-    const updated=document.getElementById("market-home-updated");if(updated)updated.textContent="Latest source: "+dateText(summary?.latest_source_timestamp)+" · Received: "+dateText(summary?.latest_received_at);
-    const monitorUpdated=document.getElementById("market-monitor-updated");if(monitorUpdated)monitorUpdated.textContent="Latest backend receipt: "+dateText(summary?.latest_received_at);
+    const updated=document.getElementById("market-home-updated");if(updated)updated.textContent=marketLastTickAt?"Last live tick: "+dateText(marketLastTickAt):"Latest source: "+dateText(summary?.latest_source_timestamp)+" · Received: "+dateText(summary?.latest_received_at);
+    const monitorUpdated=document.getElementById("market-monitor-updated");if(monitorUpdated)monitorUpdated.textContent=marketLastTickAt?"Last live tick: "+dateText(marketLastTickAt):"Latest backend receipt: "+dateText(summary?.latest_received_at);
     const system=document.getElementById("market-system-status");
     if(system){
       const rows=["5m","1h"].map(interval=>{const item=candles?.[interval]||{};return '<div class="settings-row"><span><b>'+interval+' candlesticks</b><small>Latest stored reading: '+escapeHtml(dateText(item.latest_received_at))+'</small></span><span class="market-status-pill '+(item.fresh?"connected":"warning")+'">'+(item.fresh?"Fresh":"Stale / unavailable")+'</span></div>';}).join("");
@@ -75,10 +204,11 @@
       const response=await fetch("/api/market/candles?symbol="+encodeURIComponent(symbol)+"&interval="+encodeURIComponent(interval),{cache:"no-store"});
       if(!response.ok)throw new Error("Candlestick API returned HTTP "+response.status);
       const payload=await response.json();
-      const rows=payload.candles||[];
+      marketCandleRows=payload.candles||[];
       const badge=document.getElementById("market-candle-status");
-      if(badge){const fresh=payload.fresh===true;badge.className="market-status-pill "+(fresh?"connected":"warning");badge.textContent=fresh?"Latest candle fresh":"Latest candle stale";}
-      target.innerHTML=rows.length?'<table class="data-table market-data-table"><thead><tr><th>Open time</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th><th>Received</th></tr></thead><tbody>'+rows.map(c=>'<tr><td>'+escapeHtml(dateText(c.open_time))+'</td><td>'+priceText(c.open_price)+'</td><td>'+priceText(c.high_price)+'</td><td>'+priceText(c.low_price)+'</td><td>'+priceText(c.close_price)+'</td><td>'+numberText(c.volume,4)+'</td><td>'+escapeHtml(dateText(c.received_at))+'</td></tr>').join("")+'</tbody></table>':'<div class="market-loading">No candlesticks returned for '+escapeHtml(symbol)+' / '+escapeHtml(interval)+'.</div>';
+      if(badge){const fresh=payload.fresh===true;badge.className="market-status-pill "+(fresh?"connected":"warning");badge.textContent=fresh?"Stored candles fresh":"Stored candles stale";}
+      renderMarketCandles();
+      startMarketCandleSocket(payload.provider_symbol||((symbol+"USDT")),interval);
     }catch(error){target.innerHTML='<div class="market-loading market-error">'+escapeHtml(error instanceof Error?error.message:"Candlestick data unavailable")+'</div>';}
     finally{marketCandleLoading=false;}
   }
@@ -115,7 +245,7 @@
     "platform-reports":()=>`${head("Reporting","Platform reports","Aggregated platform reports from approved data sources.")}${notice}${panel("Platform report register","Verified reporting only",table(["Report reference","Report type","Period","Status"]))}`,
     "report-history":()=>`${head("Reporting","Report history","Audit-backed history of generated reports.")}${notice}${panel("Report history","No sample report history",table(["Report reference","Requested by","Report type","Created at"]))}`,
     "ai-operations":()=>`${head("Platform intelligence","AI operations centre","A human-reviewed assistant for operational explanations, data quality and security context.")}<div class="ai-status-card"><div class="ai-orb">✧</div><div><b>AI assistant is not connected yet</b><p>The workspace is prepared. The assistant will activate only after a secure backend connection, CEO authorization and approved AI service are verified.</p><span class="status offline">Waiting for backend connection</span></div></div><div class="grid two" style="margin-top:15px">${panel("Assistant workspace","Future assistant conversations",empty("Assistant is currently inactive","No prompts are sent and no AI responses are simulated in preview mode."))}${panel("Operational guardrails","Human approval remains required",'<div class="settings-row"><span><b>Read-only operational explanations</b><small>Only approved backend context may be used</small></span><span class="status offline">Not active</span></div><div class="settings-row"><span><b>Human review of recommendations</b><small>No autonomous administrative changes</small></span><span class="status">Required</span></div><div class="settings-row"><span><b>Financial actions</b><small>Not available to the assistant</small></span><span class="status">Disabled</span></div>')}</div><section class="panel ai-composer"><label for="ai-prompt">Ask the CryptoInvest assistant</label><textarea id="ai-prompt" rows="3" placeholder="Assistant activates after secure backend connection…" disabled></textarea><div class="ai-composer-foot"><small>Input disabled until backend and access checks are verified.</small><button class="btn" disabled>Send to assistant</button></div></section>`,
-    "market-monitor":()=>`${head("Platform operations","Live market monitor","Live read-only market quotes and stored candlestick readings from the verified market feed.")}<section class="panel market-monitor-panel"><div class="panel-head"><div><h2>All tracked market assets</h2><p>Current stored quotes, 24-hour movement and source timestamps</p></div><span id="market-monitor-provider" class="market-status-pill pending">Connecting…</span></div><div id="market-monitor-summary" class="market-summary-grid"></div><div class="table-tools"><label class="table-search"><span>⌕</span><input type="search" data-table-filter placeholder="Filter assets by symbol or name" aria-label="Filter market assets"></label><span id="market-monitor-count" class="table-count">Waiting for readings</span></div><div id="market-monitor-table" class="market-table-wrap"><div class="market-loading">Loading market readings…</div></div><div class="market-panel-foot"><span id="market-monitor-updated">Market source timestamp pending</span><button class="btn secondary" id="market-refresh">Refresh readings</button></div></section><section class="panel candle-panel"><div class="panel-head"><div><h2>Stored candlestick readings</h2><p>OHLCV records persisted by the backend ingestion service</p></div><span id="market-candle-status" class="market-status-pill pending">Checking candles…</span></div><div class="candle-controls"><label>Asset<select id="market-candle-symbol"><option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option></select></label><label>Interval<select id="market-candle-interval"><option value="5m">5 minutes</option><option value="1h">1 hour</option></select></label></div><div id="market-candle-table" class="market-table-wrap"><div class="market-loading">Loading candlesticks…</div></div></section>`,
+    "market-monitor":()=>`${head("Platform operations","Live market monitor","Live read-only market quotes and stored candlestick readings from the verified market feed.")}<section class="panel market-monitor-panel"><div class="panel-head"><div><h2>All tracked market assets</h2><p>Current stored quotes, 24-hour movement and source timestamps</p></div><span id="market-monitor-provider" class="market-status-pill pending">Connecting…</span></div><div id="market-monitor-summary" class="market-summary-grid"></div><div class="table-tools"><label class="table-search"><span>⌕</span><input type="search" data-table-filter placeholder="Filter assets by symbol or name" aria-label="Filter market assets"></label><span id="market-monitor-count" class="table-count">Waiting for readings</span></div><div id="market-monitor-table" class="market-table-wrap"><div class="market-loading">Loading market readings…</div></div><div class="market-panel-foot"><span id="market-monitor-updated">Market source timestamp pending</span><button class="btn secondary" id="market-refresh">Refresh readings</button></div></section><section class="panel candle-panel"><div class="panel-head"><div><h2>Stored candlestick readings</h2><p>OHLCV records persisted by the backend ingestion service</p></div><span id="market-candle-status" class="market-status-pill pending">Checking candles…</span></div><div class="candle-controls"><label>Asset<select id="market-candle-symbol"><option>BTC</option><option>ETH</option><option>BNB</option><option>SOL</option></select></label><label>Interval<select id="market-candle-interval"><option value="5m">5 minutes</option><option value="1h">1 hour</option></select></label></div><div id="market-candle-chart" class="market-candle-chart"><div class="market-loading">Loading live candlestick chart…</div></div><div id="market-candle-table" class="market-table-wrap"><div class="market-loading">Loading candlesticks…</div></div></section>`,
     "data-quality":()=>`${head("Platform operations","Data quality monitoring","Review validation status and data integrity signals.")}${notice}${panel("Data quality checks","Checks will be reported by verified backend jobs",table(["Check","Dataset","Result","Checked at"]))}`,
     "review-queue":()=>`${head("Platform operations","Review queue","Human review of flagged records and proposed operational recommendations.")}${notice}${panel("Items awaiting review","No actions are available in preview",table(["Review reference","Category","Priority","Submitted","Status"]))}`,
     "platform-activity":()=>`${head("Platform operations","Platform activity","Recent verified platform events from the protected activity feed.")}${notice}${panel("Platform activity timeline","System and operational events",table(["Event reference","Event category","Summary","Recorded at"]))}`,
@@ -172,8 +302,8 @@
     document.querySelector(".breadcrumbs").hidden=primary;
     crumb.textContent=labels[id]||"Home dashboard";
     view.innerHTML=pages[id]();
-    if(["overview","market-monitor","system-status"].includes(id))refreshMarketOverview();
-    if(id==="market-monitor")refreshMarketCandles();
+    if(["overview","market-monitor","system-status"].includes(id)){refreshMarketOverview();startMarketTicker();}else stopMarketTicker();
+    if(id==="market-monitor")refreshMarketCandles();else stopMarketCandleSocket();
     renderPrimaryBottomNav(id);
     document.querySelectorAll(".nav-link").forEach(b=>{const active=b.dataset.screen===id;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
     if(writeHash)history.pushState({screen:id},"","#"+id);
