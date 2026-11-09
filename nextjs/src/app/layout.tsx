@@ -1,19 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import PwaRegister from "./pwa-register";
 import "./globals.css";
 
-const permanentAppUrl = "https://admin.cryptoinvest.com";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(permanentAppUrl),
-  title: { default: "CryptoInvest Admin", template: "%s | CryptoInvest" },
+  title: { default: "CryptoInvest", template: "%s | CryptoInvest" },
   description: "CryptoInvest — More than investing. Built on trust. Secure customer access and CEO administration.",
   applicationName: "CryptoInvest",
   manifest: "/manifest.webmanifest",
-  alternates: { canonical: "/admin" },
   robots: { index: false, follow: false },
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
-    shortcut: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
+    shortcut: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
     apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
   },
   appleWebApp: {
@@ -31,5 +28,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body><PwaRegister />{children}</body></html>;
 }
