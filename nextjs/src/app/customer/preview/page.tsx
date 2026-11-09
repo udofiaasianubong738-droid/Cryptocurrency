@@ -153,7 +153,8 @@ function SecondaryPage({screen}:{screen:"Security"|"Support"|"Settings"|"Legal"}
 
 function MarketDetail({quote,quotes,history,liveCandle,loading,historyError,range,liveStatus,lastTickAt,onRangeChange,onSelect,back}:{quote:MarketQuote|null;quotes:MarketQuote[];history:MarketCandle[];liveCandle:MarketCandle|null;loading:boolean;historyError:string|null;range:"24H"|"7D";liveStatus:"connecting"|"live"|"reconnecting";lastTickAt:string|null;onRangeChange:(value:"24H"|"7D")=>void;onSelect:(quote:MarketQuote)=>void;back:()=>void}){
  const [search,setSearch]=useState("");
- const mergedHistory=liveCandle?[...history.filter(c=>c.open_time!==liveCandle.open_time),liveCandle].sort((a,b)=>new Date(a.open_time).getTime()-new Date(b.open_time).getTime()):history;\n const visibleHistory=range==="24H"?mergedHistory.filter(p=>Date.now()-new Date(p.open_time).getTime()<=24*60*60*1000):mergedHistory;
+ const mergedHistory=liveCandle?[...history.filter(c=>c.open_time!==liveCandle.open_time),liveCandle].sort((a,b)=>new Date(a.open_time).getTime()-new Date(b.open_time).getTime()):history;
+ const visibleHistory=range==="24H"?mergedHistory.filter(p=>Date.now()-new Date(p.open_time).getTime()<=24*60*60*1000):mergedHistory;
  const values=visibleHistory.flatMap(p=>[Number(p.high_price),Number(p.low_price)]).filter(Number.isFinite);
  const min=values.length?Math.min(...values):0,max=values.length?Math.max(...values):0,span=max-min||Math.max(Math.abs(max)*0.0001,0.00000001);
  const xAt=(i:number)=>visibleHistory.length<2?320:20+i*(600/(visibleHistory.length-1));
