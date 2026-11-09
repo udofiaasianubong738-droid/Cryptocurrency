@@ -15,14 +15,21 @@
   const head=(eyebrow,title,subtitle,actions="")=>`<div class="page-head"><div><p class="eyebrow">${eyebrow}</p><h1>${title}</h1><p class="subtitle">${subtitle}</p></div><div class="head-actions">${actions}</div></div>`;
   const panel=(title,sub,body)=>`<section class="panel"><div class="panel-head"><div><h2>${title}</h2><p>${sub}</p></div><span class="tag">Backend pending</span></div>${body}</section>`;
   const metric=(title,desc)=>`<article class="metric"><div class="metric-label">${title}</div><div class="metric-value waiting">— — —</div><div class="metric-note">${desc}</div></article>`;
-  const table=cols=>`<div class="table-wrap"><table class="data-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody><tr><td class="empty-row" colspan="${cols.length}">No records loaded. Connect the authorised backend to display verified information.</td></tr></tbody></table></div>`;
+  const table=cols=>`<div class="table-tools"><label class="table-search"><span>⌕</span><input type="search" data-table-filter placeholder="Search this register" aria-label="Search this register" disabled></label><span class="table-count">0 records · backend not connected</span></div><div class="table-wrap"><table class="data-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody><tr><td class="empty-row" colspan="${cols.length}"><span class="empty-table-icon">▤</span><b>No verified records yet</b><small>Connect the authorised backend when you are ready. No sample customer or financial data is displayed here.</small></td></tr></tbody></table></div>`;
   const notice=`<div class="info-banner"><strong>Preview mode.</strong> This screen contains no live customer records or fabricated figures. Backend data will appear only after secure server-side authentication, CEO authorization and access checks are verified.</div>`;
   const go=(label,id,style="secondary")=>`<button class="btn ${style}" data-screen="${id}">${label}</button>`;
   const pages={
     overview:()=>`${head("Executive workspace","Admin dashboard","Your central view of CryptoInvest platform oversight.") }
       <section class="dashboard-hero"><div><p class="eyebrow">CRYPTOINVEST · ADMINISTRATION</p><h2>Platform overview</h2><p>One clear starting point for customer accounts, investment records and verified reporting.</p><div class="hero-meta"><span class="hero-status"><i></i> Preview environment</span><span>·</span><span>Read-only workspace</span><span>·</span><span>Backend not connected</span></div></div><div class="hero-mark"><img src="./logo.svg" alt=""></div></section>
       <div class="section-heading"><div><h2>Customer accounts</h2><p>Verified account totals will appear after the protected data service is connected.</p></div><span class="tag">Awaiting verified data</span></div>
-      <div class="grid three dashboard-metrics"><article class="metric"><div class="metric-top"><span class="metric-icon">♙</span><span class="metric-label">Total customer accounts</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">No customer data loaded</div></article><article class="metric"><div class="metric-top"><span class="metric-icon">✓</span><span class="metric-label">Verified accounts</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Awaiting verified records</div></article><article class="metric"><div class="metric-top"><span class="metric-icon">◎</span><span class="metric-label">Accounts requiring review</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Review queue not connected</div></article></div>
+      <div class="grid three dashboard-metrics"><article class="metric"><div class="metric-top"><span class="metric-icon">♙</span><span class="metric-label">Total customer accounts</span><span class="metric-trend">Awaiting data</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Verified account count</div></article><article class="metric"><div class="metric-top"><span class="metric-icon">✓</span><span class="metric-label">Verified accounts</span><span class="metric-trend">Awaiting data</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Identity checks completed</div></article><article class="metric"><div class="metric-top"><span class="metric-icon">◎</span><span class="metric-label">Accounts requiring review</span><span class="metric-trend">Awaiting data</span></div><div class="metric-value waiting">— — —</div><div class="metric-note">Items awaiting human review</div></article></div>
+      <div class="dashboard-grid-main">
+        <section class="panel dashboard-panel"><div class="panel-head"><div><h2>Platform activity</h2><p>Verified operational events will appear here</p></div><button class="text-link" data-screen="platform-activity">View activity ↗</button></div><div class="dashboard-empty"><span class="empty-illustration">⌁</span><b>Activity feed is waiting for a data source</b><p>Once connected, this area will show recent account, review and system events with their source and timestamp.</p></div></section>
+        <section class="panel dashboard-panel"><div class="panel-head"><div><h2>Operational readiness</h2><p>Current workspace configuration</p></div><span class="tag">Preview</span></div><div class="readiness-list"><div class="readiness-row"><span class="readiness-icon">◈</span><span><b>CEO authentication</b><small>Secure login flow intentionally not included yet</small></span><em class="readiness-pending">Pending</em></div><div class="readiness-row"><span class="readiness-icon">⌘</span><span><b>Backend connection</b><small>Frontend remains isolated from backend</small></span><em class="readiness-pending">Disconnected</em></div><div class="readiness-row"><span class="readiness-icon">▤</span><span><b>Verified platform data</b><small>No live records loaded or simulated</small></span><em class="readiness-pending">Pending</em></div><div class="readiness-row"><span class="readiness-icon">◉</span><span><b>Financial operations</b><small>Safety gate remains disabled</small></span><em class="readiness-safe">Disabled</em></div></div></section>
+      </div>
+      <div class="section-heading quick-heading"><div><h2>Quick access</h2><p>Jump directly to the most-used areas of the workspace.</p></div></div>
+      <div class="quick-grid"><button class="quick-card" data-screen="customers"><span class="quick-icon">♙</span><span><b>Customers</b><small>Account directory</small></span><span class="quick-arrow">↗</span></button><button class="quick-card" data-screen="investment-records"><span class="quick-icon">▤</span><span><b>Investments</b><small>Record register</small></span><span class="quick-arrow">↗</span></button><button class="quick-card" data-screen="performance"><span class="quick-icon">⌁</span><span><b>Reports</b><small>Verified reporting</small></span><span class="quick-arrow">↗</span></button><button class="quick-card" data-screen="ai-operations"><span class="quick-icon">✧</span><span><b>AI assistant</b><small>Inactive until connected</small></span><span class="quick-arrow">↗</span></button></div>
+      <div class="dashboard-footnote"><span class="footnote-lock">◈</span><span><b>Protected workspace · Read-only preview</b><small>Customer records, financial figures and operational events will not be invented. No deposits, withdrawals, transfers, payouts or investment execution are available in this interface.</small></span></div>
 `,
     customers:()=>`${head("Customer management","Customer directory","Search and review customer accounts through authorised, read-only access.",go("Verification queue","customer-verification"))}${notice}${panel("Customer accounts","Customer identity and account metadata",table(["Customer reference","Account status","Verification","Created","Last updated"]))}`,
     "customer-detail":()=>`${head("Customer management","Customer profile","A protected view of an individual customer record.")}${notice}<div class="grid two">${panel("Profile information","Loaded by customer reference",empty("No customer selected","Select a customer after the protected directory service is connected."))}${panel("Account status","Verification and access",empty("Awaiting backend","Customer identity and verification details are not exposed in this preview."))}</div>`,
@@ -91,7 +98,7 @@
     crumb.textContent=labels[id]||"Home dashboard";
     view.innerHTML=pages[id]();
     renderPrimaryBottomNav(id);
-    document.querySelectorAll(".nav-link").forEach(b=>b.classList.toggle("active",b.dataset.screen===id));
+    document.querySelectorAll(".nav-link").forEach(b=>{const active=b.dataset.screen===id;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
     if(writeHash)history.pushState({screen:id},"","#"+id);
     window.scrollTo({top:0,behavior:"instant"});
     view.focus({preventScroll:true});
@@ -101,6 +108,13 @@
     const target=e.target.closest("[data-screen]");
     if(target){e.preventDefault();navigate(target.dataset.screen);return;}
     if(e.target.closest("#menu-toggle"))sidebar.classList.toggle("open");
+  });
+  document.addEventListener("input",e=>{
+    if(!e.target.matches("[data-table-filter]"))return;
+    const query=e.target.value.trim().toLowerCase();
+    const table=e.target.closest(".panel")?.querySelector(".data-table");
+    if(!table)return;
+    table.querySelectorAll("tbody tr").forEach(row=>{row.hidden=!!query&&!row.textContent.toLowerCase().includes(query);});
   });
   document.getElementById("back-home").addEventListener("click",()=>navigate("overview"));
   document.getElementById("top-notifications").addEventListener("click",()=>navigate("notifications"));
@@ -112,5 +126,6 @@
   });
   document.getElementById("nav-search").addEventListener("keydown",e=>{if(e.key==="Enter"){const first=[...document.querySelectorAll(".nav-link")].find(b=>!b.hidden);if(first)navigate(first.dataset.screen);}});
   window.addEventListener("popstate",()=>navigate(location.hash.slice(1)||"overview",false));
+  document.addEventListener("keydown",e=>{if(e.key==="/"&&!e.ctrlKey&&!e.metaKey&&!["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){const search=document.getElementById("nav-search");if(!search.closest("[hidden]")&&!search.disabled){e.preventDefault();search.focus();}}if(e.key==="Escape")sidebar.classList.remove("open");});
   navigate(location.hash.slice(1)||"overview",false);
 })();
