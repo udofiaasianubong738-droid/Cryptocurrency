@@ -2,11 +2,13 @@ import type { Metadata, Viewport } from "next";
 import PwaRegister from "./pwa-register";
 import "./globals.css";
 
+const appSurface = process.env.CRYPTOINVEST_APP_SURFACE === "customer" ? "customer" : "admin";
+const manifestPath = appSurface === "customer" ? "/manifest-customer.webmanifest" : "/manifest-admin.webmanifest";
+
 export const metadata: Metadata = {
   title: { default: "CryptoInvest", template: "%s | CryptoInvest" },
   description: "CryptoInvest — More than investing. Built on trust. Secure customer access and CEO administration.",
   applicationName: "CryptoInvest",
-  manifest: "/manifest.webmanifest",
   robots: { index: false, follow: false },
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml", sizes: "any" }],
@@ -28,5 +30,5 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body><PwaRegister />{children}</body></html>;
+  return <html lang="en"><head><link rel="manifest" href={manifestPath} /></head><body><PwaRegister />{children}</body></html>;
 }
