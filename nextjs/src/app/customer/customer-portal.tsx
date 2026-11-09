@@ -160,7 +160,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
   return <div className="customer-shell">
     <a className="customer-skip" href="#customer-main">Skip to content</a>
     <aside className={mobileOpen ? "customer-sidebar customer-sidebar-open" : "customer-sidebar"}>
-      <Link href="/customer" className="customer-brand"><span className="customer-brand-mark">C</span><span>CryptoInvest</span></Link>
+      <Link href="/customer" className="customer-brand"><img className="customer-brand-mark" src="/logo.svg" alt=""/><span className="customer-brand-copy"><b>CryptoInvest</b><small>MORE THAN INVESTING. BUILT ON TRUST.</small></span></Link>
       <div className="customer-account-chip">
         <span className="customer-avatar">{(greeting[0] || "C").toUpperCase()}</span>
         <span><strong>Customer account</strong><small>Personal workspace</small></span>
