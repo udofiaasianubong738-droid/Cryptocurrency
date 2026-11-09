@@ -59,3 +59,16 @@ body.home-screen .breadcrumbs,body.home-screen #nav-search-wrap,body.home-screen
 
 /* Respect the hidden state on navigation controls at every breakpoint. */
 #menu-toggle[hidden],#back-home[hidden],#top-notifications[hidden],#nav-search-wrap[hidden],#sidebar[hidden]{display:none!important}
+
+
+/* Header layout by screen type: primary pages stay clean; secondary pages get one Home control. */
+#profile-chip[hidden],.profile-chip[hidden],.breadcrumbs[hidden],#back-home[hidden],
+#top-notifications[hidden],#nav-search-wrap[hidden],#menu-toggle[hidden],#sidebar[hidden]{display:none!important}
+body.primary-screen .breadcrumbs{display:none!important}
+body.primary-screen #back-home{display:none!important}
+body.secondary-screen #back-home{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;order:4;white-space:nowrap}
+body.secondary-screen .breadcrumbs{order:2}
+body.secondary-screen .top-actions{display:none!important}
+body.secondary-screen .topbar{justify-content:flex-start}
+body.secondary-screen .main-area{width:100%;min-width:0}
+body.home-screen .breadcrumbs,body.home-screen #nav-search-wrap,body.home-screen .profile-chip{display:none!important}
