@@ -12,6 +12,7 @@ const screens = [
   ["orders", "Orders", "Order lifecycle and provider status", "⇄", "Operations"],
   ["portfolio", "Portfolio", "Verified account and investment summaries", "▥", "Operations"],
   ["reports", "Reports", "Reports from verified records", "▤", "Insights"],
+  ["education", "Education Centre", "Guides for secure administration and platform governance", "✧", "Guidance"],
   ["ledger", "Ledger", "Accounting entries and balances", "≋", "Controls"],
   ["reconciliation", "Reconciliation", "Provider and ledger comparison", "⟳", "Controls"],
   ["audit", "Audit Logs", "Administrative events and audit history", "◷", "Controls"],
@@ -30,6 +31,7 @@ const descriptions: Record<string, string> = {
   orders: "Order history and provider states will be populated from verified integrations.",
   portfolio: "Account balances and investment summaries must be sourced from the authoritative ledger.",
   reports: "Generate reports from verified platform data; this preview does not invent customer or financial figures.",
+  education: "Learn the CryptoInvest admin workflow, access safeguards, data handling and read-only governance responsibilities.",
   ledger: "Accounting entries and balances must be read from the authoritative backend and reconciled before being treated as financial truth.",
   reconciliation: "Compare provider activity against internal ledger entries after integration and idempotency checks are complete.",
   audit: "Review administrative events, timestamps and actors after the verified audit source is connected.",
@@ -73,6 +75,29 @@ function Overview({ basePath }: { basePath: string }) {
 }
 
 function SectionContent({ id, label }: { id: string; label: string }) {
+  if (id === "education") return <div className="ci-section-grid">
+    <section className="ci-card">
+      <span className="ci-kicker">ADMIN LEARNING</span>
+      <h2>CryptoInvest administrator guide</h2>
+      <p className="ci-section-copy">A practical guide to navigating the workspace while protecting customer information and keeping financial operations disabled.</p>
+      <div className="ci-check-list">
+        <p><span>1</span><strong>Start at the Home Dashboard</strong><small>Use the sidebar to open Customers, Reports, Security and System Status. Use the Home Dashboard link on secondary screens to return.</small></p>
+        <p><span>2</span><strong>Review customer records carefully</strong><small>Use only authenticated, authorised records. Do not copy customer information into notes, public previews or unapproved tools.</small></p>
+        <p><span>3</span><strong>Check source and audit history</strong><small>Treat a figure as verified only when it comes from the authorised backend and can be reconciled to its source record.</small></p>
+      </div>
+    </section>
+    <section className="ci-card">
+      <span className="ci-kicker">SECURITY & GOVERNANCE</span>
+      <h2>Essential safeguards</h2>
+      <div className="ci-check-list">
+        <p><span>✓</span><strong>CEO-only access</strong><small>Administrator access must be enforced on the server, not merely hidden in the interface.</small></p>
+        <p><span>✓</span><strong>MFA / AAL2</strong><small>Complete the required multi-factor verification before accessing protected administration features.</small></p>
+        <p><span>✓</span><strong>Read-only operation</strong><small>Customer, portfolio, ledger and reporting views must not trigger financial actions.</small></p>
+        <p><span>✓</span><strong>Financial operations disabled</strong><small>Deposits, withdrawals, transfers, payouts and investment execution remain unavailable.</small></p>
+      </div>
+      <div className="ci-readonly-note">▣ &nbsp; Learning material only · no financial actions or customer data are exposed here</div>
+    </section>
+  </div>;
   if (id === "security") return <div className="ci-section-grid"><section className="ci-card"><span className="ci-kicker">ACCESS CONTROL</span><h2>Identity and permissions</h2><div className="ci-check-list">{["CEO-only administration","Verified authenticator MFA","Customer and admin role isolation","Session expiry and audit events"].map(x=><p key={x}><span>✓</span>{x}<b>Verify</b></p>)}</div></section><section className="ci-card"><span className="ci-kicker">PRODUCTION GATE</span><h2>Financial controls</h2><div className="ci-gate"><span>✓</span><div><strong>Financial operations disabled</strong><p>Do not enable deposits, withdrawals, payouts or balance changes until independent verification is complete.</p></div></div></section></div>;
   if (id === "settings") return <section className="ci-card"><span className="ci-kicker">WORKSPACE</span><h2>Settings</h2><p className="ci-section-copy">Branding, installation and navigation are configured for this workspace. Security-critical settings remain server-controlled.</p><div className="ci-settings-list"><div><span>Application name</span><strong>CryptoInvest</strong></div><div><span>Installation support</span><strong>Web app manifest and app icon</strong></div><div><span>Financial operations</span><strong className="ci-red-text">Disabled</strong></div></div></section>;
   if (id === "system-status") return <section className="ci-card"><span className="ci-kicker">READINESS</span><h2>System Status</h2><p className="ci-section-copy">This screen does not claim service health until it can read real health checks.</p><div className="ci-check-list">{["Cloudflare Worker deployment","Supabase connectivity","CEO login and MFA","Audit trail and reconciliation","Financial operations safety gate"].map(x=><p key={x}><span>•</span>{x}<b>Needs verification</b></p>)}</div></section>;
