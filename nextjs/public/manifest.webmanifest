@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "CryptoInvest",
+  "short_name": "CryptoInvest",
+  "description": "More than investing. Built on trust. A secure customer investment information portal.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071638",
+  "theme_color": "#071638",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
