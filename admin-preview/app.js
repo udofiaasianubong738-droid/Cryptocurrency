@@ -82,7 +82,7 @@
     document.getElementById("nav-search-wrap").hidden=!home;
     document.getElementById("top-notifications").hidden=!home;
     document.querySelector(".profile-chip").hidden=!home;
-    document.querySelector(".breadcrumbs").hidden=home;
+    document.querySelector(".breadcrumbs").hidden=primary;
     crumb.textContent=labels[id]||"Home dashboard";
     view.innerHTML=pages[id]();
     renderPrimaryBottomNav(id);
