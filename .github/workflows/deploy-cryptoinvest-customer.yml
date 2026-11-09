@@ -61,3 +61,50 @@ jobs:
 
       - name: Deploy customer Worker
         run: npx wrangler deploy --config wrangler.customer.jsonc
+
+      # The Cloudflare account has Access default-deny enabled for every hostname.
+      # Create narrowly-scoped public entry policies for these two Workers only.
+      # The Next.js middleware still enforces customer login and CEO authorization + AAL2.
+      - name: Allow public frontend entry points through Cloudflare Access
+        env:
+          ACCESS_ACCOUNT_ID: ${{ env.CLOUDFLARE_ACCOUNT_ID }}
+          ACCESS_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4"
+          configure_public_app() {
+            local app_name="$1"
+            local hostname="$2"
+            local apps app_id created policies policy_id
+            apps="$(curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer $ACCESS_API_TOKEN" \
+              "$api/accounts/$ACCESS_ACCOUNT_ID/access/apps?name=$(printf '%s' "$app_name" | jq -sRr @uri)")"
+            app_id="$(printf '%s' "$apps" | jq -r --arg host "$hostname" '.result[]? | select(.domain == $host) | .id' | head -n 1)"
+            if [ -z "$app_id" ]; then
+              created="$(curl --fail-with-body --silent --show-error \
+                -X POST "$api/accounts/$ACCESS_ACCOUNT_ID/access/apps" \
+                -H "Authorization: Bearer $ACCESS_API_TOKEN" \
+                -H "Content-Type: application/json" \
+                --data "$(jq -n --arg name "$app_name" --arg domain "$hostname" '{type:"self_hosted",name:$name,domain:$domain}')")"
+              app_id="$(printf '%s' "$created" | jq -r '.result.id // empty')"
+            fi
+            if [ -z "$app_id" ]; then
+              echo "Could not create or locate Access application for $hostname"
+              exit 1
+            fi
+            policies="$(curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer $ACCESS_API_TOKEN" \
+              "$api/accounts/$ACCESS_ACCOUNT_ID/access/apps/$app_id/policies")"
+            policy_id="$(printf '%s' "$policies" | jq -r '.result[]? | select(.name == "Public frontend entry; app authentication enforced" and .decision == "bypass") | .id' | head -n 1)"
+            if [ -z "$policy_id" ]; then
+              curl --fail-with-body --silent --show-error \
+                -X POST "$api/accounts/$ACCESS_ACCOUNT_ID/access/apps/$app_id/policies" \
+                -H "Authorization: Bearer $ACCESS_API_TOKEN" \
+                -H "Content-Type: application/json" \
+                --data '{"name":"Public frontend entry; app authentication enforced","decision":"bypass","include":[{"everyone":{}}],"precedence":1}' \
+                | jq -e '.success == true' >/dev/null
+            fi
+            echo "Configured public entry policy for $hostname; application-level authentication remains required."
+          }
+          configure_public_app "CryptoInvest Customer Frontend" "cryptocurrency.udofiaasianubong738.workers.dev"
+          configure_public_app "CryptoInvest CEO Admin Frontend" "cryptocurrency-admin.udofiaasianubong738.workers.dev"
