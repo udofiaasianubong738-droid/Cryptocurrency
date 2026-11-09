@@ -94,3 +94,13 @@ button,input,select{font:inherit}button{touch-action:manipulation}button:focus-v
 .ci-candle-body{stroke-width:1;vector-effect:non-scaling-stroke}
 .ci-candle-up{stroke:#078a5a;fill:#0b9b68}
 .ci-candle-down{stroke:#c34b4b;fill:#d75a5a}
+
+/* Live exchange tick status */
+.ci-market-live-summary{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:116px;padding:9px 12px;border:1px solid #d9e7e1;border-radius:12px;background:#f3faf6;color:#176b4b}
+.ci-market-live-summary b{font-size:10px;letter-spacing:.09em;font-weight:800}
+.ci-market-live-summary small{font-size:10px;color:#718198}
+.ci-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c48a35;box-shadow:0 0 0 3px rgba(196,138,53,.12)}
+.ci-live-dot.active{background:#0b9b68;box-shadow:0 0 0 3px rgba(11,155,104,.14)}
+.ci-feed-live{display:inline-flex;align-items:center;gap:7px}
+.ci-feed-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#0b9b68;box-shadow:0 0 0 3px rgba(11,155,104,.13)}
+@media(max-width:600px){.ci-market-live-summary{min-width:100px;padding:7px 9px}.ci-market-live-summary small{font-size:9px}}
