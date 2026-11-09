@@ -119,6 +119,25 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         return;
       }
 
+      // The CEO has a separate admin workspace. Check the signed-in user's own
+      // CEO record before any customer reads, because CEO RLS policies can see
+      // all customer rows.
+      const { data: ceoRecord, error: ceoCheckError } = await supabase
+        .from("ceo_admins")
+        .select("user_id, enabled")
+        .eq("user_id", current.id)
+        .maybeSingle();
+      if (!alive) return;
+      if (ceoCheckError) {
+        setError("Customer access could not be verified. Please try again.");
+        setLoading(false);
+        return;
+      }
+      if (ceoRecord) {
+        router.replace("/admin");
+        return;
+      }
+
       let displayName = String(current.user_metadata?.full_name ?? current.user_metadata?.name ?? "");
       const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", current.id).maybeSingle();
       if (profile?.display_name) displayName = profile.display_name;
