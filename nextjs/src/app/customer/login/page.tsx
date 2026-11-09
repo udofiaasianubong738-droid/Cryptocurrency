@@ -57,6 +57,7 @@ export default function CustomerLoginPage() {
         <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={8} required/></label>
         <button className="customer-primary" disabled={busy}>{busy ? "Please wait…" : mode === "login" ? "Sign in securely" : "Create customer account"}</button>
       </form>
+      {mode === "login" && <Link className="customer-inline-link" href="/customer/forgot-password">Forgot your password?</Link>}
       <button className="customer-switch" type="button" onClick={()=>{setMode(mode === "login" ? "register" : "login");setError("");setMessage("");}}>
         {mode === "login" ? "New to CryptoInvest? Create an account" : "Already registered? Sign in"}
       </button>

@@ -1,4 +1,4 @@
-const CACHE_NAME = "cryptoinvest-brand-shell-v1";
+const CACHE_NAME = "cryptoinvest-brand-shell-v2";
 const BRAND_ASSETS = [
   "/logo.svg",
   "/icon.svg",

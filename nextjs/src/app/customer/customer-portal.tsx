@@ -42,7 +42,6 @@ const titles: Record<Section, string> = {
 
 const sources: Partial<Record<Section, { table: string; columns: string; ownerColumn?: "customer_id" | "user_id"; activeOnly?: boolean }>> = {
   home: { table: "investments", columns: "id, asset_code, principal_amount, currency_code, status, created_at", ownerColumn: "customer_id" },
-  plans: { table: "investment_plans", columns: "id, name, asset_code, network, description, risk_level, minimum_amount, maximum_amount, currency_code, risk_disclosure", activeOnly: true },
   investments: { table: "investments", columns: "id, plan_id, asset_code, principal_amount, currency_code, status, approved_return, realized_profit_loss, opened_at, closed_at, created_at", ownerColumn: "customer_id" },
   wallet: { table: "ledger_entries", columns: "id, entry_type, amount, currency_code, created_at", ownerColumn: "customer_id" },
   deposit: { table: "deposit_requests", columns: "id, amount, currency_code, asset_code, network, status, created_at, updated_at", ownerColumn: "customer_id" },
@@ -86,6 +85,14 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
   const section = (nav.some((item) => item.id === activeSection) ? activeSection : "home") as Section;
   const [user, setUser] = useState<{ id: string; email?: string; name?: string } | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
+  const [metrics, setMetrics] = useState({ investments: 0, deposits: 0, withdrawals: 0, unread: 0 });
+  const [supportSubject, setSupportSubject] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
+  const [supportBusy, setSupportBusy] = useState(false);
+  const [supportNotice, setSupportNotice] = useState("");
+  const [customerDocuments, setCustomerDocuments] = useState<{ name: string; signedUrl: string; createdAt: string | null }[]>([]);
+  const [documentBusy, setDocumentBusy] = useState(false);
+  const [documentNotice, setDocumentNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -115,31 +122,191 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         return;
       }
 
-      let displayName = String(current.user_metadata?.full_name ?? current.user_metadata?.name ?? "");
-      if (section === "profile") {
-        const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", current.id).maybeSingle();
-        if (profile?.display_name) displayName = profile.display_name;
+      // The CEO has a separate admin workspace. Check the signed-in user's own
+      // CEO record before any customer reads, because CEO RLS policies can see
+      // all customer rows.
+      const { data: ceoRecord, error: ceoCheckError } = await supabase
+        .from("ceo_admins")
+        .select("user_id, enabled")
+        .eq("user_id", current.id)
+        .maybeSingle();
+      if (!alive) return;
+      if (ceoCheckError) {
+        setError("Customer access could not be verified. Please try again.");
+        setLoading(false);
+        return;
       }
+      if (ceoRecord) {
+        router.replace("/admin");
+        return;
+      }
+
+      let displayName = String(current.user_metadata?.full_name ?? current.user_metadata?.name ?? "");
+      const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", current.id).maybeSingle();
+      if (profile?.display_name) displayName = profile.display_name;
       if (!alive) return;
       setUser({ id: current.id, email: current.email, name: displayName });
 
-      const source = sources[section];
-      if (source) {
-        let request = supabase.from(source.table).select(source.columns);
-        if (source.ownerColumn) request = request.eq(source.ownerColumn, current.id);
-        if (source.activeOnly) request = request.eq("is_active", true);
-        const { data, error: queryError } = await request.limit(50);
+      if (section === "home") {
+        const [investmentCount, depositCount, withdrawalCount, unreadCount] = await Promise.all([
+          supabase.from("investments").select("id", { count: "exact", head: true }).eq("customer_id", current.id),
+          supabase.from("deposit_requests").select("id", { count: "exact", head: true }).eq("customer_id", current.id),
+          supabase.from("withdrawal_requests").select("id", { count: "exact", head: true }).eq("customer_id", current.id),
+          supabase.from("user_notifications").select("id", { count: "exact", head: true }).eq("user_id", current.id).is("read_at", null),
+        ]);
         if (!alive) return;
-        if (queryError) setError("This information is not available right now. Your account has not been changed.");
-        else setRows((data ?? []) as unknown as Row[]);
+        const metricError = investmentCount.error || depositCount.error || withdrawalCount.error || unreadCount.error;
+        if (metricError) setError("Some account summary information is temporarily unavailable.");
+        else setMetrics({
+          investments: investmentCount.count ?? 0,
+          deposits: depositCount.count ?? 0,
+          withdrawals: withdrawalCount.count ?? 0,
+          unread: unreadCount.count ?? 0,
+        });
+      }
+
+      if (section === "documents") {
+        const { data: files, error: filesError } = await supabase.storage
+          .from("customer-documents")
+          .list(current.id, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+        if (!alive) return;
+        if (filesError) {
+          setError("Your private documents could not be loaded. Please try again later.");
+        } else {
+          const signedFiles = await Promise.all((files ?? []).filter((file) => file.name && !file.name.startsWith(".")).map(async (file) => {
+            const { data: signed, error: signedError } = await supabase.storage
+              .from("customer-documents")
+              .createSignedUrl(`${current.id}/${file.name}`, 300);
+            return signedError || !signed?.signedUrl ? null : { name: file.name, signedUrl: signed.signedUrl, createdAt: file.created_at };
+          }));
+          if (!alive) return;
+          setCustomerDocuments(signedFiles.filter((file): file is { name: string; signedUrl: string; createdAt: string | null } => Boolean(file)));
+        }
+      }
+
+      if (section === "plans") {
+        // A plan is visible here only when the CEO has attached it to one of this customer's investment records.
+        const { data: assignments, error: assignmentError } = await supabase
+          .from("investments")
+          .select("plan_id")
+          .eq("customer_id", current.id)
+          .not("plan_id", "is", null);
+        if (!alive) return;
+        if (assignmentError) {
+          setError("Your assigned plan information is not available right now.");
+        } else {
+          const planIds = [...new Set((assignments ?? []).map((item) => item.plan_id).filter((id): id is string => Boolean(id)))];
+          if (planIds.length) {
+            const { data, error: planError } = await supabase
+              .from("investment_plans")
+              .select("id, name, asset_code, network, description, risk_level, minimum_amount, maximum_amount, currency_code, risk_disclosure")
+              .eq("is_active", true)
+              .in("id", planIds)
+              .order("created_at", { ascending: false });
+            if (!alive) return;
+            if (planError) setError("Your assigned plan information is not available right now.");
+            else setRows((data ?? []) as unknown as Row[]);
+          }
+        }
       } else {
-        setRows([]);
+        const source = sources[section];
+        if (source) {
+          let request = supabase.from(source.table).select(source.columns);
+          if (source.ownerColumn) request = request.eq(source.ownerColumn, current.id);
+          if (source.activeOnly) request = request.eq("is_active", true);
+          const { data, error: queryError } = await request.order("created_at", { ascending: false }).limit(50);
+          if (!alive) return;
+          if (queryError) setError("This information is not available right now. Your account has not been changed.");
+          else setRows((data ?? []) as unknown as Row[]);
+        } else {
+          setRows([]);
+        }
       }
       if (alive) setLoading(false);
     }
     load();
     return () => { alive = false; };
   }, [section, router, supabase]);
+
+  async function uploadCustomerDocument(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !supabase || !user) return;
+    const allowed = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type) || file.size > 10 * 1024 * 1024) {
+      setDocumentNotice("Choose a PDF, JPG, PNG or WebP file no larger than 10 MB.");
+      return;
+    }
+    setDocumentBusy(true);
+    setDocumentNotice("");
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-100) || "document";
+    const objectPath = `${user.id}/${crypto.randomUUID()}-${safeName}`;
+    const { error: uploadError } = await supabase.storage
+      .from("customer-documents")
+      .upload(objectPath, file, { contentType: file.type, upsert: false });
+    if (uploadError) {
+      setDocumentNotice("The document could not be uploaded. Check the file and try again.");
+      setDocumentBusy(false);
+      return;
+    }
+    const { data: files, error: listError } = await supabase.storage
+      .from("customer-documents")
+      .list(user.id, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+    if (listError) {
+      setDocumentNotice("The upload was received, but the document list could not be refreshed.");
+    } else {
+      const signedFiles = await Promise.all((files ?? []).filter((item) => item.name && !item.name.startsWith(".")).map(async (item) => {
+        const { data: signed } = await supabase.storage.from("customer-documents").createSignedUrl(`${user.id}/${item.name}`, 300);
+        return signed?.signedUrl ? { name: item.name, signedUrl: signed.signedUrl, createdAt: item.created_at } : null;
+      }));
+      setCustomerDocuments(signedFiles.filter((item): item is { name: string; signedUrl: string; createdAt: string | null } => Boolean(item)));
+      setDocumentNotice("Your document has been uploaded to your private account storage.");
+    }
+    setDocumentBusy(false);
+  }
+
+  async function markNotificationRead(notificationId: string) {
+    if (!supabase || !user) return;
+    const { error: updateError } = await supabase
+      .from("user_notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("id", notificationId)
+      .eq("user_id", user.id)
+      .is("read_at", null);
+    if (updateError) {
+      setError("That notification could not be updated. Please try again.");
+      return;
+    }
+    setRows((current) => current.map((row) => row.id === notificationId ? { ...row, read_at: new Date().toISOString() } : row));
+    setMetrics((current) => ({ ...current, unread: Math.max(0, current.unread - 1) }));
+  }
+
+  async function submitSupportTicket(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !user) return;
+    const subject = supportSubject.trim();
+    const message = supportMessage.trim();
+    if (subject.length < 3 || message.length < 10) {
+      setSupportNotice("Please enter a subject and a message with at least 10 characters.");
+      return;
+    }
+    setSupportBusy(true);
+    setSupportNotice("");
+    const { data, error: insertError } = await supabase
+      .from("support_tickets")
+      .insert({ user_id: user.id, subject, message, status: "open" })
+      .select("id, subject, message, status, created_at, updated_at, closed_at")
+      .single();
+    setSupportBusy(false);
+    if (insertError) {
+      setSupportNotice("Your support message could not be submitted. Please try again later.");
+      return;
+    }
+    setRows((current) => [data as unknown as Row, ...current]);
+    setSupportSubject("");
+    setSupportMessage("");
+    setSupportNotice("Your support message has been submitted.");
+  }
 
   async function signOut() {
     setSigningOut(true);
@@ -207,10 +374,10 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
           <section className="customer-home-hero"><div className="customer-home-copy"><span>MORE THAN INVESTING · BUILT ON TRUST</span><h2>Your financial picture,<br/><em>made clearer.</em></h2><p>Follow the investment information and account updates shared with you by CryptoInvest.</p><Link href="/customer/investments">Explore investment <b>→</b></Link></div><div className="customer-home-art" aria-hidden="true"><span className="customer-orbit orbit-one"/><span className="customer-orbit orbit-two"/><span className="customer-home-emblem">◈</span></div></section>
           <div className="customer-safety-banner"><strong>Financial activity is currently limited</strong><p>Live deposits, withdrawals and financial processing are disabled while platform verification is completed.</p></div>
           <div className="customer-metrics">
-            <article><small>My investments</small><strong>{loading ? "—" : rows.length}</strong><span>Personal investment records</span></article>
-            <article><small>Deposit requests</small><strong>—</strong><span>Personal account records</span></article>
-            <article><small>Withdrawal requests</small><strong>—</strong><span>Personal account records</span></article>
-            <article><small>Notifications</small><strong>—</strong><span>Updates for your account</span></article>
+            <article><small>My investments</small><strong>{loading ? "—" : metrics.investments}</strong><span>Personal investment records</span></article>
+            <article><small>Deposit requests</small><strong>{loading ? "—" : metrics.deposits}</strong><span>Request history only</span></article>
+            <article><small>Withdrawal requests</small><strong>{loading ? "—" : metrics.withdrawals}</strong><span>Request history only</span></article>
+            <article><small>Unread updates</small><strong>{loading ? "—" : metrics.unread}</strong><span>Notifications for your account</span></article>
           </div>
           <section className="customer-panel"><h2>My investment activity</h2>{loading ? <p className="customer-muted">Loading your account…</p> : <RecordList rows={rows} empty="Your verified investment activity will appear here." />}</section>
         </>}
@@ -247,9 +414,9 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
           {loading ? <p>Loading…</p> : <RecordList rows={rows} empty="No verified performance records are available yet." valueKeys={["realized_profit_loss", "status"]} />}
         </section>}
         {section === "transactions" && <section className="customer-panel"><h2>My transaction history</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="No personal ledger entries are available yet." />}</section>}
-        {section === "notifications" && <section className="customer-panel"><h2>Account notifications</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="You have no notifications yet." />}</section>}
-        {section === "documents" && <section className="customer-panel"><h2>My documents</h2><div className="customer-empty"><strong>Documents are not connected yet</strong><p>Only documents explicitly assigned to your account will be shown once the secure document service is connected.</p></div></section>}
-        {section === "support" && <section className="customer-panel"><h2>Contact customer support</h2><p className="customer-muted">Support ticket submission will be enabled after the customer ticket API and required fields are verified.</p>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="You have no support conversations to display." />}</section>}
+        {section === "notifications" && <section className="customer-panel"><h2>Account notifications</h2>{loading ? <p>Loading…</p> : !rows.length ? <div className="customer-empty"><strong>Nothing to show yet</strong><p>You have no notifications yet.</p></div> : <div className="customer-record-list">{rows.map((row) => <article className="customer-record" key={String(row.id)}><div><strong>{displayValue(row, ["title"])}</strong><small>{displayValue(row, ["body", "created_at"])}</small><small>{displayValue(row, ["category"])} · {row.read_at ? "Read" : "Unread"}</small></div><div className="customer-record-side">{!row.read_at && <button className="customer-inline-action" type="button" onClick={() => markNotificationRead(String(row.id))}>Mark read</button>}</div></article>)}</div>}</section>}
+        {section === "documents" && <section className="customer-panel"><h2>My private documents</h2><p className="customer-muted">Files are private by default. You can access only documents stored under your own customer account. CEO document review requires an authenticated AAL2 session.</p>{documentNotice && <div className={documentNotice.startsWith("Your document has") ? "customer-success" : "customer-alert"} role="status">{documentNotice}</div>}<form className="customer-support-form" onSubmit={(event) => event.preventDefault()}><label>Upload a document<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" onChange={uploadCustomerDocument} disabled={documentBusy}/></label><small className="customer-muted">PDF, JPG, PNG or WebP · maximum 10 MB</small><p className="customer-muted">{documentBusy ? "Uploading your document securely…" : "Selecting a supported file starts a private upload."}</p></form><div className="customer-record-list">{loading ? <p className="customer-muted">Loading your private documents…</p> : customerDocuments.length ? customerDocuments.map((file) => <article className="customer-record" key={file.name}><div><strong>{file.name.replace(/^.*?-/, "")}</strong><small>{file.createdAt ? new Date(file.createdAt).toLocaleString() : "Private customer document"}</small></div><a className="customer-inline-action" href={file.signedUrl} target="_blank" rel="noreferrer">Open securely</a></article>) : <div className="customer-empty"><strong>No documents uploaded</strong><p>Documents uploaded here remain private to your account.</p></div>}</div></section>}
+        {section === "support" && <><section className="customer-panel"><h2>Contact customer support</h2><p className="customer-muted">Send a message to the CryptoInvest support team. Your message is linked to your signed-in account.</p>{supportNotice && <div className={supportNotice.startsWith("Your support message has") ? "customer-success" : "customer-alert"} role="status">{supportNotice}</div>}<form className="customer-support-form" onSubmit={submitSupportTicket}><label>Subject<input value={supportSubject} onChange={(event) => setSupportSubject(event.target.value)} minLength={3} maxLength={180} required /></label><label>How can we help?<textarea value={supportMessage} onChange={(event) => setSupportMessage(event.target.value)} minLength={10} maxLength={4000} rows={5} required /></label><button className="customer-primary" type="submit" disabled={supportBusy}>{supportBusy ? "Sending…" : "Send support message"}</button></form></section><section className="customer-panel"><h2>My support history</h2>{loading ? <p>Loading…</p> : <RecordList rows={rows} empty="You have no support conversations to display." valueKeys={["status"]} />}</section></>}
         {section === "security" && <section className="customer-panel">
           <h2>Account security</h2>
           <div className="customer-detail-grid">
