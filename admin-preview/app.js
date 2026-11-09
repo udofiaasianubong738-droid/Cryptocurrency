@@ -61,11 +61,13 @@
     nav.innerHTML=primaryNavItems.map(([id,label,icon])=>'<button type="button" class="primary-bottom-link'+(active===id?' active':'')+'" data-screen="'+id+'" aria-current="'+(active===id?'page':'false')+'"><span class="primary-bottom-icon">'+icon+'</span><span>'+label+'</span></button>').join("");
   }
   function renderNav(){
-    // Sidebar is intentionally free of screen destinations. All five primary
-    // screens are accessed through the persistent bottom navigation.
+    // Keep all secondary destinations in the Home sidebar; primary screens
+    // are available only through the persistent five-item bottom navigation.
+    const excludedPrimaryIds=new Set(["overview","customers","investment-records","performance","ai-operations"]);
     const nav=document.getElementById("main-nav");
-    nav.innerHTML="";
-    nav.setAttribute("aria-label","No screen links in sidebar");
+    const secondaryGroups=navGroups.map(([title,items])=>[title,items.filter(([id])=>!excludedPrimaryIds.has(id))]).filter(([,items])=>items.length);
+    nav.innerHTML=secondaryGroups.map(([title,items])=>'<div class="nav-caption nav-caption-spaced">'+title+'</div>'+items.map(([id,name,icon])=>'<button class="nav-link" data-screen="'+id+'"><span class="nav-symbol">'+icon+'</span>'+name+'</button>').join("")).join("");
+    nav.setAttribute("aria-label","Secondary screen navigation");
   }
   function navigate(id,writeHash=true){
     if(!pages[id])id="overview";
@@ -102,6 +104,7 @@
   });
   document.getElementById("back-home").addEventListener("click",()=>navigate("overview"));
   document.getElementById("top-notifications").addEventListener("click",()=>navigate("notifications"));
+  document.getElementById("sidebar-notifications").addEventListener("click",()=>navigate("notifications"));
   document.getElementById("nav-search").addEventListener("input",e=>{
     const q=e.target.value.toLowerCase();
     document.querySelectorAll(".nav-link").forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q));
