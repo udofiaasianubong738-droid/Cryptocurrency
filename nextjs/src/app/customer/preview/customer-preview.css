@@ -104,3 +104,5 @@ button,input,select{font:inherit}button{touch-action:manipulation}button:focus-v
 .ci-feed-live{display:inline-flex;align-items:center;gap:7px}
 .ci-feed-live:before{content:"";width:7px;height:7px;border-radius:50%;background:#0b9b68;box-shadow:0 0 0 3px rgba(11,155,104,.13)}
 @media(max-width:600px){.ci-market-live-summary{min-width:100px;padding:7px 9px}.ci-market-live-summary small{font-size:9px}}
+
+.ci-home-education{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 16px;background:linear-gradient(115deg,#fff 0%,#fffaf0 100%)}.ci-home-education>div{max-width:720px}.ci-home-education small{color:#a87912;font-size:10px;font-weight:800;letter-spacing:1.3px}.ci-home-education p{margin:7px 0 0;color:#687991;font-size:12px;line-height:1.6}.ci-home-education .ci-home-back{margin:0;white-space:nowrap;background:#fff8e8;border-color:#e7c875;color:#78530d}@media(max-width:600px){.ci-home-education{align-items:flex-start;flex-direction:column;gap:12px}.ci-home-education .ci-home-back{margin:0}}
