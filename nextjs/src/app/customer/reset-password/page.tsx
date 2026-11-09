@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { createSupabaseBrowserClient } from "../../../../lib/supabase/browser";
+import { createSupabaseBrowserClient } from "../../../lib/supabase/browser";
 
 export default function CustomerResetPasswordPage() {
   const [password, setPassword] = useState("");
