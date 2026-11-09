@@ -48,3 +48,7 @@ body.secondary-screen .topbar{justify-content:flex-start;gap:18px}body.secondary
 .primary-bottom-link:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(max-width:760px){.primary-bottom-nav,body.secondary-screen .primary-bottom-nav{left:10px;right:10px;bottom:8px;gap:3px;padding:6px;border-radius:14px}.primary-bottom-link{min-height:48px;font-size:9px;gap:3px}.primary-bottom-icon{font-size:16px}.main-area{padding-bottom:78px}.page-footer{padding-bottom:86px}}
 @media(max-width:380px){.primary-bottom-link{font-size:8px}.primary-bottom-nav{gap:1px;padding:5px}}
+
+
+/* Home header declutter: keep the mobile menu and notifications, remove secondary controls */
+body.home-screen .breadcrumbs,body.home-screen #nav-search-wrap,body.home-screen .profile-chip{display:none!important}
