@@ -13,6 +13,6 @@
   },
   "r2_buckets": [
     { "binding": "CRYPTOINVEST", "bucket_name": "cryptoinvest" }
-  ]
+  ],
   "observability": { "enabled": true }
 }
