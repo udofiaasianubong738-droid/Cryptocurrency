@@ -28,7 +28,7 @@ const sections = new Set([
 
 export async function generateMetadata({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  const label = section.replace(/-/g, " ").replace(/\\b\\w/g, (letter) => letter.toUpperCase());
+  const label = section.replace(/-/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
   return { title: label, description: `CryptoInvest CEO admin workspace: ${label}.` };
 }
 
