@@ -90,7 +90,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
   const [supportMessage, setSupportMessage] = useState("");
   const [supportBusy, setSupportBusy] = useState(false);
   const [supportNotice, setSupportNotice] = useState("");
-  const [customerDocuments, setCustomerDocuments] = useState<{ name: string; signedUrl: string; createdAt?: string | null }[]>([]);
+  const [customerDocuments, setCustomerDocuments] = useState<{ name: string; signedUrl: string; createdAt: string | null }[]>([]);
   const [documentBusy, setDocumentBusy] = useState(false);
   const [documentNotice, setDocumentNotice] = useState("");
   const [loading, setLoading] = useState(true);
@@ -180,7 +180,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
             return signedError || !signed?.signedUrl ? null : { name: file.name, signedUrl: signed.signedUrl, createdAt: file.created_at };
           }));
           if (!alive) return;
-          setCustomerDocuments(signedFiles.filter((file): file is { name: string; signedUrl: string; createdAt?: string | null } => Boolean(file)));
+          setCustomerDocuments(signedFiles.filter((file): file is { name: string; signedUrl: string; createdAt: string | null } => Boolean(file)));
         }
       }
 
@@ -259,7 +259,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         const { data: signed } = await supabase.storage.from("customer-documents").createSignedUrl(`${user.id}/${item.name}`, 300);
         return signed?.signedUrl ? { name: item.name, signedUrl: signed.signedUrl, createdAt: item.created_at } : null;
       }));
-      setCustomerDocuments(signedFiles.filter((item): item is { name: string; signedUrl: string; createdAt?: string | null } => Boolean(item)));
+      setCustomerDocuments(signedFiles.filter((item): item is { name: string; signedUrl: string; createdAt: string | null } => Boolean(item)));
       setDocumentNotice("Your document has been uploaded to your private account storage.");
     }
     setDocumentBusy(false);
