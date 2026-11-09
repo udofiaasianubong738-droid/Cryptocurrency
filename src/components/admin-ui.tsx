@@ -3,7 +3,6 @@ import {
   Activity,
   AlertTriangle,
   ArrowDownLeft,
-  ArrowUpRight,
   BarChart3,
   BookOpenText,
   BriefcaseBusiness,
