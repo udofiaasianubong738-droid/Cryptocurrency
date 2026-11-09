@@ -7,6 +7,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "previews": {},
+  "vars": {
+    "CRYPTOINVEST_APP_SURFACE": "customer",
+    "FINANCIAL_OPERATIONS_ENABLED": "false"
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
