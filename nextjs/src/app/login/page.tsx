@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "../../lib/supabase/browser";
 
-function Brand(){return <span className="brand-lockup"><span className="brand-mark" aria-hidden="true"><span/></span><span className="brand-name">Crypto<span>Invest</span></span></span>}
+function Brand(){return <span className="brand-lockup"><img className="brand-mark-image" src="/logo.svg" alt=""/><span><span className="brand-name">CryptoInvest</span><small className="brand-tagline">MORE THAN INVESTING. BUILT ON TRUST.</small></span></span>}
 
 type Mode = "password" | "totp" | "enroll";
 
