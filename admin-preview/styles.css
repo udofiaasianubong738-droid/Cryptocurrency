@@ -215,3 +215,13 @@ body.secondary-screen #back-home{margin-left:0}
 .candle-controls label{display:flex;align-items:center;gap:8px;color:#9eacbe;font-size:10px}
 .candle-controls select{background:#101a28;color:#eee;border:1px solid #35475f;border-radius:8px;padding:8px 10px}
 @media(max-width:760px){.market-summary-grid{grid-template-columns:1fr 1fr}.market-stat:last-child{grid-column:1/-1}.market-panel-foot{align-items:flex-start;flex-direction:column}.market-table-wrap{margin-left:-1px;width:calc(100% + 2px)}}
+
+/* Continuous live quote and candlestick presentation */
+.market-candle-chart{width:100%;margin:14px 0 18px;padding:10px 8px;border:1px solid #2a3b51;border-radius:10px;background:#0b1420;overflow:hidden}
+.market-candles-svg{display:block;width:100%;height:auto;min-height:180px}
+.market-candles-svg .chart-grid{stroke:#26364a;stroke-width:1;stroke-dasharray:3 5}
+.market-candles-svg .chart-label{fill:#8293a8;font-size:11px}
+.market-candles-svg .candle-up{stroke:#61c98d;fill:#61c98d;stroke-width:1.5}
+.market-candles-svg .candle-down{stroke:#e17c7c;fill:#e17c7c;stroke-width:1.5}
+.market-status-pill.connected{box-shadow:0 0 0 1px rgba(91,202,138,.08),0 0 14px rgba(91,202,138,.08)}
+@media(max-width:760px){.market-candle-chart{padding:6px 2px}.market-candles-svg{min-height:150px}}
