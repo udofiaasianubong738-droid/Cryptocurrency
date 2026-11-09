@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 type Screen = { id:string; label:string; description:string; icon:string; group:string };
 const primary:Screen[] = [
@@ -32,7 +32,6 @@ const secondary:Screen[] = [
   {id:"system-info",label:"System Information",description:"Application version and deployment details",icon:"ⓘ",group:"Support"},
 ];
 const allScreens=[...primary,...secondary];
-const knownIds=new Set(allScreens.map(s=>s.id));
 const info:Record<string,string>={
   customers:"Review customer account records and access status. Customer-facing actions are not available from this workspace.",
   "investment-records":"Review published plan information and historical investment records. No investment execution or allocation is available.",
