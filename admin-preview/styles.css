@@ -189,3 +189,29 @@ body.secondary-screen #back-home{margin-left:0}
 
 .mobile-overlay{display:none}
 @media(max-width:760px){.mobile-overlay.show{display:block;position:fixed;inset:30px 0 0;border:0;border-radius:0;background:#02060dcc;z-index:7;backdrop-filter:blur(2px)}.sidebar{z-index:8}.mobile-menu[aria-expanded="true"]{background:#2a2417;border-color:#80683a;color:#f2dfa0}}
+
+/* Live read-only market monitor */
+.market-live-panel,.market-monitor-panel,.candle-panel{margin:18px 0;background:linear-gradient(145deg,#121d2b,#0d1520);border-color:#31445b}
+.market-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.market-stat{padding:13px 15px;border:1px solid #2d3d52;border-radius:11px;background:#101a28;min-width:0}
+.market-stat small{display:block;color:#8fa0b4;font-size:9px;margin-bottom:6px}
+.market-stat b{display:block;color:#f1eadb;font-size:18px;font-weight:650;overflow-wrap:anywhere}
+.market-status-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid #46556a;background:#1b2635;color:#c4d0df;font-size:9px;font-weight:700;white-space:nowrap}
+.market-status-pill.connected{border-color:#315d4b;background:#14291f;color:#9fe0b8}
+.market-status-pill.warning{border-color:#70552c;background:#2a2115;color:#e7cb8a}
+.market-status-pill.pending{border-color:#39485b;background:#182332;color:#a6b5c7}
+.market-table-wrap{width:100%;overflow:auto;border:1px solid #2a3b51;border-radius:10px}
+.market-data-table{width:100%;min-width:860px;border-collapse:collapse}
+.market-data-table th,.market-data-table td{padding:11px 12px;text-align:right;white-space:nowrap;font-size:10px}
+.market-data-table th:first-child,.market-data-table td:first-child{text-align:left}
+.market-data-table td{border-top:1px solid #26364a;color:#c9d2de}
+.market-data-table td b{color:#f1eadb}
+.market-asset-name{display:block;color:#8495aa;font-size:9px;margin-top:3px}
+.market-positive{color:#7bd5a2!important}.market-negative{color:#f08d8d!important}.market-neutral{color:#c7d0dc!important}
+.market-loading{padding:22px;color:#94a4b8;text-align:center;font-size:11px}
+.market-error{color:#f0a0a0}
+.market-panel-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;color:#8192a8;font-size:9px}
+.candle-controls{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
+.candle-controls label{display:flex;align-items:center;gap:8px;color:#9eacbe;font-size:10px}
+.candle-controls select{background:#101a28;color:#eee;border:1px solid #35475f;border-radius:8px;padding:8px 10px}
+@media(max-width:760px){.market-summary-grid{grid-template-columns:1fr 1fr}.market-stat:last-child{grid-column:1/-1}.market-panel-foot{align-items:flex-start;flex-direction:column}.market-table-wrap{margin-left:-1px;width:calc(100% + 2px)}}
