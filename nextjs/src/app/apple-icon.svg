@@ -1,17 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">CryptoInvest</title><desc id="desc">A gold shield protecting an upward growth arrow, representing trust and responsible investment oversight.</desc>
-  <defs>
-    <linearGradient id="gold" x1="90" y1="80" x2="410" y2="430" gradientUnits="userSpaceOnUse"><stop stop-color="#F8E7A0"/><stop offset=".48" stop-color="#D6B34D"/><stop offset="1" stop-color="#A87918"/></linearGradient>
-    <linearGradient id="navy" x1="70" y1="30" x2="440" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#142B55"/><stop offset="1" stop-color="#06132E"/></linearGradient>
-    <linearGradient id="shine" x1="150" y1="130" x2="360" y2="370" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF6D2"/><stop offset="1" stop-color="#C69B32"/></linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#navy)"/>
-  <rect x="13" y="13" width="486" height="486" rx="101" fill="none" stroke="#D8B85C" stroke-opacity=".24" stroke-width="3"/>
-  <path d="M256 61 408 116v116c0 103-61 171-152 219-91-48-152-116-152-219V116L256 61Z" fill="#071631" stroke="url(#gold)" stroke-width="15" stroke-linejoin="round"/>
-  <path d="M256 91 381 136v96c0 84-48 143-125 185-77-42-125-101-125-185v-96l125-45Z" fill="url(#navy)" stroke="#E8CD78" stroke-opacity=".38" stroke-width="3"/>
-  <path d="m164 300 66-66 48 48 88-104" fill="none" stroke="url(#shine)" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M317 178h49v49" fill="none" stroke="url(#shine)" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M163 337h186" stroke="#E7C86C" stroke-opacity=".48" stroke-width="7" stroke-linecap="round"/>
-  <circle cx="164" cy="300" r="12" fill="#FFF2C1"/><circle cx="365" cy="178" r="9" fill="#FFF2C1"/>
-  <path d="m256 61 10 18 20 3-15 14 4 20-19-10-19 10 4-20-15-14 20-3 10-18Z" fill="#F7E5A0" opacity=".9"/>
+<title id="title">CryptoInvest official emblem</title><desc id="desc">A polished gold shield containing rising investment bars, an upward arrow and a Bitcoin medallion on a deep black and navy background.</desc>
+<defs>
+ <linearGradient id="gold" x1="70" y1="40" x2="440" y2="470" gradientUnits="userSpaceOnUse"><stop stop-color="#fff1ad"/><stop offset=".28" stop-color="#f7c84f"/><stop offset=".58" stop-color="#bd841b"/><stop offset=".82" stop-color="#ffe28a"/><stop offset="1" stop-color="#9b6410"/></linearGradient>
+ <linearGradient id="shine" x1="110" y1="100" x2="400" y2="400" gradientUnits="userSpaceOnUse"><stop stop-color="#fff9dc"/><stop offset=".5" stop-color="#f2bd42"/><stop offset="1" stop-color="#a76d13"/></linearGradient>
+ <linearGradient id="black" x1="100" y1="35" x2="410" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#252525"/><stop offset=".38" stop-color="#080808"/><stop offset="1" stop-color="#000"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#e9ae35" stop-opacity=".22"/><stop offset="1" stop-color="#e9ae35" stop-opacity="0"/></radialGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<rect width="512" height="512" rx="104" fill="#030303"/><circle cx="256" cy="246" r="230" fill="url(#glow)"/>
+<path d="M256 34 435 88v135c0 126-76 207-179 253C153 430 77 349 77 223V88L256 34Z" fill="#000" stroke="#9b6719" stroke-width="26" opacity=".55" filter="url(#shadow)"/>
+<path d="M256 30 435 84v139c0 126-76 207-179 253C153 430 77 349 77 223V84L256 30Z" fill="url(#black)" stroke="url(#gold)" stroke-width="19" stroke-linejoin="round"/>
+<path d="M256 62 403 107v116c0 104-61 174-147 216-86-42-147-112-147-216V107L256 62Z" fill="#050505" stroke="#d69d2e" stroke-width="4"/>
+<g fill="url(#gold)" stroke="#fff0b6" stroke-width="2">
+<path d="M142 252h37v116h-37z"/><path d="M191 211h37v157h-37z"/><path d="M240 169h37v199h-37z"/><path d="M289 126h37v242h-37z"/>
+</g>
+<path d="M125 340c78-1 144-16 201-54 36-24 62-55 85-99" fill="none" stroke="url(#gold)" stroke-width="17" stroke-linecap="round"/>
+<path d="m374 175 49-23-4 54" fill="none" stroke="url(#shine)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="256" cy="355" r="72" fill="#080808" stroke="url(#gold)" stroke-width="12"/>
+<circle cx="256" cy="355" r="59" fill="#17120a" stroke="#f5c34b" stroke-width="4"/>
+<circle cx="256" cy="355" r="49" fill="none" stroke="#a8751a" stroke-width="3" stroke-dasharray="4 4"/>
+<path d="M237 315v80m18-80v80m-28-62h38c24 0 24 28 0 28h-38m0 0h42c25 0 24 31-1 31h-41" fill="none" stroke="url(#shine)" stroke-width="10" stroke-linecap="square"/>
+<path d="M256 30 263 43 278 46 267 56 270 71 256 64 242 71 245 56 234 46 249 43Z" fill="#fff1b2"/>
 </svg>
