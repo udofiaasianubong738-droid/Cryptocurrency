@@ -1,0 +1,17 @@
+{
+  "id": "/customer/welcome",
+  "name": "CryptoInvest",
+  "short_name": "CryptoInvest",
+  "description": "More than investing. Built on trust. Your secure CryptoInvest customer app.",
+  "start_url": "/customer/welcome",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#071638",
+  "theme_color": "#071638",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
