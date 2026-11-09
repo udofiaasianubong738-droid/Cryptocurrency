@@ -182,7 +182,7 @@ export default function CustomerPortal({ activeSection = "home" }: { activeSecti
         <div className="customer-private-note"><strong>Private account</strong><p>You can only access information permitted for your own account.</p></div>
         <button className="customer-signout" onClick={signOut} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
       </div>
-    </aside>
+    </aside></>}
 
     <div className={section === "home" ? "customer-main customer-main-home" : "customer-main"}>
       <header className="customer-topbar">
