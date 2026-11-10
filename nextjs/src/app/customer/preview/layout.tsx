@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const previewUrl = "https://cryptocurrency-customer-preview.admin-cryptoinvest.workers.dev";
+const previewUrl = "https://cryptocurrency-customer-preview.udofiaasianubong738.workers.dev";
 
 export const metadata: Metadata = {
   metadataBase: new URL(previewUrl),
@@ -10,25 +10,24 @@ export const metadata: Metadata = {
   applicationName: "CryptoInvest",
   manifest: "/customer-preview-manifest.webmanifest",
   icons: {
-    icon: [{ url: "/customer-app-icon.svg", type: "image/svg+xml", sizes: "any" }],
-    shortcut: [{ url: "/customer-app-icon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" }
+    ],
+    shortcut: [{ url: "/icon-192.png", type: "image/png", sizes: "192x192" }],
+    apple: [{ url: "/icon-192.png", type: "image/png", sizes: "192x192" }]
   },
   appleWebApp: {
     capable: true,
     title: "CryptoInvest",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "black-translucent"
   },
-  alternates: {
-    canonical: "/customer/preview",
-  },
-  robots: {
-    index: false,
-    follow: false,
-  },
+  alternates: { canonical: "/customer/preview" },
+  robots: { index: false, follow: false }
 };
 
 export default function CustomerPreviewLayout({
-  children,
+  children
 }: Readonly<{ children: React.ReactNode }>) {
   return children;
 }
